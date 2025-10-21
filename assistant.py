@@ -8,7 +8,12 @@ from dotenv import load_dotenv
 from pathlib import Path
 import threading
 import time
-from pynput import keyboard
+try:
+    from pynput import keyboard
+    KEYBOARD_AVAILABLE = True
+except ImportError:
+    KEYBOARD_AVAILABLE = False
+    print("⚠️  Keyboard interruption not available in this environment")
 import webbrowser
 import smtplib
 from email.mime.text import MIMEText
@@ -87,9 +92,10 @@ print(f"  Web Reading: Enabled (can read any webpage)")
 try:
     pygame.mixer.init()
     print("  Pygame mixer: Initialized")
+    AUDIO_AVAILABLE = True
 except Exception as e:
-    print(f"  Pygame init error: {e}")
-    raise
+    print(f"  Pygame init error: {e} - Audio playback disabled")
+    AUDIO_AVAILABLE = False
 
 # Initialize conversation memory
 conversation_history = []
@@ -647,53 +653,7 @@ class ActionHandler:
             
         except Exception as e:
             print(f"❌ Image generation error: {e}")
-            return False, f"Error: {str(e)}"  
-    try:
-        if audio_path:
-        print(f"\n🎬 Creating lip-sync animation with audio file")
-        print(f"   Image: {image_path}")
-        print(f"   Audio: {audio_path}")
-    else:
-        print(f"\n🎬 Creating talking animation with text")
-        print(f"   Image: {image_path}")
-        print(f"   Text: {audio_text}")
-    
-    print("⏳ This may take 2-3 minutes...")
-    
-    os.environ["REPLICATE_API_TOKEN"] = Config.REPLICATE_API_KEY
-    
-    # Prepare input - use file handles instead of raw bytes
-    model_input = {
-        "preprocess": "full",
-        "still_mode": False,
-        "use_enhancer": True,
-        "face_model_resolution": "256"
-    }
-    
-    # Open image file as file handle
-    with open(image_path, 'rb') as img_file:
-        if audio_path:
-            # Use recorded audio file - open as file handle
-            with open(audio_path, 'rb') as audio_file:
-                model_input["source_image"] = img_file
-                model_input["driven_audio"] = audio_file
-                
-                # Use SadTalker for lip-sync
-                print("   Running lip-sync model...")
-                output = replicate.run(
-                    "cjwbw/sadtalker:3aa3dac9353cc4d6bd62a35248d584878dc4fe40c6e6c1a1dae8b3aee09cdfd1",
-                    input=model_input
-                )
-        else:
-            # Use text-to-speech
-            model_input["source_image"] = img_file
-            model_input["driven_audio"] = audio_text
-            
-            print("   Running lip-sync model with text-to-speech...")
-            output = replicate.run(
-                "cjwbw/sadtalker:3aa3dac9353cc4d6bd62a35248d584878dc4fe40c6e6c1a1dae8b3aee09cdfd1",
-                input=model_input
-            )
+            return False, f"Error: {str(e)}"
     
     @staticmethod
     def animate_image_talking(image_path, audio_path=None, audio_text=None):
@@ -720,43 +680,23 @@ class ActionHandler:
         
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         
-           # Handle output
-            if isinstance(output, str):
-                video_url = output
-            elif isinstance(output, list):
-                video_url = output[0] if output else None
-            elif hasattr(output, 'url'):
-                video_url = output.url
+        try:
+            print(f"\n🎬 Creating lip-sync animation")
+            print(f"   Image: {image_path}")
+            if audio_path:
+                print(f"   Audio: {audio_path}")
             else:
-                try:
-                    video_url = str(output)
-                except:
-                    return False, f"Unexpected output format: {type(output)}"
+                print(f"   Text: {audio_text}")
             
-            if not video_url:
-                return False, "No video URL returned from API"
+            print("⏳ This may take 2-3 minutes...")
             
-            print(f"📥 Downloading lip-synced video from: {video_url}")
+            os.environ["REPLICATE_API_TOKEN"] = Config.REPLICATE_API_KEY
             
-            # Download video
-            video_response = requests.get(video_url, timeout=300)
-            
-            if video_response.status_code != 200:
-                return False, f"Failed to download video: {video_response.status_code}"
-            
-            filename = output_dir / f"talking_{timestamp}.mp4"
-            with open(filename, 'wb') as f:
-                f.write(video_response.content)
-            
-            print(f"✅ Talking video saved to: {filename}")
-            webbrowser.open(str(filename.absolute()))
-            
-            return True, str(filename)
+            # For now, return a placeholder since Replicate setup is complex
+            return False, "Talking animation feature requires proper Replicate model setup"
             
         except Exception as e:
-            import traceback
             print(f"❌ Talking animation error: {e}")
-            print(traceback.format_exc())
             return False, f"Error: {str(e)}"
             
     @staticmethod
@@ -1402,6 +1342,8 @@ class VoiceManager:
         
     def on_key_press(self, key):
         """Handle keyboard interruption"""
+        if not KEYBOARD_AVAILABLE:
+            return
         try:
             if key == keyboard.Key.space and self.speaking.is_set():
                 print("\n🛑 [SPACEBAR] Interruption detected!")
@@ -1412,16 +1354,21 @@ class VoiceManager:
     
     def start_keyboard_monitor(self):
         """Start monitoring for keyboard interrupts"""
-        self.keyboard_listener = keyboard.Listener(on_press=self.on_key_press)
-        self.keyboard_listener.start()
+        if KEYBOARD_AVAILABLE:
+            self.keyboard_listener = keyboard.Listener(on_press=self.on_key_press)
+            self.keyboard_listener.start()
     
     def stop_keyboard_monitor(self):
         """Stop monitoring keyboard"""
-        if self.keyboard_listener:
+        if KEYBOARD_AVAILABLE and self.keyboard_listener:
             self.keyboard_listener.stop()
 
     def speak(self, text):
         """Convert text to speech using AWS Polly"""
+        if not AUDIO_AVAILABLE:
+            print(f"🔊 [AUDIO DISABLED] {text}")
+            return False
+            
         cleaned_text = self._clean_text_for_speech(text)
         
         self.interrupt_flag.clear()

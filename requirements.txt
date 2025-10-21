@@ -1,0 +1,17 @@
+SpeechRecognition==3.14.3
+pygame==2.6.1
+python-dotenv==1.1.1
+pynput==1.8.1
+boto3==1.40.55
+requests==2.32.4
+beautifulsoup4==4.12.3
+PyPDF2==3.0.1
+python-docx==1.1.2
+pandas==2.2.3
+openpyxl==3.1.5
+opencv-python==4.10.0.84
+moviepy==1.0.3
+pydub==0.25.1
+googlesearch-python==1.2.5
+replicate==1.4.0
+awscli==1.42.55
