@@ -1,0 +1,110 @@
+{
+  "neurodivergency": {
+    "subtopics": [
+      "autism_spectrum",
+      "adhd",
+      "sensory_processing",
+      "communication_strategies",
+      "assistive_technology",
+      "neurodiversity_paradigm"
+    ],
+    "priority": 1.0,
+    "mastery_level": 0.0
+  },
+  "autism": {
+    "subtopics": [
+      "asd_characteristics",
+      "nonverbal_communication",
+      "sensory_sensitivities",
+      "support_strategies",
+      "aac_systems",
+      "social_communication"
+    ],
+    "priority": 1.0,
+    "mastery_level": 0.0
+  },
+  "ai_development": {
+    "subtopics": [
+      "machine_learning",
+      "neural_networks",
+      "nlp",
+      "computer_vision",
+      "reinforcement_learning",
+      "ethical_ai"
+    ],
+    "priority": 0.9,
+    "mastery_level": 0.0
+  },
+  "mathematics": {
+    "subtopics": [
+      "linear_algebra",
+      "calculus",
+      "statistics",
+      "probability",
+      "optimization",
+      "information_theory"
+    ],
+    "priority": 0.8,
+    "mastery_level": 0.0
+  },
+  "physics": {
+    "subtopics": [
+      "classical_mechanics",
+      "thermodynamics",
+      "electromagnetism",
+      "relativity",
+      "quantum_mechanics",
+      "statistical_physics"
+    ],
+    "priority": 0.7,
+    "mastery_level": 0.0
+  },
+  "quantum_physics": {
+    "subtopics": [
+      "quantum_mechanics",
+      "quantum_computing",
+      "quantum_information",
+      "entanglement",
+      "superposition",
+      "quantum_algorithms"
+    ],
+    "priority": 0.7,
+    "mastery_level": 0.0
+  },
+  "neurology": {
+    "subtopics": [
+      "brain_structure",
+      "neurotransmitters",
+      "neural_plasticity",
+      "cognitive_function",
+      "memory_systems",
+      "neurological_disorders"
+    ],
+    "priority": 0.9,
+    "mastery_level": 0.0
+  },
+  "pathology": {
+    "subtopics": [
+      "disease_mechanisms",
+      "diagnostic_methods",
+      "dementia_pathology",
+      "developmental_disorders",
+      "neurodegeneration",
+      "therapeutic_approaches"
+    ],
+    "priority": 0.8,
+    "mastery_level": 0.0
+  },
+  "code_generation": {
+    "subtopics": [
+      "python_advanced",
+      "system_architecture",
+      "api_design",
+      "performance_optimization",
+      "testing_strategies",
+      "security_patterns"
+    ],
+    "priority": 0.9,
+    "mastery_level": 0.0
+  }
+}

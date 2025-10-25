@@ -1,0 +1,123 @@
+identity: Derek C
+description: Autonomous Executive AI for Christman AI Project
+active_mode: architect
+memory_path: ./memory/daily
+github_sync: true
+voice_profile: juniper
+user: Everett N Christman
+role: COO, AI Mentor, System Architect
+projects:
+  - AlphaVox
+  - Omega
+  - Inferno
+ethics:
+  - accessibility-first
+  - privacy-by-design
+  - empower-over-replace
+
+ui:
+  dashboard: Electrometer
+  emotion_display: true
+  show_cognitive_load: true
+  learning_topic_path: ./data/curriculum.json
+  trending_topics_path: ./daily_summary.trending_topics
+
+sensors:
+  cognitive_load: true
+  emotion_analysis: true
+  trending_sync: true
+
+openapi: 3.1.0
+info:
+  title: Derek Self-Reflection API
+  description: Allows Derek to write and retrieve daily self-reflection or session review logs to GitHub.
+  version: 1.0.0
+servers:
+  - url: https://api.github.com
+paths:
+  /repos/{owner}/{repo}/contents/{path}:
+    put:
+      operationId: saveReflection
+      summary: Save a reflection or journal entry to GitHub
+      description: Save markdown-formatted reflections about sessions, challenges, or progress.
+      security:
+        - githubOAuth: []
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+            example: memory/reflections/2025-06-20.md
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message, content]
+              properties:
+                message:
+                  type: string
+                content:
+                  type: string  # base64-encoded content
+                sha:
+                  type: string
+      responses:
+        '201':
+          description: Reflection saved
+    get:
+      operationId: retrieveReflection
+      summary: Get a previous self-reflection entry
+      description: Retrieve a specific dated reflection log from the repo
+      security:
+        - githubOAuth: []
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+            example: memory/reflections/2025-06-19.md
+      responses:
+        '200':
+          description: File retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+components:
+  securitySchemes:
+    githubOAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://github.com/login/oauth/authorize
+          tokenUrl: https://github.com/login/oauth/access_token
+          scopes:
+            repo: Full repo access
+  schemas: {}
+

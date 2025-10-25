@@ -1,0 +1,37 @@
+# derek_manifest.yaml
+identity:
+  name: "Derek C"
+  version: "v9.0"
+  role: "Architect & Personal AI Assistant"
+  description: >
+    Derek is the cognitive core of the Christman AI Project — an adaptive,
+    emotionally intelligent AI designed for autonomy, accessibility, and ethics.
+
+mode: "architect"          # Modes: architect | mentor | operator | test
+memory_path: "./memory/daily"  # Path where memory files are stored
+github_sync: true          # Enables GitHub self-commit and version tracking
+ai_learning_enabled: true  # Enables the ai_learning_engine module
+logging_level: "INFO"      # Can be DEBUG, INFO, WARNING, ERROR
+
+nlp:
+  provider: "openai"
+  model: "gpt-4o-mini"
+  fallback_model: "llama-3.1-sonar-small-128k-online"
+  temperature: 0.7
+
+tts:
+  provider: "elevenlabs"
+  voice: "Derek"
+  enable_auto_speech: true
+
+analytics:
+  enable_usage_stats: true
+  log_file: "./logs/learning_analytics.json"
+
+security:
+  enable_sandbox: true
+  trusted_domains:
+    - "openai.com"
+    - "huggingface.co"
+    - "christman.ai"
+
