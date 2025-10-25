@@ -1,0 +1,272 @@
+[
+  {
+    "text": "Speech recognition (automatic speech recognition (ASR), computer speech recognition, or speech-to-text (STT)) is a sub-field of computational linguistics concerned with methods and technologies that translate spoken language into text or other interpretable forms.[1]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:11:58.718202"
+  },
+  {
+    "text": "Speech recognition applications include voice user interfaces, where the user speaks to a device, which \"listens\" and processes the audio. Common voice applications include interpreting commands for calling, call routing, home automation, and aircraft control. This is called direct voice input. Productivity applications including searching audio recordings, creating transcripts, and dictation.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:11:58.727525"
+  },
+  {
+    "text": "Speech recognition can be used to analyse speaker characteristics, such as identifying native language using pronunciation assessment.[2]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:11:58.727923"
+  },
+  {
+    "text": "Voice recognition[3][4][5] (speaker identification)[6][7][8] refers to identifying the speaker, rather than speech contents. Recognizing the speaker can simplify the task of translating speech in systems trained on a specific person's voice. It can also be used to authenticate the speaker as part of a security process.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:11:58.728975"
+  },
+  {
+    "text": "The library for web and native user interfaces",
+    "source": "https://react.dev/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.126796"
+  },
+  {
+    "text": "React lets you build user interfaces out of individual pieces called components. Create your own React components like Thumbnail, LikeButton, and Video. Then combine them into entire screens, pages, and apps.",
+    "source": "https://react.dev/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.127443"
+  },
+  {
+    "text": "Whether you work on your own or with thousands of other developers, using React feels the same. It is designed to let you seamlessly combine components written by independent people, teams, and organizations.",
+    "source": "https://react.dev/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.127824"
+  },
+  {
+    "text": "React components are JavaScript functions. Want to show some content conditionally? Use an if statement. Displaying a list? Try array map(). Learning React is learning programming.",
+    "source": "https://react.dev/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.128213"
+  },
+  {
+    "text": "This tutorial shows how to use TanStack DB to build a task manager with live queries, optimistic updates, and offline support, delivering a fast, resilient UX with less boilerplate than traditional React state management.",
+    "source": "https://blog.logrocket.com/tag/react/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.576645"
+  },
+  {
+    "text": "Follow this step-by-step guide to building a full-stack recipe application with TanStack Start, the new full-stack React framework.",
+    "source": "https://blog.logrocket.com/tag/react/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.577196"
+  },
+  {
+    "text": "React Router v7 is now more than routing. This guide explains its three modes\u2014declarative, data, and framework and how to choose the right one for your app.",
+    "source": "https://blog.logrocket.com/tag/react/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.577887"
+  },
+  {
+    "text": "React Server Components aim to simplify data fetching and boost performance, but quirks in caching and loading often turn simple apps into debugging puzzles.",
+    "source": "https://blog.logrocket.com/tag/react/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.578389"
+  },
+  {
+    "text": "Explore the new mode that introduced file-based routing in v7, why it remains optional, and when to use it or stick with a different approach.",
+    "source": "https://blog.logrocket.com/tag/react/",
+    "topics": [
+      "react development"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:04.578867"
+  },
+  {
+    "text": "Become a subscribing member today. Help us continue to bring \u201cthe science of a meaningful life\u201d to you and to millions around the globe.",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:08.325083"
+  },
+  {
+    "text": "Greater Good\nScience Center \u2022\nMagazine \u2022\nIn Action \u2022\nIn Education",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:08.330107"
+  },
+  {
+    "text": "It's harder to talk about diversity, equity, and inclusion in schools these days, but there might be other ways to frame the conversation.",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:08.330879"
+  },
+  {
+    "text": "Make the world a little better this month",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:08.331485"
+  },
+  {
+    "text": "A free online resource for educators.",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:08.332078"
+  },
+  {
+    "text": "Artificial intelligence (AI) is the capability of computational systems to perform tasks typically associated with human intelligence, such as learning, reasoning, problem-solving, perception, and decision-making. It is a field of research in computer science that develops and studies methods and software that enable machines to perceive their environment and use learning and intelligence to take actions that maximize their chances of achieving defined goals.[1]",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:13.375396"
+  },
+  {
+    "text": "High-profile applications of AI include advanced web search engines (e.g., Google Search); recommendation systems (used by YouTube, Amazon, and Netflix); virtual assistants (e.g., Google Assistant, Siri, and Alexa); autonomous vehicles (e.g., Waymo); generative and creative tools (e.g., language models and AI art); and superhuman play and analysis in strategy games (e.g., chess and Go). However, many AI applications are not perceived as AI: \"A lot of cutting edge AI has filtered into general applications, often without being called AI because once something becomes useful enough and common enough it's not labeled AI anymore.\"[2][3]",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:13.376229"
+  },
+  {
+    "text": "Various subfields of AI research are centered around particular goals and the use of particular tools. The traditional goals of AI research include learning, reasoning, knowledge representation, planning, natural language processing, perception, and support for robotics.[a] To reach these goals, AI researchers have adapted and integrated a wide range of techniques, including search and mathematical optimization, formal logic, artificial neural networks, and methods based on statistics, operations research, and economics.[b] AI also draws upon psychology, linguistics, philosophy, neuroscience, and other fields.[4] Some companies, such as OpenAI, Google DeepMind and Meta,[5] aim to create artificial general intelligence (AGI)\u2014AI that can complete virtually any cognitive task at least as well as a human.",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:13.376814"
+  },
+  {
+    "text": "Artificial intelligence was founded as an academic discipline in 1956,[6] and the field went through multiple cycles of optimism throughout its history,[7][8] followed by periods of disappointment and loss of funding, known as AI winters.[9][10] Funding and interest vastly increased after 2012 when graphics processing units started being used to accelerate neural networks and deep learning outperformed previous AI techniques.[11] This growth accelerated further after 2017 with the transformer architecture.[12] In the 2020s, an ongoing period of rapid progress in advanced generative AI became known as the AI boom. Generative AI's ability to create and modify content has led to several unintended consequences and harms, which has raised ethical concerns about AI's long-term effects and potential existential risks, prompting discussions about regulatory policies to ensure the safety and benefits of the technology.",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:13.377396"
+  },
+  {
+    "text": "A weekly newsletter that helps demystify artificial intelligence.",
+    "source": "https://www.technologyreview.com/topic/artificial-intelligence/",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:13.747462"
+  },
+  {
+    "text": "Speech recognition (automatic speech recognition (ASR), computer speech recognition, or speech-to-text (STT)) is a sub-field of computational linguistics concerned with methods and technologies that translate spoken language into text or other interpretable forms.[1]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:17.518240"
+  },
+  {
+    "text": "Speech recognition applications include voice user interfaces, where the user speaks to a device, which \"listens\" and processes the audio. Common voice applications include interpreting commands for calling, call routing, home automation, and aircraft control. This is called direct voice input. Productivity applications including searching audio recordings, creating transcripts, and dictation.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:17.519522"
+  },
+  {
+    "text": "Speech recognition can be used to analyse speaker characteristics, such as identifying native language using pronunciation assessment.[2]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:17.520693"
+  },
+  {
+    "text": "Voice recognition[3][4][5] (speaker identification)[6][7][8] refers to identifying the speaker, rather than speech contents. Recognizing the speaker can simplify the task of translating speech in systems trained on a specific person's voice. It can also be used to authenticate the speaker as part of a security process.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-09T15:12:17.521870"
+  }
+]

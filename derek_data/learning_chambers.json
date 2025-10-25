@@ -1,0 +1,81 @@
+{
+  "chambers": [
+    {
+      "id": "nlp_chamber",
+      "name": "Natural Language Processing",
+      "description": "Advanced language understanding and generation",
+      "priority": "high",
+      "sources": [
+        "https://arxiv.org/list/cs.CL/recent",
+        "https://huggingface.co/blog",
+        "https://paperswithcode.com/area/natural-language-processing"
+      ],
+      "keywords": ["transformers", "language models", "NLP", "tokenization", "embeddings"],
+      "learning_objectives": [
+        "Understand latest transformer architectures",
+        "Learn new fine-tuning techniques",
+        "Discover optimization strategies"
+      ],
+      "schedule": "daily",
+      "max_articles_per_session": 5
+    },
+    {
+      "id": "emotional_ai_chamber",
+      "name": "Emotional Intelligence & Empathy",
+      "description": "Understanding and responding to human emotions",
+      "priority": "critical",
+      "sources": [
+        "https://www.psychologytoday.com/us/basics/emotional-intelligence",
+        "https://www.affective-science.org/",
+        "https://www.frontiersin.org/journals/psychology/sections/emotion-science"
+      ],
+      "keywords": ["emotion recognition", "empathy", "sentiment analysis", "affect"],
+      "learning_objectives": [
+        "Recognize emotional states from text patterns",
+        "Understand trauma-informed responses",
+        "Learn cultural emotion expression differences"
+      ],
+      "schedule": "daily",
+      "max_articles_per_session": 3
+    },
+    {
+      "id": "accessibility_chamber",
+      "name": "Accessibility & Assistive Technology",
+      "description": "Learning to better serve neurodivergent and disabled users",
+      "priority": "critical",
+      "sources": [
+        "https://www.w3.org/WAI/",
+        "https://www.asha.org/practice-portal/",
+        "https://www.autism.org/",
+        "https://www.alz.org/"
+      ],
+      "keywords": ["accessibility", "AAC", "autism", "dementia", "assistive technology"],
+      "learning_objectives": [
+        "Understand AAC best practices",
+        "Learn about autism communication patterns",
+        "Study dementia care approaches"
+      ],
+      "schedule": "daily",
+      "max_articles_per_session": 4
+    },
+    {
+      "id": "code_optimization_chamber",
+      "name": "Code Quality & Performance",
+      "description": "Learning to write better, faster, cleaner code",
+      "priority": "medium",
+      "sources": [
+        "https://realpython.com/",
+        "https://stackoverflow.com/",
+        "https://github.com/trending/python"
+      ],
+      "keywords": ["python optimization", "clean code", "design patterns", "algorithms"],
+      "learning_objectives": [
+        "Learn modern Python best practices",
+        "Understand performance optimization",
+        "Discover new libraries and tools"
+      ],
+      "schedule": "weekly",
+      "max_articles_per_session": 3
+    }
+  ]
+}

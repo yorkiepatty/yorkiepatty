@@ -1,0 +1,18 @@
+[
+  {
+    "module": "unknown",
+    "issue": "attribute_error",
+    "description": "AttributeError: dummy has no attribute x",
+    "solution": "Check if the object is properly initialized and the attribute exists",
+    "severity": "high",
+    "timestamp": "2025-10-14T20:50:55.039082"
+  },
+  {
+    "module": "unknown",
+    "issue": "attribute_error",
+    "description": "AttributeError: dummy has no attribute x",
+    "solution": "Check if the object is properly initialized and the attribute exists",
+    "severity": "high",
+    "timestamp": "2025-10-19T00:34:12.712279"
+  }
+]

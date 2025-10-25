@@ -1,0 +1,84 @@
+{
+  "mcpServers": {
+    "perplexity": {
+      "command": "python3",
+      "args": [
+        "/Users/EverettN/DerekMCPServer/perplexity_mcp_simple.py"
+      ],
+      "env": {
+        "PERPLEXITY_API_KEY": "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",
+        "PERPLEXITY_WEBHOOK_SECRET": "zSgAbN8F7TASHk0C8HG1KmHWxOE36AlSTw9UOuTgTgM",
+        "PERPLEXITY_MODEL": "sonar-pro",
+        "PERPLEXITY_TEMPERATURE": "0.2",
+        "PERPLEXITY_MAX_TOKENS": "500",
+        "PERPLEXITY_TOP_P": "0.9",
+        "DEREK_MODE": "autism_support",
+        "LOG_LEVEL": "INFO",
+        "MCP_SERVER_NAME": "perplexity-autism-support"
+      }
+    },
+    "perplexity-dev": {
+      "command": "python3", 
+      "args": [
+        "/Users/EverettN/DerekMCPServer/perplexity_mcp_simple.py"
+      ],
+      "env": {
+        "PERPLEXITY_API_KEY": "",
+        "PERPLEXITY_MODEL": "sonar-small",
+        "PERPLEXITY_TEMPERATURE": "0.1",
+        "PERPLEXITY_MAX_TOKENS": "300",
+        "DEREK_MODE": "development",
+        "LOG_LEVEL": "DEBUG"
+      }
+    }
+  },
+  "advanced": {
+    "perplexity_configuration": {
+      "server_name": "Perplexity AI MCP Server for Derek",
+      "description": "Model Context Protocol server providing Perplexity AI integration for Derek's autism support system",
+      "version": "2.0.0",
+      "capabilities": [
+        "autism_support_queries",
+        "educational_content_generation", 
+        "communication_aids_creation",
+        "voice_analysis_interpretation",
+        "real_time_research",
+        "contextual_responses"
+      ],
+      "models": {
+        "production": {
+          "primary": "sonar-pro",
+          "fallback": "sonar",
+          "reasoning": "sonar-reasoning"
+        },
+        "development": {
+          "primary": "sonar-small", 
+          "fallback": "sonar"
+        }
+      },
+      "deployment": {
+        "mode": "standalone",
+        "auto_restart": true,
+        "health_check_interval": 30,
+        "max_memory_mb": 512,
+        "timeout_seconds": 120,
+        "rate_limits": {
+          "requests_per_minute": 60,
+          "tokens_per_minute": 30000
+        }
+      },
+      "security": {
+        "require_webhook_secret": true,
+        "enable_cors": true,
+        "allowed_origins": ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:8000"],
+        "api_rate_limit": "100/minute"
+      },
+      "autism_support": {
+        "specialized_prompts": true,
+        "sensory_considerations": true,
+        "communication_adaptations": true,
+        "educational_tailoring": true
+      }
+    }
+  }
+}
