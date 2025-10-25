@@ -1,0 +1,327 @@
+openapi: 3.0.3
+info:
+  title: Derek's Learning Engine API
+  description: |
+    HIPAA-compliant autonomous learning engine for Derek AI system.
+    Enables continuous learning across multiple domains including neurodivergency, 
+    autism support, AI development, mathematics, physics, and neurology.
+    
+    Features:
+    - AI provider cascade (Anthropic → OpenAI → Perplexity → Ollama → Local)
+    - Encrypted knowledge storage for HIPAA compliance
+    - Comprehensive audit logging
+    - Real-time learning status monitoring
+  version: 1.0.0
+  contact:
+    name: The Christman AI Project
+    url: https://github.com/EverettNC/DerekC-Alpha
+  license:
+    name: Proprietary
+    url: https://github.com/EverettNC/DerekC-Alpha/blob/main/LICENSE
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.derek-learning.com
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check for ECS and monitoring
+      description: Returns system health status for load balancers and monitoring
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+      security: []
+
+  /learning/status:
+    get:
+      tags:
+        - Learning Engine
+      summary: Get current learning engine status
+      description: |
+        Returns comprehensive status of the autonomous learning engine including:
+        - Current learning state (active/paused)
+        - Learning progress across all domains
+        - Domain-specific mastery levels
+        - Generated modules and improvements
+      responses:
+        '200':
+          description: Current learning status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningStatus'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /learning/queue:
+    post:
+      tags:
+        - Learning Engine
+      summary: Queue a specific learning topic
+      description: |
+        Queue a specific domain and subtopic for immediate learning.
+        The topic will be prioritized in the learning queue.
+        
+        Valid domains include:
+        - neurodivergency
+        - autism
+        - ai_development
+        - mathematics
+        - physics
+        - quantum_physics
+        - neurology
+        - pathology
+        - code_generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningTopic'
+      responses:
+        '200':
+          description: Topic successfully queued for learning
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueResponse'
+        '400':
+          description: Invalid domain or subtopic
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall health status
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check timestamp
+        engine_active:
+          type: boolean
+          description: Whether the learning engine is operational
+        memory_available:
+          type: boolean
+          description: Whether memory system is available
+      required: [status]
+      example:
+        status: healthy
+        timestamp: "2025-10-19T08:00:00Z"
+        engine_active: true
+        memory_available: true
+
+    LearningStatus:
+      type: object
+      properties:
+        learning_active:
+          type: boolean
+          description: Whether autonomous learning is currently active
+        current_topic:
+          type: object
+          nullable: true
+          description: Currently learning topic (null if not learning)
+          properties:
+            domain:
+              type: string
+            subtopic:
+              type: string
+            priority:
+              type: number
+        total_topics:
+          type: integer
+          minimum: 0
+          description: Total number of topics in curriculum
+        learned_topics:
+          type: integer
+          minimum: 0
+          description: Number of topics already learned
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Overall learning progress (0.0 to 1.0)
+        domain_mastery:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 1
+          description: Mastery level for each domain (0.0 to 1.0)
+        generated_modules:
+          type: integer
+          minimum: 0
+          description: Number of code modules generated through learning
+        improvements_made:
+          type: integer
+          minimum: 0
+          description: Number of system improvements implemented
+      required:
+        - learning_active
+        - total_topics
+        - learned_topics
+        - progress
+        - domain_mastery
+        - generated_modules
+        - improvements_made
+      example:
+        learning_active: true
+        current_topic:
+          domain: "neurodivergency"
+          subtopic: "autism_spectrum"
+          priority: 1.0
+        total_topics: 54
+        learned_topics: 12
+        progress: 0.22
+        domain_mastery:
+          neurodivergency: 0.45
+          autism: 0.38
+          ai_development: 0.15
+        generated_modules: 3
+        improvements_made: 7
+
+    LearningTopic:
+      type: object
+      properties:
+        domain:
+          type: string
+          description: Knowledge domain to learn
+          enum:
+            - neurodivergency
+            - autism
+            - ai_development
+            - mathematics
+            - physics
+            - quantum_physics
+            - neurology
+            - pathology
+            - code_generation
+        subtopic:
+          type: string
+          description: Specific subtopic within the domain
+          minLength: 1
+        priority:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 1.0
+          description: Learning priority (0.0 = low, 1.0 = high)
+      required: [domain, subtopic]
+      example:
+        domain: "neurodivergency"
+        subtopic: "autism_spectrum"
+        priority: 1.0
+
+    QueueResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [queued]
+          description: Queue operation status
+        domain:
+          type: string
+          description: Queued domain
+        subtopic:
+          type: string
+          description: Queued subtopic
+        queued_at:
+          type: string
+          format: date-time
+          description: When the topic was queued
+      required: [status, domain, subtopic]
+      example:
+        status: "queued"
+        domain: "neurodivergency"
+        subtopic: "autism_spectrum"
+        queued_at: "2025-10-19T08:30:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: Internal error code for debugging
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+      required: [detail]
+      example:
+        detail: "Invalid domain: invalid_domain"
+        error_code: "VALIDATION_ERROR"
+        timestamp: "2025-10-19T08:30:00Z"
+
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  anyOf:
+                    - type: string
+                    - type: integer
+              msg:
+                type: string
+              type:
+                type: string
+      example:
+        detail:
+          - loc: ["body", "domain"]
+            msg: "field required"
+            type: "value_error.missing"
+
+tags:
+  - name: System
+    description: System health and monitoring endpoints
+  - name: Learning Engine
+    description: Autonomous learning engine operations

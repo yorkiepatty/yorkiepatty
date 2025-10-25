@@ -1,0 +1,676 @@
+2025-10-19 00:37:33,769 [INFO] 📂 Memories loaded from disk
+2025-10-19 00:37:33,769 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 00:37:33,770 [INFO]    Working Memory: 0 items
+2025-10-19 00:37:33,770 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 00:37:33,770 [INFO]    Semantic Memory: 0 facts
+2025-10-19 00:37:33,770 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 00:37:33,770 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 00:37:33,770 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 00:37:33,771 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 00:37:33,771 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 00:37:33,771 [INFO]    Knowledge domains: 9
+2025-10-19 00:37:33,771 [INFO]    Learning curriculum: 54 topics
+2025-10-19 00:37:33,771 [INFO] 🧠 Entering autonomous learning mode...
+2025-10-19 00:37:33,771 [INFO] 🚀 Autonomous learning started!
+2025-10-19 00:37:33,772 [INFO] 📚 Learning: neurodivergency - autism_spectrum
+2025-10-19 00:37:33,772 [INFO] 🔍 Researching autism_spectrum...
+2025-10-19 00:37:33,772 [INFO] ✅ Learned 0 key concepts
+2025-10-19 00:37:33,773 [INFO] 💾 Saved knowledge base: 1 topics
+2025-10-19 00:37:33,773 [ERROR] Failed to store knowledge in memory mesh: store() got an unexpected keyword argument 'category'
+2025-10-19 00:37:33,773 [ERROR] Learning error: store() got an unexpected keyword argument 'category'
+2025-10-19 00:37:38,774 [INFO] ============================================================
+2025-10-19 00:37:38,774 [INFO] 🎓 DEREK'S LEARNING PROGRESS REPORT
+2025-10-19 00:37:38,774 [INFO] ============================================================
+2025-10-19 00:37:38,774 [INFO] Learning Status: 🟢 ACTIVE
+2025-10-19 00:37:38,774 [INFO] Topics Learned: 1/54 (1.9%)
+2025-10-19 00:37:38,775 [INFO] Generated Modules: 0
+2025-10-19 00:37:38,775 [INFO] Improvements Made: 0
+2025-10-19 00:37:38,775 [INFO] Currently Learning: neurodivergency - autism_spectrum
+2025-10-19 00:37:38,775 [INFO] 
+📊 Domain Mastery Levels:
+2025-10-19 00:37:38,775 [INFO]   neurodivergency      [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   autism               [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   ai_development       [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   mathematics          [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   physics              [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   quantum_physics      [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   neurology            [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   pathology            [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO]   code_generation      [░░░░░░░░░░░░░░░░░░░░] 0.0%
+2025-10-19 00:37:38,775 [INFO] 
+✅ Recent Improvements:
+2025-10-19 00:37:38,775 [INFO] ============================================================
+2025-10-19 00:37:38,776 [INFO] ⏸️ Autonomous learning paused
+2025-10-19 07:40:13,006 [INFO] 📂 Memories loaded from disk
+2025-10-19 07:40:13,007 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 07:40:13,007 [INFO]    Working Memory: 0 items
+2025-10-19 07:40:13,007 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 07:40:13,007 [INFO]    Semantic Memory: 0 facts
+2025-10-19 07:40:13,008 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 07:40:13,008 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 07:40:13,008 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 07:40:13,009 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 07:40:13,010 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 07:40:13,010 [INFO]    Knowledge domains: 9
+2025-10-19 07:40:13,010 [INFO]    Learning curriculum: 54 topics
+2025-10-19 07:40:27,202 [INFO] 📂 Memories loaded from disk
+2025-10-19 07:40:27,202 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 07:40:27,202 [INFO]    Working Memory: 0 items
+2025-10-19 07:40:27,202 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 07:40:27,202 [INFO]    Semantic Memory: 0 facts
+2025-10-19 07:40:27,202 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 07:40:27,202 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 07:40:27,202 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 07:40:27,203 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 07:40:27,203 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 07:40:27,203 [INFO]    Knowledge domains: 9
+2025-10-19 07:40:27,203 [INFO]    Learning curriculum: 54 topics
+2025-10-19 07:40:27,204 [INFO] 🧠 Entering autonomous learning mode...
+2025-10-19 07:40:27,204 [INFO] 🚀 Autonomous learning started!
+2025-10-19 07:40:27,204 [INFO] 📚 Learning: neurodivergency - autism_spectrum
+2025-10-19 07:40:27,204 [INFO] 🔍 Researching autism_spectrum...
+2025-10-19 07:40:27,204 [INFO] ✅ Learned 0 key concepts
+2025-10-19 07:40:27,206 [INFO] 💾 Saved knowledge base: 1 topics
+2025-10-19 07:40:27,206 [INFO] 💾 Stored: [learning] Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 07:40:27,206 [INFO] 💾 Stored memory: Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 07:40:27,207 [INFO] Stored knowledge in memory mesh: neurodivergency.autism_spectrum
+2025-10-19 07:40:27,207 [INFO] 📊 neurodivergency mastery: 8.3%
+2025-10-19 07:40:27,207 [INFO] 🔧 Analyzing improvements for autism_spectrum...
+2025-10-19 07:40:27,207 [INFO] ♿ Analyzing accessibility improvements...
+2025-10-19 07:40:30,204 [INFO] ⏸️ Autonomous learning paused
+2025-10-19 07:44:17,311 [INFO] 📂 Memories loaded from disk
+2025-10-19 07:44:17,312 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 07:44:17,312 [INFO]    Working Memory: 0 items
+2025-10-19 07:44:17,312 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 07:44:17,312 [INFO]    Semantic Memory: 0 facts
+2025-10-19 07:44:17,312 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 07:44:17,313 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 07:44:17,313 [INFO] 🏠 No API keys found - will use Ollama local fallback
+2025-10-19 07:44:17,313 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 07:44:17,313 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 07:44:17,313 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 07:44:17,313 [INFO]    Knowledge domains: 9
+2025-10-19 07:44:17,314 [INFO]    Learning curriculum: 54 topics
+2025-10-19 07:44:17,314 [INFO] 🧠 Entering autonomous learning mode...
+2025-10-19 07:44:17,314 [INFO] 🚀 Autonomous learning started!
+2025-10-19 07:44:17,314 [INFO] 📚 Learning: neurodivergency - autism_spectrum
+2025-10-19 07:44:17,315 [INFO] 🔍 Researching autism_spectrum...
+2025-10-19 07:44:17,315 [INFO] 🏠 Using Ollama local model for research...
+2025-10-19 07:44:17,878 [WARNING] ❌ No Ollama models available
+2025-10-19 07:44:17,879 [WARNING] ⚠️ All AI providers failed, using local knowledge fallback
+2025-10-19 07:44:17,880 [INFO] ✅ Learned 10 key concepts
+2025-10-19 07:44:17,884 [INFO] 💾 Saved knowledge base: 1 topics
+2025-10-19 07:44:17,885 [INFO] 💾 Stored: [learning] Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 07:44:17,885 [INFO] 💾 Stored memory: Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 07:44:17,886 [INFO] Stored knowledge in memory mesh: neurodivergency.autism_spectrum
+2025-10-19 07:44:17,886 [INFO] 📊 neurodivergency mastery: 8.3%
+2025-10-19 07:44:17,886 [INFO] 🔧 Analyzing improvements for autism_spectrum...
+2025-10-19 07:44:17,887 [INFO] ♿ Analyzing accessibility improvements...
+2025-10-19 07:44:22,315 [INFO] ⏸️ Autonomous learning paused
+2025-10-19 08:04:13,530 [INFO] 📂 Memories loaded from disk
+2025-10-19 08:04:13,531 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 08:04:13,531 [INFO]    Working Memory: 0 items
+2025-10-19 08:04:13,531 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 08:04:13,532 [INFO]    Semantic Memory: 0 facts
+2025-10-19 08:04:13,532 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 08:04:13,532 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 08:04:13,532 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 08:04:13,532 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 08:04:13,533 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 08:04:13,533 [INFO]    Knowledge domains: 9
+2025-10-19 08:04:13,533 [INFO]    Learning curriculum: 54 topics
+2025-10-19 08:04:13,533 [INFO] 🔍 Researching autism_communication_strategies...
+2025-10-19 08:04:13,533 [INFO] ✅ Learned 0 key concepts
+2025-10-19 08:04:13,534 [INFO] 🧠 Entering autonomous learning mode...
+2025-10-19 08:04:13,534 [INFO] 🚀 Autonomous learning started!
+2025-10-19 08:04:13,534 [INFO] 📚 Learning: neurodivergency - autism_spectrum
+2025-10-19 08:04:13,534 [INFO] 🔍 Researching autism_spectrum...
+2025-10-19 08:04:13,535 [INFO] ✅ Learned 0 key concepts
+2025-10-19 08:04:13,535 [INFO] 💾 Saved knowledge base: 1 topics
+2025-10-19 08:04:13,536 [INFO] 💾 Stored: [learning] Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 08:04:13,536 [INFO] 💾 Stored memory: Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 08:04:13,536 [INFO] Stored knowledge in memory mesh: neurodivergency.autism_spectrum
+2025-10-19 08:04:13,536 [INFO] 📊 neurodivergency mastery: 8.3%
+2025-10-19 08:04:13,536 [INFO] 🔧 Analyzing improvements for autism_spectrum...
+2025-10-19 08:04:13,537 [INFO] ♿ Analyzing accessibility improvements...
+2025-10-19 08:05:58,221 [INFO] 📂 Memories loaded from disk
+2025-10-19 08:05:58,221 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 08:05:58,221 [INFO]    Working Memory: 0 items
+2025-10-19 08:05:58,222 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 08:05:58,222 [INFO]    Semantic Memory: 0 facts
+2025-10-19 08:05:58,222 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 08:05:58,222 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 08:05:58,222 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 08:05:58,223 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 08:05:58,223 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 08:05:58,223 [INFO]    Knowledge domains: 9
+2025-10-19 08:05:58,223 [INFO]    Learning curriculum: 54 topics
+2025-10-19 08:05:58,223 [INFO] 🔍 Researching autism_communication_strategies...
+2025-10-19 08:05:58,223 [INFO] ✅ Learned 0 key concepts
+2025-10-19 08:05:58,224 [INFO] 🧠 Entering autonomous learning mode...
+2025-10-19 08:05:58,224 [INFO] 🚀 Autonomous learning started!
+2025-10-19 08:05:58,224 [INFO] 📚 Learning: neurodivergency - autism_spectrum
+2025-10-19 08:05:58,224 [INFO] 🔍 Researching autism_spectrum...
+2025-10-19 08:05:58,225 [INFO] ✅ Learned 0 key concepts
+2025-10-19 08:05:58,225 [INFO] 💾 Saved knowledge base: 1 topics
+2025-10-19 08:05:58,226 [INFO] 💾 Stored: [learning] Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 08:05:58,226 [INFO] 💾 Stored memory: Learned about autism_spectrum: Domain: neurodiverg...
+2025-10-19 08:05:58,226 [INFO] Stored knowledge in memory mesh: neurodivergency.autism_spectrum
+2025-10-19 08:05:58,226 [INFO] 📊 neurodivergency mastery: 8.3%
+2025-10-19 08:05:58,226 [INFO] 🔧 Analyzing improvements for autism_spectrum...
+2025-10-19 08:05:58,226 [INFO] ♿ Analyzing accessibility improvements...
+2025-10-19 08:06:29,419 [INFO] 📂 Memories loaded from disk
+2025-10-19 08:06:29,419 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 08:06:29,419 [INFO]    Working Memory: 0 items
+2025-10-19 08:06:29,420 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 08:06:29,420 [INFO]    Semantic Memory: 0 facts
+2025-10-19 08:06:29,420 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 08:06:29,420 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 08:06:29,420 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 08:06:29,420 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 08:06:29,421 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 08:06:29,421 [INFO]    Knowledge domains: 9
+2025-10-19 08:06:29,421 [INFO]    Learning curriculum: 54 topics
+2025-10-19 08:06:55,649 [INFO] 📂 Memories loaded from disk
+2025-10-19 08:06:55,650 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 08:06:55,650 [INFO]    Working Memory: 0 items
+2025-10-19 08:06:55,650 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 08:06:55,650 [INFO]    Semantic Memory: 0 facts
+2025-10-19 08:06:55,650 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 08:06:55,650 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 08:06:55,650 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 08:06:55,651 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 08:06:55,651 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 08:06:55,651 [INFO]    Knowledge domains: 9
+2025-10-19 08:06:55,651 [INFO]    Learning curriculum: 54 topics
+2025-10-19 08:20:36,960 [INFO] 📂 Memories loaded from disk
+2025-10-19 08:20:36,961 [INFO] 🧠 Memory Mesh initialized
+2025-10-19 08:20:36,961 [INFO]    Working Memory: 0 items
+2025-10-19 08:20:36,961 [INFO]    Episodic Memory: 0 experiences
+2025-10-19 08:20:36,961 [INFO]    Semantic Memory: 0 facts
+2025-10-19 08:20:36,961 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-19 08:20:36,961 [INFO] Derek initialized with MemoryMeshBridge
+2025-10-19 08:20:36,961 [INFO] AutonomousLearningEngine initialized with Derek
+2025-10-19 08:20:36,962 [INFO] 📂 Loaded 1 learned topics
+2025-10-19 08:20:36,962 [INFO] 🎓 Autonomous Learning Engine initialized
+2025-10-19 08:20:36,962 [INFO]    Knowledge domains: 9
+2025-10-19 08:20:36,962 [INFO]    Learning curriculum: 54 topics
+2025-10-23 04:32:07,829 [INFO] 🧠 Loading Derek's complete consciousness...
+2025-10-23 04:32:07,829 [INFO] ============================================================
+2025-10-23 04:32:07,829 [INFO] 
+📦 Loading consciousness...
+2025-10-23 04:32:08,205 [INFO] Using advanced NLP mode
+2025-10-23 04:32:08,226 [INFO] PerplexityService initialized with model: sonar-pro
+2025-10-23 04:32:08,226 [INFO] Perplexity API initialized successfully
+2025-10-23 04:32:08,312 [ERROR]   ❌ brain: No module named 'newspaper'
+2025-10-23 04:32:08,330 [INFO] No existing memory file found, starting fresh.
+2025-10-23 04:32:08,330 [INFO] Conversation engine initialized
+2025-10-23 04:32:08,330 [INFO] ✅ Derek initialized with memory engine at: ./memory/daily
+2025-10-23 04:32:08,330 [INFO]   ✅ derek_identity
+2025-10-23 04:32:08,331 [INFO]   ✅ local_reasoning_engine
+2025-10-23 04:32:08,331 [INFO]   ✅ reasoning_engine
+2025-10-23 04:32:08,331 [INFO]   ✅ cognitive_bridge
+2025-10-23 04:32:08,332 [INFO]   ✅ core
+2025-10-23 04:32:08,332 [INFO]   ✅ proactive_intelligence
+2025-10-23 04:32:08,332 [INFO] 
+📦 Loading music...
+2025-10-23 04:32:08,339 [WARNING] 🎹 MIDI library not available - using note-based alternatives
+2025-10-23 04:32:08,339 [INFO]   ✅ derek_music_engine
+2025-10-23 04:32:08,339 [INFO]   ✅ derek_vocal_interface
+2025-10-23 04:32:08,340 [INFO]   ✅ derek_music_studio
+2025-10-23 04:32:08,340 [INFO] 
+📦 Loading memory...
+2025-10-23 04:32:08,340 [INFO]   ✅ memory_engine
+2025-10-23 04:32:08,370 [INFO]   ✅ memory_manager
+2025-10-23 04:32:08,373 [INFO]   ✅ memory_router
+2025-10-23 04:32:08,373 [INFO]   ✅ memory_hook
+2025-10-23 04:32:08,374 [INFO]   ✅ memory
+2025-10-23 04:32:08,374 [INFO]   ✅ memory_backup
+2025-10-23 04:32:08,374 [INFO]   ✅ memory_mesh
+2025-10-23 04:32:08,374 [INFO]   ✅ memory_mesh_bridge
+2025-10-23 04:32:08,374 [INFO] 
+📦 Loading learning...
+2025-10-23 04:32:08,648 [INFO] Loaded 57 memory entries.
+2025-10-23 04:32:08,649 [INFO]   ✅ ai_learning_engine
+2025-10-23 04:32:08,649 [INFO]   ✅ advanced_learning
+2025-10-23 04:32:09,202 [INFO] Advanced Learning System initialized
+2025-10-23 04:32:09,202 [INFO] Derek Learning Coordinator initialized
+2025-10-23 04:32:09,202 [INFO]   ✅ derek_learning_coordinator
+2025-10-23 04:32:10,591 [INFO] Claude client initialized
+2025-10-23 04:32:10,591 [WARNING] Perplexity client initialization failed: PerplexityClient() takes no arguments
+2025-10-23 04:32:10,607 [INFO]   ✅ learning_analytics
+2025-10-23 04:32:10,607 [INFO]   ✅ learning_utils
+2025-10-23 04:32:10,607 [INFO]   ✅ knowledge_engine
+2025-10-23 04:32:10,608 [INFO]   ✅ knowledge_integration
+2025-10-23 04:32:10,608 [INFO]   ✅ derek_knowledge_engine
+2025-10-23 04:32:10,608 [INFO]   ✅ autonomous_learning_engine
+2025-10-23 04:32:10,608 [INFO] 
+📦 Loading emotion...
+2025-10-23 04:32:10,609 [INFO]   ✅ tone_manager
+2025-10-23 04:32:10,609 [INFO]   ✅ emotion
+2025-10-23 04:32:10,609 [INFO]   ✅ behavioral_interpreter
+2025-10-23 04:32:10,611 [INFO]   ✅ behaviors_interpreter
+2025-10-23 04:32:10,611 [INFO]   ⏭️  behavior_capturer (hardware-dependent)
+2025-10-23 04:32:10,612 [INFO]   ✅ adaptive_conversation
+2025-10-23 04:32:10,612 [INFO]   ✅ emotion_tagging
+2025-10-23 04:32:10,612 [INFO] 
+📦 Loading temporal...
+2025-10-23 04:32:10,612 [INFO]   ✅ engine_temporal
+2025-10-23 04:32:10,612 [INFO]   ⏭️  alphavox_temporal (hardware-dependent)
+2025-10-23 04:32:10,612 [INFO]   ⏭️  audio_pattern_service (hardware-dependent)
+2025-10-23 04:32:10,612 [INFO] 
+📦 Loading vision...
+2025-10-23 04:32:10,612 [INFO]   ⏭️  vision_engine (hardware-dependent)
+2025-10-23 04:32:10,612 [INFO]   ⏭️  facial_gesture_service (hardware-dependent)
+2025-10-23 04:32:10,612 [INFO]   ⏭️  real_eye_tracking (hardware-dependent)
+2025-10-23 04:32:10,613 [INFO] 👁️ Derek Eye Tracking API initialized
+2025-10-23 04:32:10,613 [INFO] Conversation Bridge initialized with persona: default
+2025-10-23 04:32:10,613 [INFO]   ✅ eye_tracking_api
+2025-10-23 04:32:10,613 [INFO] 
+📦 Loading speech...
+2025-10-23 04:32:10,621 [INFO]   ✅ advanced_tts_service
+2025-10-23 04:32:10,621 [INFO]   ⏭️  alphavox_speech_module (hardware-dependent)
+2025-10-23 04:32:10,622 [INFO]   ✅ enhanced_speech_recognition
+2025-10-23 04:32:10,622 [INFO]   ⏭️  real_speech_recognition (hardware-dependent)
+2025-10-23 04:32:10,622 [INFO]   ⏭️  audio_processor (hardware-dependent)
+2025-10-23 04:32:10,622 [INFO]   ✅ voice_analysis_service
+2025-10-23 04:32:10,643 [INFO]   ✅ derek_ultimate_voice
+2025-10-23 04:32:10,643 [INFO]   ✅ tts_service
+2025-10-23 04:32:10,643 [INFO]   ✅ tts_bridge
+2025-10-23 04:32:10,929 [INFO] Found credentials in environment variables.
+2025-10-23 04:32:10,996 [INFO]   ✅ tts_bridget
+2025-10-23 04:32:10,997 [INFO]   ✅ speech_recognition_engine
+2025-10-23 04:32:10,997 [INFO]   ✅ voice_synthesis
+2025-10-23 04:32:11,039 [ERROR]   ❌ transcriber: No module named 'webrtcvad'
+2025-10-23 04:32:11,039 [INFO] 
+📦 Loading gesture...
+2025-10-23 04:32:11,040 [INFO]   ✅ gesture_manager
+2025-10-23 04:32:11,040 [INFO]   ✅ gesture_dictionary
+2025-10-23 04:32:11,040 [INFO]   ✅ nonverbal_expertiser
+2025-10-23 04:32:11,040 [INFO] 
+📦 Loading conversation...
+2025-10-23 04:32:11,040 [INFO]   ✅ conversation_engine
+2025-10-23 04:32:11,041 [INFO]   ✅ conversation_bridge
+2025-10-23 04:32:11,041 [ERROR]   ❌ conversation_loop: No module named 'newspaper'
+2025-10-23 04:32:11,042 [INFO]   ✅ conversation_old
+2025-10-23 04:32:11,042 [INFO] 
+📦 Loading language...
+2025-10-23 04:32:11,042 [INFO]   ✅ language_service
+2025-10-23 04:32:11,042 [INFO]   ✅ nlp_module
+2025-10-23 04:32:11,042 [INFO]   ✅ nlp_integration
+2025-10-23 04:32:11,043 [INFO]   ✅ nlu_core
+2025-10-23 04:32:11,043 [INFO] 
+📦 Loading internet...
+2025-10-23 04:32:11,043 [ERROR]   ❌ internet_mode: No module named 'newspaper'
+2025-10-23 04:32:11,807 [INFO]   ✅ Python_Internet_access
+2025-10-23 04:32:11,807 [INFO]   ✅ perplexity_service
+2025-10-23 04:32:11,808 [ERROR]   ❌ web_crawler: No module named 'newspaper'
+2025-10-23 04:32:11,808 [INFO] 
+📦 Loading reasoning...
+2025-10-23 04:32:11,808 [INFO]   ✅ intent_engine
+2025-10-23 04:32:11,809 [INFO]   ✅ reflective_planner
+2025-10-23 04:32:11,809 [INFO] Conversation Bridge initialized with persona: default
+2025-10-23 04:32:11,809 [INFO]   ✅ input_analyzer
+2025-10-23 04:32:11,810 [INFO]   ✅ derek_local_reasoning
+2025-10-23 04:32:11,810 [INFO] 
+📦 Loading autonomous...
+2025-10-23 04:32:11,810 [ERROR]   ❌ derek_autonomous_system: No module named 'aioschedule'
+2025-10-23 04:32:11,810 [INFO]   ✅ self_modifying_code
+2025-10-23 04:32:11,812 [INFO]   ✅ executor
+2025-10-23 04:32:11,812 [INFO]   ✅ interpreter
+2025-10-23 04:32:11,812 [INFO]   ✅ self_repair
+2025-10-23 04:32:11,812 [INFO] 
+📦 Loading web...
+2025-10-23 04:32:11,812 [INFO]   ✅ app
+2025-10-23 04:32:11,882 [ERROR]   ❌ api: No module named 'flask_cors'
+2025-10-23 04:32:11,883 [INFO]   ✅ endpoints
+2025-10-23 04:32:11,883 [INFO]   ✅ derek_ui
+2025-10-23 04:32:11,884 [INFO]   ✅ middleware
+2025-10-23 04:32:11,884 [INFO]   ✅ router
+2025-10-23 04:32:11,885 [ERROR]   ❌ routes: No module named 'newspaper'
+2025-10-23 04:32:11,885 [INFO]   ✅ backenddirect
+2025-10-23 04:32:11,886 [INFO]   ✅ derekdirect
+2025-10-23 04:32:11,886 [INFO] 
+📦 Loading utilities...
+2025-10-23 04:32:11,886 [INFO]   ✅ helpers
+2025-10-23 04:32:11,887 [INFO]   ✅ logger
+2025-10-23 04:32:11,887 [INFO]   ✅ json_guardian
+2025-10-23 04:32:11,887 [INFO]   ✅ boot_guardian
+2025-10-23 04:32:12,047 [INFO]   ✅ db
+2025-10-23 04:32:12,047 [INFO]   ✅ database
+2025-10-23 04:32:12,048 [INFO]   ✅ check_env
+2025-10-23 04:32:12,048 [INFO]   ✅ config
+2025-10-23 04:32:12,049 [INFO]   ✅ settings
+2025-10-23 04:32:12,064 [ERROR]   ❌ structure: Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8000), [Errno 61] Connect call failed ('::1', 8000, 0, 0)
+2025-10-23 04:32:12,064 [INFO]   ✅ module
+2025-10-23 04:32:12,065 [INFO]   ✅ add_footer
+2025-10-23 04:32:12,065 [INFO]   ✅ validators
+2025-10-23 04:32:12,065 [INFO] 
+📦 Loading scheduling...
+2025-10-23 04:32:12,065 [INFO]   ✅ action_scheduler
+2025-10-23 04:32:12,065 [INFO]   ✅ dispatcher
+2025-10-23 04:32:12,066 [INFO]   ✅ loop
+2025-10-23 04:32:12,066 [INFO] 
+📦 Loading integrations...
+2025-10-23 04:32:12,066 [INFO]   ✅ github_integration
+2025-10-23 04:32:12,067 [INFO]   ✅ moldbit
+2025-10-23 04:32:12,067 [INFO] 
+📦 Loading analytics...
+2025-10-23 04:32:12,373 [INFO]   ✅ analytics_engine
+2025-10-23 04:32:12,373 [INFO] 
+📦 Loading boot...
+2025-10-23 04:32:12,373 [ERROR]   ❌ derek_boot: No module named 'aioschedule'
+2025-10-23 04:32:12,374 [INFO]   ✅ derek_autonomy_boot
+2025-10-23 04:32:12,376 [INFO] 🧠 Loading Derek's complete consciousness...
+2025-10-23 04:32:12,376 [INFO] ============================================================
+2025-10-23 04:32:12,376 [INFO] 
+📦 Loading consciousness...
+2025-10-23 04:32:12,377 [ERROR]   ❌ brain: No module named 'newspaper'
+2025-10-23 04:32:12,377 [INFO]   ✅ derek_identity
+2025-10-23 04:32:12,377 [INFO]   ✅ local_reasoning_engine
+2025-10-23 04:32:12,377 [INFO]   ✅ reasoning_engine
+2025-10-23 04:32:12,377 [INFO]   ✅ cognitive_bridge
+2025-10-23 04:32:12,377 [INFO]   ✅ core
+2025-10-23 04:32:12,377 [INFO]   ✅ proactive_intelligence
+2025-10-23 04:32:12,377 [INFO] 
+📦 Loading music...
+2025-10-23 04:32:12,377 [INFO]   ✅ derek_music_engine
+2025-10-23 04:32:12,378 [INFO]   ✅ derek_vocal_interface
+2025-10-23 04:32:12,378 [INFO]   ✅ derek_music_studio
+2025-10-23 04:32:12,378 [INFO] 
+📦 Loading memory...
+2025-10-23 04:32:12,378 [INFO]   ✅ memory_engine
+2025-10-23 04:32:12,378 [INFO]   ✅ memory_manager
+2025-10-23 04:32:12,378 [INFO]   ✅ memory_router
+2025-10-23 04:32:12,378 [INFO]   ✅ memory_hook
+2025-10-23 04:32:12,378 [INFO]   ✅ memory
+2025-10-23 04:32:12,378 [INFO]   ✅ memory_backup
+2025-10-23 04:32:12,378 [INFO]   ✅ memory_mesh
+2025-10-23 04:32:12,378 [INFO]   ✅ memory_mesh_bridge
+2025-10-23 04:32:12,378 [INFO] 
+📦 Loading learning...
+2025-10-23 04:32:12,378 [INFO]   ✅ ai_learning_engine
+2025-10-23 04:32:12,378 [INFO]   ✅ advanced_learning
+2025-10-23 04:32:12,378 [INFO]   ✅ derek_learning_coordinator
+2025-10-23 04:32:12,378 [INFO]   ✅ learning_analytics
+2025-10-23 04:32:12,378 [INFO]   ✅ learning_utils
+2025-10-23 04:32:12,379 [INFO]   ✅ knowledge_engine
+2025-10-23 04:32:12,379 [INFO]   ✅ knowledge_integration
+2025-10-23 04:32:12,379 [INFO]   ✅ derek_knowledge_engine
+2025-10-23 04:32:12,379 [INFO]   ✅ autonomous_learning_engine
+2025-10-23 04:32:12,379 [INFO] 
+📦 Loading emotion...
+2025-10-23 04:32:12,379 [INFO]   ✅ tone_manager
+2025-10-23 04:32:12,379 [INFO]   ✅ emotion
+2025-10-23 04:32:12,379 [INFO]   ✅ behavioral_interpreter
+2025-10-23 04:32:12,379 [INFO]   ✅ behaviors_interpreter
+2025-10-23 04:32:12,379 [INFO]   ⏭️  behavior_capturer (hardware-dependent)
+2025-10-23 04:32:12,379 [INFO]   ✅ adaptive_conversation
+2025-10-23 04:32:12,379 [INFO]   ✅ emotion_tagging
+2025-10-23 04:32:12,379 [INFO] 
+📦 Loading temporal...
+2025-10-23 04:32:12,379 [INFO]   ✅ engine_temporal
+2025-10-23 04:32:12,379 [INFO]   ⏭️  alphavox_temporal (hardware-dependent)
+2025-10-23 04:32:12,379 [INFO]   ⏭️  audio_pattern_service (hardware-dependent)
+2025-10-23 04:32:12,380 [INFO] 
+📦 Loading vision...
+2025-10-23 04:32:12,380 [INFO]   ⏭️  vision_engine (hardware-dependent)
+2025-10-23 04:32:12,380 [INFO]   ⏭️  facial_gesture_service (hardware-dependent)
+2025-10-23 04:32:12,380 [INFO]   ⏭️  real_eye_tracking (hardware-dependent)
+2025-10-23 04:32:12,380 [INFO]   ✅ eye_tracking_api
+2025-10-23 04:32:12,380 [INFO] 
+📦 Loading speech...
+2025-10-23 04:32:12,380 [INFO]   ✅ advanced_tts_service
+2025-10-23 04:32:12,380 [INFO]   ⏭️  alphavox_speech_module (hardware-dependent)
+2025-10-23 04:32:12,380 [INFO]   ✅ enhanced_speech_recognition
+2025-10-23 04:32:12,380 [INFO]   ⏭️  real_speech_recognition (hardware-dependent)
+2025-10-23 04:32:12,380 [INFO]   ⏭️  audio_processor (hardware-dependent)
+2025-10-23 04:32:12,380 [INFO]   ✅ voice_analysis_service
+2025-10-23 04:32:12,380 [INFO]   ✅ derek_ultimate_voice
+2025-10-23 04:32:12,380 [INFO]   ✅ tts_service
+2025-10-23 04:32:12,380 [INFO]   ✅ tts_bridge
+2025-10-23 04:32:12,380 [INFO]   ✅ tts_bridget
+2025-10-23 04:32:12,380 [INFO]   ✅ speech_recognition_engine
+2025-10-23 04:32:12,381 [INFO]   ✅ voice_synthesis
+2025-10-23 04:32:12,381 [ERROR]   ❌ transcriber: No module named 'webrtcvad'
+2025-10-23 04:32:12,381 [INFO] 
+📦 Loading gesture...
+2025-10-23 04:32:12,381 [INFO]   ✅ gesture_manager
+2025-10-23 04:32:12,381 [INFO]   ✅ gesture_dictionary
+2025-10-23 04:32:12,381 [INFO]   ✅ nonverbal_expertiser
+2025-10-23 04:32:12,381 [INFO] 
+📦 Loading conversation...
+2025-10-23 04:32:12,382 [INFO]   ✅ conversation_engine
+2025-10-23 04:32:12,382 [INFO]   ✅ conversation_bridge
+2025-10-23 04:32:12,382 [ERROR]   ❌ conversation_loop: No module named 'newspaper'
+2025-10-23 04:32:12,382 [INFO]   ✅ conversation_old
+2025-10-23 04:32:12,382 [INFO] 
+📦 Loading language...
+2025-10-23 04:32:12,383 [INFO]   ✅ language_service
+2025-10-23 04:32:12,383 [INFO]   ✅ nlp_module
+2025-10-23 04:32:12,383 [INFO]   ✅ nlp_integration
+2025-10-23 04:32:12,383 [INFO]   ✅ nlu_core
+2025-10-23 04:32:12,383 [INFO] 
+📦 Loading internet...
+2025-10-23 04:32:12,383 [ERROR]   ❌ internet_mode: No module named 'newspaper'
+2025-10-23 04:32:12,384 [INFO]   ✅ Python_Internet_access
+2025-10-23 04:32:12,384 [INFO]   ✅ perplexity_service
+2025-10-23 04:32:12,384 [ERROR]   ❌ web_crawler: No module named 'newspaper'
+2025-10-23 04:32:12,384 [INFO] 
+📦 Loading reasoning...
+2025-10-23 04:32:12,384 [INFO]   ✅ intent_engine
+2025-10-23 04:32:12,384 [INFO]   ✅ reflective_planner
+2025-10-23 04:32:12,384 [INFO]   ✅ input_analyzer
+2025-10-23 04:32:12,384 [INFO]   ✅ derek_local_reasoning
+2025-10-23 04:32:12,384 [INFO] 
+📦 Loading autonomous...
+2025-10-23 04:32:12,385 [ERROR]   ❌ derek_autonomous_system: No module named 'aioschedule'
+2025-10-23 04:32:12,385 [INFO]   ✅ self_modifying_code
+2025-10-23 04:32:12,385 [INFO]   ✅ executor
+2025-10-23 04:32:12,385 [INFO]   ✅ interpreter
+2025-10-23 04:32:12,385 [INFO]   ✅ self_repair
+2025-10-23 04:32:12,385 [INFO] 
+📦 Loading web...
+2025-10-23 04:32:12,385 [INFO]   ✅ app
+2025-10-23 04:32:12,386 [ERROR]   ❌ api: No module named 'flask_cors'
+2025-10-23 04:32:12,386 [INFO]   ✅ endpoints
+2025-10-23 04:32:12,386 [INFO]   ✅ derek_ui
+2025-10-23 04:32:12,386 [INFO]   ✅ middleware
+2025-10-23 04:32:12,386 [INFO]   ✅ router
+2025-10-23 04:32:12,387 [ERROR]   ❌ routes: No module named 'newspaper'
+2025-10-23 04:32:12,387 [INFO]   ✅ backenddirect
+2025-10-23 04:32:12,387 [INFO]   ✅ derekdirect
+2025-10-23 04:32:12,387 [INFO] 
+📦 Loading utilities...
+2025-10-23 04:32:12,387 [INFO]   ✅ helpers
+2025-10-23 04:32:12,387 [INFO]   ✅ logger
+2025-10-23 04:32:12,387 [INFO]   ✅ json_guardian
+2025-10-23 04:32:12,387 [INFO]   ✅ boot_guardian
+2025-10-23 04:32:12,387 [INFO]   ✅ db
+2025-10-23 04:32:12,387 [INFO]   ✅ database
+2025-10-23 04:32:12,387 [INFO]   ✅ check_env
+2025-10-23 04:32:12,387 [INFO]   ✅ config
+2025-10-23 04:32:12,387 [INFO]   ✅ settings
+2025-10-23 04:32:12,389 [ERROR]   ❌ structure: Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8000), [Errno 61] Connect call failed ('::1', 8000, 0, 0)
+2025-10-23 04:32:12,390 [INFO]   ✅ module
+2025-10-23 04:32:12,390 [INFO]   ✅ add_footer
+2025-10-23 04:32:12,390 [INFO]   ✅ validators
+2025-10-23 04:32:12,390 [INFO] 
+📦 Loading scheduling...
+2025-10-23 04:32:12,390 [INFO]   ✅ action_scheduler
+2025-10-23 04:32:12,390 [INFO]   ✅ dispatcher
+2025-10-23 04:32:12,390 [INFO]   ✅ loop
+2025-10-23 04:32:12,390 [INFO] 
+📦 Loading integrations...
+2025-10-23 04:32:12,390 [INFO]   ✅ github_integration
+2025-10-23 04:32:12,390 [INFO]   ✅ moldbit
+2025-10-23 04:32:12,390 [INFO] 
+📦 Loading analytics...
+2025-10-23 04:32:12,390 [INFO]   ✅ analytics_engine
+2025-10-23 04:32:12,390 [INFO] 
+📦 Loading boot...
+2025-10-23 04:32:12,391 [ERROR]   ❌ derek_boot: No module named 'aioschedule'
+2025-10-23 04:32:12,391 [INFO]   ✅ derek_autonomy_boot
+2025-10-23 04:32:12,391 [INFO]   ✅ main
+2025-10-23 04:32:12,391 [INFO]   ✅ run
+2025-10-23 04:32:12,391 [INFO] 
+📦 Loading alphavox...
+2025-10-23 04:32:12,391 [INFO]   ✅ alpha_interface
+2025-10-23 04:32:12,392 [INFO] 
+📦 Loading interaction...
+2025-10-23 04:32:12,392 [INFO]   ⏭️  face_to_face (hardware-dependent)
+2025-10-23 04:32:12,392 [INFO]   ✅ hotline
+2025-10-23 04:32:12,393 [INFO] 🧠 Derek Answer Engine initialized
+2025-10-23 04:32:12,394 [INFO]   ✅ answer
+2025-10-23 04:32:12,394 [INFO] 
+📦 Loading services...
+2025-10-23 04:32:12,394 [ERROR]   ❌ services.advanced_nlp_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,394 [INFO]   ✅ services.memory_service
+2025-10-23 04:32:12,394 [ERROR]   ❌ services.language_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,395 [ERROR]   ❌ services.learning_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,395 [ERROR]   ❌ services.personality_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,396 [ERROR]   ❌ services.sound_recognition_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,396 [ERROR]   ❌ services.speech_recognition_engine: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,396 [ERROR]   ❌ services.voice_analysis_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,397 [ERROR]   ❌ services.facial_gesture_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,397 [ERROR]   ❌ services.learning_analytics: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,397 [ERROR]   ❌ services.knowledge_integration: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,398 [ERROR]   ❌ services.clients: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,398 [ERROR]   ❌ services.route: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,398 [ERROR]   ❌ services: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:12,399 [ERROR]   ❌ server: SpeechRecognitionEngine.__init__() got an unexpected keyword argument 'simulate'
+2025-10-23 04:32:12,399 [INFO] 
+📦 Loading testing...
+2025-10-23 04:32:12,400 [INFO]   ✅ derek_system_test
+2025-10-23 04:32:12,401 [INFO]   ✅ test_proactive_derek
+2025-10-23 04:32:12,401 [INFO] 
+📦 Loading training...
+2025-10-23 04:32:19,266 [INFO]   ✅ train_lstm_model
+2025-10-23 04:32:19,682 [INFO]   ✅ train_models
+2025-10-23 04:32:19,682 [INFO] 
+📦 Loading diagnostics...
+2025-10-23 04:32:19,682 [INFO]   ✅ voice_diag
+2025-10-23 04:32:19,683 [INFO]   ✅ voice_diagnostics
+2025-10-23 04:32:19,683 [INFO] 
+📦 Loading servers...
+2025-10-23 04:32:19,683 [ERROR]   ❌ replit_mcp_server: No module named 'mcp'
+2025-10-23 04:32:19,683 [INFO] 
+📦 Loading experimental...
+2025-10-23 04:32:19,686 [ERROR]   ❌ yoside: Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8000), [Errno 61] Connect call failed ('::1', 8000, 0, 0)
+2025-10-23 04:32:19,687 [INFO]   ✅ module_audit
+2025-10-23 04:32:19,687 [INFO]   ✅ organize_project
+2025-10-23 04:32:19,687 [INFO] 
+📊 Module Loading Summary:
+2025-10-23 04:32:19,687 [INFO]   Total: 139
+2025-10-23 04:32:19,687 [INFO]   Loaded: 103
+2025-10-23 04:32:19,687 [INFO]   Skipped: 10
+2025-10-23 04:32:19,688 [INFO]   Failed: 26
+2025-10-23 04:32:19,688 [INFO] 
+🔧 Initializing module instances...
+2025-10-23 04:32:19,688 [INFO] Loaded 57 memory entries.
+2025-10-23 04:32:19,689 [INFO]   ✅ memory_engine instance created
+2025-10-23 04:32:19,689 [INFO]   ✅ tone_manager instance created
+2025-10-23 04:32:19,689 [INFO]   ✅ local_reasoning_engine instance created
+2025-10-23 04:32:19,689 [INFO] Conversation engine initialized
+2025-10-23 04:32:19,689 [INFO]   ✅ conversation_engine instance created
+2025-10-23 04:32:19,693 [INFO]   ✅ analytics_engine instance created
+2025-10-23 04:32:19,693 [INFO] 
+============================================================
+2025-10-23 04:32:19,693 [INFO] 🧠 DEREK CONSCIOUSNESS: 74.1% OPERATIONAL
+2025-10-23 04:32:19,693 [INFO] ============================================================
+2025-10-23 04:32:19,713 [INFO] PerplexityService initialized with model: sonar-pro
+2025-10-23 04:32:19,714 [ERROR] ❌ Failed to initialize DerekUltimateVoice: Could not find PyAudio; check installation
+2025-10-23 04:32:19,716 [INFO] 📂 Memories loaded from disk
+2025-10-23 04:32:19,716 [INFO] 🧠 Memory Mesh initialized
+2025-10-23 04:32:19,716 [INFO]    Working Memory: 0 items
+2025-10-23 04:32:19,716 [INFO]    Episodic Memory: 0 experiences
+2025-10-23 04:32:19,716 [INFO]    Semantic Memory: 0 facts
+2025-10-23 04:32:19,716 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-23 04:32:19,716 [INFO] 🧠 MemoryMeshBridge initialized from loaded modules
+2025-10-23 04:32:19,719 [INFO]   ✅ main
+2025-10-23 04:32:19,719 [INFO]   ✅ run
+2025-10-23 04:32:19,719 [INFO] 
+📦 Loading alphavox...
+2025-10-23 04:32:19,719 [INFO]   ✅ alpha_interface
+2025-10-23 04:32:19,719 [INFO] 
+📦 Loading interaction...
+2025-10-23 04:32:19,719 [INFO]   ⏭️  face_to_face (hardware-dependent)
+2025-10-23 04:32:19,719 [INFO]   ✅ hotline
+2025-10-23 04:32:19,719 [INFO]   ✅ answer
+2025-10-23 04:32:19,719 [INFO] 
+📦 Loading services...
+2025-10-23 04:32:19,720 [ERROR]   ❌ services.advanced_nlp_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,720 [INFO]   ✅ services.memory_service
+2025-10-23 04:32:19,720 [ERROR]   ❌ services.language_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,721 [ERROR]   ❌ services.learning_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,721 [ERROR]   ❌ services.personality_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,721 [ERROR]   ❌ services.sound_recognition_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,722 [ERROR]   ❌ services.speech_recognition_engine: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,722 [ERROR]   ❌ services.voice_analysis_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,723 [ERROR]   ❌ services.facial_gesture_service: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,723 [ERROR]   ❌ services.learning_analytics: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,723 [ERROR]   ❌ services.knowledge_integration: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,724 [ERROR]   ❌ services.clients: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,724 [ERROR]   ❌ services.route: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,724 [ERROR]   ❌ services: cannot import name 'Settings' from 'config.settings' (/Users/EverettN/DerekC-Alpha/config/settings.py)
+2025-10-23 04:32:19,725 [ERROR]   ❌ server: SpeechRecognitionEngine.__init__() got an unexpected keyword argument 'simulate'
+2025-10-23 04:32:19,725 [INFO] 
+📦 Loading testing...
+2025-10-23 04:32:19,725 [INFO]   ✅ derek_system_test
+2025-10-23 04:32:19,726 [INFO]   ✅ test_proactive_derek
+2025-10-23 04:32:19,726 [INFO] 
+📦 Loading training...
+2025-10-23 04:32:19,726 [INFO]   ✅ train_lstm_model
+2025-10-23 04:32:19,726 [INFO]   ✅ train_models
+2025-10-23 04:32:19,726 [INFO] 
+📦 Loading diagnostics...
+2025-10-23 04:32:19,726 [INFO]   ✅ voice_diag
+2025-10-23 04:32:19,726 [INFO]   ✅ voice_diagnostics
+2025-10-23 04:32:19,726 [INFO] 
+📦 Loading servers...
+2025-10-23 04:32:19,726 [ERROR]   ❌ replit_mcp_server: No module named 'mcp'
+2025-10-23 04:32:19,726 [INFO] 
+📦 Loading experimental...
+2025-10-23 04:32:19,729 [ERROR]   ❌ yoside: Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8000), [Errno 61] Connect call failed ('::1', 8000, 0, 0)
+2025-10-23 04:32:19,729 [INFO]   ✅ module_audit
+2025-10-23 04:32:19,729 [INFO]   ✅ organize_project
+2025-10-23 04:32:19,729 [INFO] 
+📊 Module Loading Summary:
+2025-10-23 04:32:19,729 [INFO]   Total: 139
+2025-10-23 04:32:19,729 [INFO]   Loaded: 103
+2025-10-23 04:32:19,729 [INFO]   Skipped: 10
+2025-10-23 04:32:19,729 [INFO]   Failed: 26
+2025-10-23 04:32:19,729 [INFO] 
+🔧 Initializing module instances...
+2025-10-23 04:32:19,730 [INFO] Loaded 57 memory entries.
+2025-10-23 04:32:19,730 [INFO]   ✅ memory_engine instance created
+2025-10-23 04:32:19,730 [INFO]   ✅ tone_manager instance created
+2025-10-23 04:32:19,730 [INFO]   ✅ local_reasoning_engine instance created
+2025-10-23 04:32:19,730 [INFO] Conversation engine initialized
+2025-10-23 04:32:19,730 [INFO]   ✅ conversation_engine instance created
+2025-10-23 04:32:19,733 [INFO]   ✅ analytics_engine instance created
+2025-10-23 04:32:19,734 [INFO] 
+============================================================
+2025-10-23 04:32:19,734 [INFO] 🧠 DEREK CONSCIOUSNESS: 74.1% OPERATIONAL
+2025-10-23 04:32:19,734 [INFO] ============================================================
+2025-10-23 04:32:19,754 [INFO] PerplexityService initialized with model: sonar-pro
+2025-10-23 04:32:19,755 [ERROR] ❌ Failed to initialize DerekUltimateVoice: Could not find PyAudio; check installation
+2025-10-23 04:32:19,756 [INFO] 📂 Memories loaded from disk
+2025-10-23 04:32:19,756 [INFO] 🧠 Memory Mesh initialized
+2025-10-23 04:32:19,756 [INFO]    Working Memory: 0 items
+2025-10-23 04:32:19,756 [INFO]    Episodic Memory: 0 experiences
+2025-10-23 04:32:19,756 [INFO]    Semantic Memory: 0 facts
+2025-10-23 04:32:19,757 [INFO] 🧠 Memory Mesh Bridge initialized
+2025-10-23 04:32:19,757 [INFO] 🧠 MemoryMeshBridge initialized from loaded modules
+2025-10-23 04:32:19,758 [INFO] ============================================================
+2025-10-23 04:32:19,758 [INFO] 🚀 Initializing Derek Dashboard
+2025-10-23 04:32:19,758 [INFO] The Christman AI Project - AI That Empowers
+2025-10-23 04:32:19,758 [INFO] ============================================================
+2025-10-23 04:32:19,758 [ERROR] ❌ Failed to initialize Derek: Derek.__init__() got an unexpected keyword argument 'file_path'
+2025-10-23 04:32:19,758 [ERROR] Fatal error: Derek.__init__() got an unexpected keyword argument 'file_path'
+Traceback (most recent call last):
+  File "/Users/EverettN/DerekC-Alpha/main.py", line 310, in main
+    dashboard = DerekDashboard()
+  File "/Users/EverettN/DerekC-Alpha/main.py", line 118, in __init__
+    self.derek = Derek(file_path="./memory/memory_store.json")
+TypeError: Derek.__init__() got an unexpected keyword argument 'file_path'
