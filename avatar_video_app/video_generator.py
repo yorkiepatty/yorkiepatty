@@ -504,7 +504,7 @@ class VideoGenerator:
                 else:
                     energy = abs(np.sin(t * 6 * np.pi)) * 0.8
 
-                # === 1. MOUTH MOVEMENT - Vertical stretch of lower face ===
+                # === 1. MOUTH MOVEMENT - Create lip separation effect ===
                 if energy > 0.1:
                     # Extract mouth region
                     mouth_region = frame[mouth_y_start:mouth_y_end, mouth_x_start:mouth_x_end].copy()
@@ -512,31 +512,63 @@ class VideoGenerator:
 
                     if mr_h > 20 and mr_w > 20:
                         # Calculate how much to open the mouth (more energy = more open)
-                        open_amount = int(mr_h * energy * 0.25)  # Up to 25% stretch
+                        open_pixels = int(mr_h * energy * 0.4)  # Up to 40% opening
 
-                        if open_amount > 2:
-                            # Split at middle and stretch lower half down
-                            mid = mr_h // 2
-                            upper = mouth_region[:mid, :]
-                            lower = mouth_region[mid:, :]
+                        if open_pixels > 3:
+                            # Create mouth opening by pulling lips apart from center
+                            lip_line = mr_h // 2  # Where the lips meet
 
-                            # Stretch lower portion
-                            new_lower_h = lower.shape[0] + open_amount
-                            lower_stretched = cv2.resize(lower, (mr_w, new_lower_h), interpolation=cv2.INTER_LINEAR)
+                            # Create destination map for remapping
+                            map_y = np.zeros((mr_h, mr_w), dtype=np.float32)
+                            map_x = np.zeros((mr_h, mr_w), dtype=np.float32)
 
-                            # Combine (take only what fits)
-                            combined_h = min(upper.shape[0] + lower_stretched.shape[0], mr_h + open_amount)
-                            combined = np.vstack([upper, lower_stretched])[:mr_h, :]
+                            for y in range(mr_h):
+                                for x in range(mr_w):
+                                    map_x[y, x] = x
 
-                            # Create smooth blend mask
+                                    # Calculate distance from lip line
+                                    dist_from_lip = y - lip_line
+
+                                    # Create opening effect - push pixels away from center
+                                    if dist_from_lip < 0:  # Above lip line - push up
+                                        # More push near the center, less at edges
+                                        center_factor = 1.0 - abs(x - mr_w/2) / (mr_w/2)
+                                        push = -open_pixels * 0.5 * center_factor * (1 - abs(dist_from_lip) / lip_line)
+                                        map_y[y, x] = y + push
+                                    else:  # Below lip line - push down
+                                        center_factor = 1.0 - abs(x - mr_w/2) / (mr_w/2)
+                                        push = open_pixels * 0.5 * center_factor * (1 - dist_from_lip / (mr_h - lip_line))
+                                        map_y[y, x] = y + push
+
+                            # Apply the remap
+                            opened_mouth = cv2.remap(mouth_region, map_x, map_y, cv2.INTER_LINEAR,
+                                                     borderMode=cv2.BORDER_REFLECT)
+
+                            # Add dark interior where mouth opens (center band)
+                            gap_center = lip_line
+                            gap_size = int(open_pixels * 0.3)
+                            if gap_size > 1:
+                                for gy in range(max(0, gap_center - gap_size), min(mr_h, gap_center + gap_size)):
+                                    # Fade the darkness towards edges
+                                    darkness = 1.0 - abs(gy - gap_center) / gap_size
+                                    for gx in range(mr_w):
+                                        # More dark in center, less at sides
+                                        x_factor = 1.0 - (abs(gx - mr_w/2) / (mr_w/2)) ** 2
+                                        blend = darkness * x_factor * 0.6
+                                        opened_mouth[gy, gx] = (
+                                            opened_mouth[gy, gx] * (1 - blend) +
+                                            np.array([30, 20, 40]) * blend
+                                        ).astype(np.uint8)
+
+                            # Create smooth blend mask (elliptical, centered)
                             mask = np.zeros((mr_h, mr_w), dtype=np.float32)
-                            cv2.ellipse(mask, (mr_w//2, mr_h//2), (mr_w//2 - 10, mr_h//2 - 10),
+                            cv2.ellipse(mask, (mr_w//2, mr_h//2), (mr_w//2 - 5, mr_h//2 - 5),
                                        0, 0, 360, 1.0, -1)
-                            mask = cv2.GaussianBlur(mask, (31, 31), 0)
+                            mask = cv2.GaussianBlur(mask, (21, 21), 0)
                             mask_3ch = np.stack([mask, mask, mask], axis=-1)
 
                             # Blend with original
-                            blended = (combined.astype(float) * mask_3ch +
+                            blended = (opened_mouth.astype(float) * mask_3ch +
                                        mouth_region.astype(float) * (1 - mask_3ch))
                             frame[mouth_y_start:mouth_y_end, mouth_x_start:mouth_x_end] = blended.astype(np.uint8)
 
