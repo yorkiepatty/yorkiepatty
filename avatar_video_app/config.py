@@ -4,6 +4,19 @@ Configuration for Avatar Video App
 import os
 from dataclasses import dataclass
 from typing import Optional
+from pathlib import Path
+
+# Load .env file
+try:
+    from dotenv import load_dotenv
+    # Look for .env in parent directories
+    env_path = Path(__file__).parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+    else:
+        load_dotenv()  # Try default locations
+except ImportError:
+    pass  # python-dotenv not installed
 
 @dataclass
 class AvatarConfig:
