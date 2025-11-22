@@ -1,0 +1,550 @@
+"""
+Video Generator - Creates talking avatar videos with lip-sync
+Supports multiple video generation backends
+"""
+import os
+import io
+import base64
+import json
+import aiohttp
+import asyncio
+from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
+from pathlib import Path
+from datetime import datetime
+import hashlib
+import tempfile
+import shutil
+
+from .config import config
+
+
+@dataclass
+class VideoResult:
+    """Result from video generation"""
+    success: bool
+    video_path: Optional[str] = None
+    video_url: Optional[str] = None
+    video_base64: Optional[str] = None
+    duration: float = 0.0
+    resolution: Optional[tuple] = None
+    provider: Optional[str] = None
+    status: str = "pending"  # pending, processing, completed, failed
+    job_id: Optional[str] = None
+    error: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class VideoGenerator:
+    """
+    Generates talking avatar videos from images and audio.
+    Uses AI-powered lip-sync technology.
+    """
+
+    def __init__(self):
+        self.config = config
+        self.output_dir = Path(config.output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.temp_dir = Path(config.temp_dir) / "video"
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+
+        self.providers = self._init_providers()
+        self._jobs = {}  # Track async jobs
+
+    def _init_providers(self) -> List[Dict[str, Any]]:
+        """Initialize video generation providers"""
+        providers = []
+
+        # D-ID API (talking avatars)
+        if config.did_api_key:
+            providers.append({
+                "name": "did",
+                "enabled": True,
+                "priority": 1,
+                "endpoint": "https://api.d-id.com/talks",
+                "max_duration": 180  # 3 minutes
+            })
+
+        # Local/placeholder generator
+        providers.append({
+            "name": "local",
+            "enabled": True,
+            "priority": 99,
+            "description": "Local video generator using OpenCV/FFmpeg"
+        })
+
+        return sorted(providers, key=lambda x: x.get("priority", 99))
+
+    def _generate_job_id(self) -> str:
+        """Generate unique job ID"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        random_part = hashlib.md5(os.urandom(8)).hexdigest()[:8]
+        return f"video_{timestamp}_{random_part}"
+
+    async def generate_video(
+        self,
+        avatar_image_path: str,
+        audio_path: str,
+        output_name: Optional[str] = None
+    ) -> VideoResult:
+        """
+        Generate a talking avatar video.
+
+        Args:
+            avatar_image_path: Path to avatar image
+            audio_path: Path to audio file
+            output_name: Optional custom output filename
+
+        Returns:
+            VideoResult with video data or job status
+        """
+        job_id = self._generate_job_id()
+
+        # Validate inputs
+        if not os.path.exists(avatar_image_path):
+            return VideoResult(
+                success=False,
+                error=f"Avatar image not found: {avatar_image_path}",
+                job_id=job_id
+            )
+
+        if not os.path.exists(audio_path):
+            return VideoResult(
+                success=False,
+                error=f"Audio file not found: {audio_path}",
+                job_id=job_id
+            )
+
+        # Try providers in order
+        for provider in self.providers:
+            if not provider.get("enabled"):
+                continue
+
+            if provider["name"] == "did":
+                result = await self._generate_with_did(
+                    avatar_image_path, audio_path, job_id, output_name
+                )
+                if result.success or result.status == "processing":
+                    return result
+
+            elif provider["name"] == "local":
+                result = await self._generate_local(
+                    avatar_image_path, audio_path, job_id, output_name
+                )
+                if result.success:
+                    return result
+
+        return VideoResult(
+            success=False,
+            error="All video generation providers failed",
+            job_id=job_id
+        )
+
+    async def _generate_with_did(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        job_id: str,
+        output_name: Optional[str]
+    ) -> VideoResult:
+        """Generate video using D-ID API"""
+        if not config.did_api_key:
+            return VideoResult(success=False, error="D-ID API key not configured")
+
+        try:
+            # Read and encode files
+            with open(avatar_path, "rb") as f:
+                image_b64 = base64.b64encode(f.read()).decode()
+
+            with open(audio_path, "rb") as f:
+                audio_b64 = base64.b64encode(f.read()).decode()
+
+            # Determine image type
+            image_ext = Path(avatar_path).suffix.lower()
+            image_type = "image/png" if image_ext == ".png" else "image/jpeg"
+
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "Authorization": f"Basic {config.did_api_key}",
+                    "Content-Type": "application/json"
+                }
+
+                # Create talk request
+                payload = {
+                    "source_url": f"data:{image_type};base64,{image_b64}",
+                    "script": {
+                        "type": "audio",
+                        "audio_url": f"data:audio/wav;base64,{audio_b64}"
+                    },
+                    "config": {
+                        "stitch": True,
+                        "result_format": "mp4"
+                    }
+                }
+
+                async with session.post(
+                    "https://api.d-id.com/talks",
+                    headers=headers,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    if response.status in [200, 201]:
+                        data = await response.json()
+                        did_id = data.get("id")
+
+                        # Store job info
+                        self._jobs[job_id] = {
+                            "provider": "did",
+                            "did_id": did_id,
+                            "status": "processing",
+                            "output_name": output_name
+                        }
+
+                        return VideoResult(
+                            success=True,
+                            status="processing",
+                            job_id=job_id,
+                            provider="did",
+                            metadata={
+                                "did_id": did_id,
+                                "message": "Video is being generated. Poll for status."
+                            }
+                        )
+                    else:
+                        error_text = await response.text()
+                        return VideoResult(
+                            success=False,
+                            error=f"D-ID API error: {response.status} - {error_text}"
+                        )
+
+        except Exception as e:
+            return VideoResult(success=False, error=f"D-ID error: {str(e)}")
+
+    async def check_job_status(self, job_id: str) -> VideoResult:
+        """Check status of async video generation job"""
+        if job_id not in self._jobs:
+            return VideoResult(
+                success=False,
+                error=f"Job not found: {job_id}",
+                job_id=job_id
+            )
+
+        job = self._jobs[job_id]
+
+        if job["provider"] == "did":
+            return await self._check_did_status(job_id, job)
+
+        return VideoResult(
+            success=False,
+            error=f"Unknown job provider: {job['provider']}",
+            job_id=job_id
+        )
+
+    async def _check_did_status(self, job_id: str, job: Dict) -> VideoResult:
+        """Check D-ID job status"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "Authorization": f"Basic {config.did_api_key}"
+                }
+
+                async with session.get(
+                    f"https://api.d-id.com/talks/{job['did_id']}",
+                    headers=headers
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        status = data.get("status")
+
+                        if status == "done":
+                            result_url = data.get("result_url")
+
+                            # Download video
+                            output_name = job.get("output_name") or job_id
+                            output_path = self.output_dir / f"{output_name}.mp4"
+
+                            async with session.get(result_url) as video_response:
+                                if video_response.status == 200:
+                                    video_data = await video_response.read()
+                                    with open(output_path, "wb") as f:
+                                        f.write(video_data)
+
+                                    # Cleanup job
+                                    del self._jobs[job_id]
+
+                                    return VideoResult(
+                                        success=True,
+                                        status="completed",
+                                        video_path=str(output_path),
+                                        video_url=result_url,
+                                        provider="did",
+                                        job_id=job_id,
+                                        metadata=data
+                                    )
+
+                        elif status in ["created", "started"]:
+                            return VideoResult(
+                                success=True,
+                                status="processing",
+                                job_id=job_id,
+                                provider="did",
+                                metadata={"did_status": status}
+                            )
+
+                        elif status == "error":
+                            del self._jobs[job_id]
+                            return VideoResult(
+                                success=False,
+                                status="failed",
+                                error=data.get("error", "Unknown D-ID error"),
+                                job_id=job_id
+                            )
+
+                    return VideoResult(
+                        success=False,
+                        error=f"Failed to check D-ID status: {response.status}"
+                    )
+
+        except Exception as e:
+            return VideoResult(success=False, error=f"Status check error: {str(e)}")
+
+    async def _generate_local(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        job_id: str,
+        output_name: Optional[str]
+    ) -> VideoResult:
+        """Generate video locally using OpenCV/FFmpeg"""
+        try:
+            output_name = output_name or job_id
+            output_path = self.output_dir / f"{output_name}.mp4"
+
+            # Check for required libraries
+            cv2_available = False
+            try:
+                import cv2
+                cv2_available = True
+            except ImportError:
+                pass
+
+            # Get audio duration
+            audio_duration = await self._get_audio_duration(audio_path)
+            if audio_duration <= 0:
+                audio_duration = 10  # Default fallback
+
+            if cv2_available:
+                result = await self._generate_with_opencv(
+                    avatar_path, audio_path, output_path, audio_duration
+                )
+            else:
+                result = await self._generate_with_ffmpeg(
+                    avatar_path, audio_path, output_path, audio_duration
+                )
+
+            if result and os.path.exists(output_path):
+                # Get video info
+                file_size = os.path.getsize(output_path)
+
+                with open(output_path, "rb") as f:
+                    video_b64 = base64.b64encode(f.read()).decode()
+
+                return VideoResult(
+                    success=True,
+                    status="completed",
+                    video_path=str(output_path),
+                    video_base64=video_b64,
+                    duration=audio_duration,
+                    provider="local",
+                    job_id=job_id,
+                    metadata={
+                        "file_size": file_size,
+                        "method": "opencv" if cv2_available else "ffmpeg"
+                    }
+                )
+
+            return VideoResult(
+                success=False,
+                error="Local video generation failed",
+                job_id=job_id
+            )
+
+        except Exception as e:
+            return VideoResult(success=False, error=f"Local generation error: {str(e)}")
+
+    async def _generate_with_opencv(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        output_path: Path,
+        duration: float
+    ) -> bool:
+        """Generate video using OpenCV with simple animation"""
+        try:
+            import cv2
+            import numpy as np
+
+            # Load avatar image
+            img = cv2.imread(avatar_path)
+            if img is None:
+                return False
+
+            # Resize to target resolution
+            target_h, target_w = 1920, 1080
+            img = cv2.resize(img, (target_w, target_h))
+
+            # Calculate frames
+            fps = config.video_fps
+            total_frames = int(duration * fps)
+
+            # Create temp video without audio
+            temp_video = str(self.temp_dir / f"temp_{os.path.basename(output_path)}")
+
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter(temp_video, fourcc, fps, (target_w, target_h))
+
+            # Generate frames with subtle animation
+            for frame_idx in range(total_frames):
+                frame = img.copy()
+
+                # Add subtle "talking" animation
+                t = frame_idx / fps
+
+                # Subtle scale pulse (simulating breathing/talking)
+                scale = 1.0 + 0.005 * np.sin(t * 4 * np.pi)
+
+                # Apply slight zoom effect
+                h, w = frame.shape[:2]
+                center = (w // 2, h // 2)
+                M = cv2.getRotationMatrix2D(center, 0, scale)
+                frame = cv2.warpAffine(frame, M, (w, h))
+
+                # Add subtle brightness variation (simulating expression)
+                brightness = int(5 * np.sin(t * 6 * np.pi))
+                frame = cv2.add(frame, np.ones_like(frame) * brightness, dtype=cv2.CV_8UC3)
+
+                out.write(frame)
+
+            out.release()
+
+            # Combine with audio using FFmpeg
+            try:
+                process = await asyncio.create_subprocess_exec(
+                    "ffmpeg", "-i", temp_video, "-i", audio_path,
+                    "-c:v", "libx264", "-c:a", "aac",
+                    "-shortest", "-y", str(output_path),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                await process.wait()
+
+                # Cleanup temp file
+                if os.path.exists(temp_video):
+                    os.remove(temp_video)
+
+                return os.path.exists(output_path)
+
+            except Exception:
+                # If FFmpeg fails, just use the video without audio
+                shutil.move(temp_video, str(output_path))
+                return True
+
+        except Exception as e:
+            print(f"OpenCV video generation error: {e}")
+            return False
+
+    async def _generate_with_ffmpeg(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        output_path: Path,
+        duration: float
+    ) -> bool:
+        """Generate video using FFmpeg directly"""
+        try:
+            # Create video from image + audio
+            process = await asyncio.create_subprocess_exec(
+                "ffmpeg",
+                "-loop", "1",
+                "-i", avatar_path,
+                "-i", audio_path,
+                "-c:v", "libx264",
+                "-tune", "stillimage",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-pix_fmt", "yuv420p",
+                "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
+                "-shortest",
+                "-y",
+                str(output_path),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+
+            stdout, stderr = await process.communicate()
+
+            return os.path.exists(output_path)
+
+        except Exception as e:
+            print(f"FFmpeg video generation error: {e}")
+            return False
+
+    async def _get_audio_duration(self, audio_path: str) -> float:
+        """Get audio duration in seconds"""
+        try:
+            import wave
+            with wave.open(audio_path, 'rb') as wav:
+                frames = wav.getnframes()
+                rate = wav.getframerate()
+                return frames / float(rate)
+        except Exception:
+            pass
+
+        # Try FFprobe
+        try:
+            process = await asyncio.create_subprocess_exec(
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                audio_path,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, _ = await process.communicate()
+            return float(stdout.decode().strip())
+        except Exception:
+            pass
+
+        return 0.0
+
+    def get_provider_status(self) -> Dict[str, Any]:
+        """Get status of video generation providers"""
+        return {
+            "providers": [
+                {
+                    "name": p["name"],
+                    "enabled": p.get("enabled", False),
+                    "priority": p.get("priority", 99)
+                }
+                for p in self.providers
+            ],
+            "did_configured": bool(config.did_api_key),
+            "pending_jobs": len(self._jobs)
+        }
+
+    def list_generated_videos(self) -> List[Dict[str, Any]]:
+        """List all generated videos"""
+        videos = []
+        for video_file in self.output_dir.glob("*.mp4"):
+            stat = video_file.stat()
+            videos.append({
+                "name": video_file.name,
+                "path": str(video_file),
+                "size": stat.st_size,
+                "created": datetime.fromtimestamp(stat.st_ctime).isoformat()
+            })
+        return sorted(videos, key=lambda x: x["created"], reverse=True)
+
+
+# Singleton instance
+video_generator = VideoGenerator()
