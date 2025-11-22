@@ -22,6 +22,10 @@ def main():
     try:
         import uvicorn
         from avatar_video_app.api import app
+        from avatar_video_app.config import config
+
+        # Check API key status
+        openai_status = "YES - Ready to generate!" if config.openai_api_key else "NO - Will use placeholder"
 
         print(f"""
 ╔══════════════════════════════════════════════════════════════╗
@@ -30,6 +34,8 @@ def main():
 ╠══════════════════════════════════════════════════════════════╣
 ║  API Server: http://{args.host}:{args.port}                          ║
 ║  API Docs:   http://{args.host}:{args.port}/docs                     ║
+║                                                               ║
+║  OpenAI API Key: {openai_status:<42} ║
 ║                                                               ║
 ║  Frontend:   cd frontend && npm install && npm run dev       ║
 ║              Then visit http://localhost:3000                 ║
