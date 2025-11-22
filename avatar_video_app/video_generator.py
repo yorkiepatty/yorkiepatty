@@ -312,16 +312,30 @@ class VideoGenerator:
 
     async def _check_ffmpeg(self) -> bool:
         """Check if FFmpeg is available"""
-        try:
-            process = await asyncio.create_subprocess_exec(
-                "ffmpeg", "-version",
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            await process.wait()
-            return process.returncode == 0
-        except Exception:
-            return False
+        # Check common FFmpeg paths on Windows
+        ffmpeg_paths = [
+            "ffmpeg",  # System PATH
+            r"C:\ffmpeg\ffmpeg-8.0-essentials_build\bin\ffmpeg.exe",  # User's install location
+            r"C:\ffmpeg\bin\ffmpeg.exe",
+        ]
+
+        for ffmpeg_cmd in ffmpeg_paths:
+            try:
+                process = await asyncio.create_subprocess_exec(
+                    ffmpeg_cmd, "-version",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                await process.wait()
+                if process.returncode == 0:
+                    self._ffmpeg_path = ffmpeg_cmd  # Store for later use
+                    print(f"[VIDEO] Found FFmpeg at: {ffmpeg_cmd}")
+                    return True
+            except FileNotFoundError:
+                continue
+            except Exception:
+                continue
+        return False
 
     async def _generate_local(
         self,
@@ -488,8 +502,9 @@ class VideoGenerator:
 
             # Combine with audio using FFmpeg
             try:
+                ffmpeg_cmd = getattr(self, '_ffmpeg_path', 'ffmpeg')
                 process = await asyncio.create_subprocess_exec(
-                    "ffmpeg", "-i", temp_video, "-i", audio_path,
+                    ffmpeg_cmd, "-i", temp_video, "-i", audio_path,
                     "-c:v", "libx264", "-c:a", "aac",
                     "-shortest", "-y", str(output_path),
                     stdout=asyncio.subprocess.PIPE,
@@ -521,9 +536,13 @@ class VideoGenerator:
     ) -> bool:
         """Generate video using FFmpeg directly"""
         try:
+            # Use stored FFmpeg path or default
+            ffmpeg_cmd = getattr(self, '_ffmpeg_path', 'ffmpeg')
+            print(f"[VIDEO] Using FFmpeg: {ffmpeg_cmd}")
+
             # Create video from image + audio
             process = await asyncio.create_subprocess_exec(
-                "ffmpeg",
+                ffmpeg_cmd,
                 "-loop", "1",
                 "-i", avatar_path,
                 "-i", audio_path,
@@ -542,7 +561,11 @@ class VideoGenerator:
 
             stdout, stderr = await process.communicate()
 
-            return os.path.exists(output_path)
+            if os.path.exists(output_path):
+                return True
+            else:
+                print(f"[VIDEO] FFmpeg stderr: {stderr.decode()[:500] if stderr else 'No output'}")
+                return False
 
         except Exception as e:
             print(f"FFmpeg video generation error: {e}")
@@ -559,20 +582,26 @@ class VideoGenerator:
         except Exception:
             pass
 
-        # Try FFprobe
-        try:
-            process = await asyncio.create_subprocess_exec(
-                "ffprobe", "-v", "error",
-                "-show_entries", "format=duration",
-                "-of", "default=noprint_wrappers=1:nokey=1",
-                audio_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, _ = await process.communicate()
-            return float(stdout.decode().strip())
-        except Exception:
-            pass
+        # Try FFprobe - derive path from ffmpeg path
+        ffprobe_paths = ["ffprobe"]
+        if hasattr(self, '_ffmpeg_path') and self._ffmpeg_path:
+            # Derive ffprobe path from ffmpeg path
+            ffprobe_paths.insert(0, self._ffmpeg_path.replace("ffmpeg", "ffprobe"))
+
+        for ffprobe_cmd in ffprobe_paths:
+            try:
+                process = await asyncio.create_subprocess_exec(
+                    ffprobe_cmd, "-v", "error",
+                    "-show_entries", "format=duration",
+                    "-of", "default=noprint_wrappers=1:nokey=1",
+                    audio_path,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, _ = await process.communicate()
+                return float(stdout.decode().strip())
+            except Exception:
+                continue
 
         return 0.0
 
