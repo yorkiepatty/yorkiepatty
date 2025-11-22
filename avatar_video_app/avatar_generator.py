@@ -40,6 +40,7 @@ class AvatarGenerator:
         self.config = config
         self.cache_dir = Path(config.temp_dir) / "avatar_cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.providers = self._init_providers()
 
     def _init_providers(self) -> List[Dict[str, Any]]:
         """Initialize available image generation providers"""
