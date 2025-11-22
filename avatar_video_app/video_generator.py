@@ -435,6 +435,7 @@ class VideoGenerator:
             # Load avatar image
             img = cv2.imread(avatar_path)
             if img is None:
+                print(f"[VIDEO] Failed to load image: {avatar_path}")
                 return False
 
             # Resize to target resolution (portrait mode for social media)
@@ -445,6 +446,8 @@ class VideoGenerator:
             fps = config.video_fps
             total_frames = int(duration * fps)
 
+            print(f"[VIDEO] Generating {total_frames} frames at {fps} fps...")
+
             # Create temp video without audio
             temp_video = str(self.temp_dir / f"temp_{os.path.basename(output_path)}")
 
@@ -454,56 +457,95 @@ class VideoGenerator:
             # Try to analyze audio for lip-sync timing
             audio_energy = await self._analyze_audio_energy(audio_path, total_frames)
 
+            # Define mouth region (lower center of image - works for faces and animals)
+            h, w = img.shape[:2]
+            mouth_center_y = int(h * 0.65)  # 65% down from top
+            mouth_center_x = w // 2
+            mouth_region_h = int(h * 0.15)  # Height of mouth region
+            mouth_region_w = int(w * 0.3)   # Width of mouth region
+
+            print(f"[VIDEO] Mouth region: center=({mouth_center_x}, {mouth_center_y}), size=({mouth_region_w}x{mouth_region_h})")
+
             # Generate frames with talking animation
             for frame_idx in range(total_frames):
                 frame = img.copy()
                 t = frame_idx / fps
 
-                # Get audio energy for this frame (simulates when "talking")
-                energy = audio_energy[frame_idx] if audio_energy else np.sin(t * 8 * np.pi) * 0.5 + 0.5
+                # Get audio energy for this frame
+                energy = audio_energy[frame_idx] if audio_energy else abs(np.sin(t * 8 * np.pi))
 
-                # 1. Subtle breathing/scale animation
-                breath_scale = 1.0 + 0.003 * np.sin(t * 1.5 * np.pi)
+                # === MOUTH MOVEMENT ===
+                # Create mouth opening effect by warping the lower portion
+                mouth_open = energy * 0.4  # How much the mouth opens (0-0.4)
 
-                # 2. Talking pulse - more prominent when audio is active
-                talk_scale = 1.0 + 0.008 * energy * np.sin(t * 12 * np.pi)
+                if mouth_open > 0.05:  # Only animate if there's significant audio
+                    # Define source and destination points for perspective warp
+                    # This creates a "jaw drop" effect
 
-                # Combined scale
-                scale = breath_scale * talk_scale
+                    # Region bounds
+                    y1 = max(0, mouth_center_y - mouth_region_h // 2)
+                    y2 = min(h, mouth_center_y + mouth_region_h // 2)
+                    x1 = max(0, mouth_center_x - mouth_region_w // 2)
+                    x2 = min(w, mouth_center_x + mouth_region_w // 2)
 
-                # 3. Slight head bob when talking
-                bob_y = int(5 * energy * np.sin(t * 6 * np.pi))
+                    # Extract mouth region
+                    mouth_region = frame[y1:y2, x1:x2].copy()
+                    mr_h, mr_w = mouth_region.shape[:2]
 
-                # Apply transformations
-                h, w = frame.shape[:2]
+                    if mr_h > 10 and mr_w > 10:
+                        # Calculate stretch amount
+                        stretch = int(mr_h * mouth_open * 0.3)
+
+                        # Stretch the lower half of mouth region vertically
+                        mid_y = mr_h // 2
+                        upper_part = mouth_region[:mid_y, :]
+                        lower_part = mouth_region[mid_y:, :]
+
+                        # Stretch lower part
+                        if stretch > 0 and lower_part.shape[0] > 0:
+                            new_lower_h = lower_part.shape[0] + stretch
+                            lower_stretched = cv2.resize(lower_part, (mr_w, new_lower_h))
+
+                            # Create new mouth region with stretched lower part
+                            new_mouth = np.vstack([upper_part, lower_stretched[:lower_part.shape[0] + stretch//2, :]])
+
+                            # Resize back to original size and blend
+                            new_mouth_resized = cv2.resize(new_mouth, (mr_w, mr_h))
+
+                            # Blend with original using a gradient mask for smooth edges
+                            mask = np.zeros((mr_h, mr_w), dtype=np.float32)
+                            cv2.ellipse(mask, (mr_w//2, mr_h//2), (mr_w//3, mr_h//3), 0, 0, 360, 1.0, -1)
+                            mask = cv2.GaussianBlur(mask, (21, 21), 0)
+                            mask = np.stack([mask] * 3, axis=-1)
+
+                            blended = (new_mouth_resized * mask + mouth_region * (1 - mask)).astype(np.uint8)
+                            frame[y1:y2, x1:x2] = blended
+
+                # === SUBTLE OVERALL ANIMATIONS ===
+                # 1. Breathing animation
+                breath_scale = 1.0 + 0.005 * np.sin(t * 1.5 * np.pi)
+
+                # 2. Head bob when talking
+                bob_y = int(3 * energy * np.sin(t * 8 * np.pi))
+                bob_x = int(2 * energy * np.sin(t * 5 * np.pi))
+
+                # Apply scale
                 center = (w // 2, h // 2)
-                M = cv2.getRotationMatrix2D(center, 0, scale)
-                frame = cv2.warpAffine(frame, M, (w, h))
+                M = cv2.getRotationMatrix2D(center, 0, breath_scale)
+                frame = cv2.warpAffine(frame, M, (w, h), borderMode=cv2.BORDER_REFLECT)
 
-                # 4. Apply head bob translation
-                M_translate = np.float32([[1, 0, 0], [0, 1, bob_y]])
-                frame = cv2.warpAffine(frame, M_translate, (w, h))
-
-                # 5. Add subtle brightness variation based on talking
-                brightness = int(8 * energy * np.sin(t * 10 * np.pi))
-                if brightness > 0:
-                    frame = cv2.add(frame, np.full_like(frame, brightness, dtype=np.uint8))
-                elif brightness < 0:
-                    frame = cv2.subtract(frame, np.full_like(frame, -brightness, dtype=np.uint8))
-
-                # 6. Add subtle glow effect when talking (simulates energy/expression)
-                if energy > 0.5:
-                    # Add warm glow overlay
-                    glow_intensity_r = int(min(255, max(0, 20 * (energy - 0.5))))
-                    glow_intensity_g = int(min(255, max(0, 10 * (energy - 0.5))))
-                    glow = np.zeros_like(frame, dtype=np.uint8)
-                    glow[:, :, 2] = glow_intensity_r  # Red channel
-                    glow[:, :, 1] = glow_intensity_g  # Green channel
-                    frame = cv2.addWeighted(frame, 1.0, glow, 0.3, 0)
+                # Apply translation (head bob)
+                M_translate = np.float32([[1, 0, bob_x], [0, 1, bob_y]])
+                frame = cv2.warpAffine(frame, M_translate, (w, h), borderMode=cv2.BORDER_REFLECT)
 
                 out.write(frame)
 
+                # Progress indicator every 100 frames
+                if frame_idx % 100 == 0:
+                    print(f"[VIDEO] Progress: {frame_idx}/{total_frames} frames ({100*frame_idx//total_frames}%)")
+
             out.release()
+            print(f"[VIDEO] Frames generated, combining with audio...")
 
             # Combine with audio using FFmpeg
             try:
