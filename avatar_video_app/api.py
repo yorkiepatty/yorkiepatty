@@ -184,6 +184,46 @@ async def get_avatar_styles():
     }
 
 
+@app.post("/api/avatar/upload")
+async def upload_avatar(image: UploadFile = File(...)):
+    """Upload an existing image to use as avatar"""
+    import base64
+    from pathlib import Path
+
+    # Validate file type
+    if not image.content_type or not image.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    # Read the image
+    image_data = await image.read()
+
+    # Save to avatar outputs
+    output_dir = Path(config.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    ext = Path(image.filename).suffix if image.filename else ".png"
+    filename = f"uploaded_avatar_{timestamp}{ext}"
+    output_path = output_dir / filename
+
+    # Save the file
+    with open(output_path, "wb") as f:
+        f.write(image_data)
+
+    # Encode as base64 for preview
+    image_b64 = base64.b64encode(image_data).decode()
+
+    print(f"[AVATAR] Uploaded image saved to: {output_path}")
+
+    return {
+        "success": True,
+        "image_path": str(output_path),
+        "image_base64": image_b64,
+        "filename": filename
+    }
+
+
 # ============== Voice Endpoints ==============
 
 @app.post("/api/voice/upload")
