@@ -63,6 +63,17 @@ class VideoGenerator:
             "description": "Local video generator using OpenCV/FFmpeg - works with any avatar type"
         })
 
+        # HeyGen API (talking avatars) - better lip-sync, works with various images
+        if config.heygen_api_key:
+            providers.append({
+                "name": "heygen",
+                "enabled": True,  # Enable HeyGen when API key is present
+                "priority": 0,  # Highest priority - best quality lip-sync
+                "endpoint": "https://api.heygen.com/v2/video/generate",
+                "max_duration": 180,  # 3 minutes
+                "note": "Professional lip-sync with HeyGen API"
+            })
+
         # D-ID API (talking avatars) - only works with HUMAN faces
         # Disabled by default since it doesn't support animals/cartoons
         if config.did_api_key:
@@ -122,7 +133,14 @@ class VideoGenerator:
             if not provider.get("enabled"):
                 continue
 
-            if provider["name"] == "did":
+            if provider["name"] == "heygen":
+                result = await self._generate_with_heygen(
+                    avatar_image_path, audio_path, job_id, output_name
+                )
+                if result.success or result.status == "processing":
+                    return result
+
+            elif provider["name"] == "did":
                 result = await self._generate_with_did(
                     avatar_image_path, audio_path, job_id, output_name
                 )
@@ -222,6 +240,130 @@ class VideoGenerator:
         except Exception as e:
             return VideoResult(success=False, error=f"D-ID error: {str(e)}")
 
+    async def _generate_with_heygen(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        job_id: str,
+        output_name: Optional[str]
+    ) -> VideoResult:
+        """Generate video using HeyGen API with photo avatar"""
+        if not config.heygen_api_key:
+            return VideoResult(success=False, error="HeyGen API key not configured")
+
+        try:
+            print(f"[VIDEO] Starting HeyGen video generation...")
+
+            # Read and encode files
+            with open(avatar_path, "rb") as f:
+                image_data = f.read()
+                image_b64 = base64.b64encode(image_data).decode()
+
+            with open(audio_path, "rb") as f:
+                audio_data = f.read()
+                audio_b64 = base64.b64encode(audio_data).decode()
+
+            # Determine image type
+            image_ext = Path(avatar_path).suffix.lower()
+            if image_ext == ".png":
+                image_type = "image/png"
+            elif image_ext in [".jpg", ".jpeg"]:
+                image_type = "image/jpeg"
+            else:
+                image_type = "image/png"
+
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "X-Api-Key": config.heygen_api_key,
+                    "Content-Type": "application/json"
+                }
+
+                # First, upload the image to get a photo avatar
+                # HeyGen requires uploading the image first to create a talking photo
+                print(f"[VIDEO] Uploading image to HeyGen...")
+
+                # Create video generation request using talking photo
+                # HeyGen v2 API endpoint for photo avatar
+                payload = {
+                    "video_inputs": [
+                        {
+                            "character": {
+                                "type": "talking_photo",
+                                "talking_photo_id": None,  # Will use direct upload
+                                "talking_photo_style": "normal",
+                                "talking_style": "stable",
+                                "expression": "default",
+                                "super_resolution": False,
+                                # Direct photo upload as base64
+                                "talking_photo_asset": f"data:{image_type};base64,{image_b64}"
+                            },
+                            "voice": {
+                                "type": "audio",
+                                "audio_asset": f"data:audio/wav;base64,{audio_b64}"
+                            }
+                        }
+                    ],
+                    "dimension": {
+                        "width": 1080,
+                        "height": 1920
+                    },
+                    "aspect_ratio": "9:16",
+                    "test": False
+                }
+
+                print(f"[VIDEO] Sending request to HeyGen API...")
+
+                async with session.post(
+                    "https://api.heygen.com/v2/video/generate",
+                    headers=headers,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=120)
+                ) as response:
+                    response_text = await response.text()
+                    print(f"[VIDEO] HeyGen response status: {response.status}")
+
+                    if response.status in [200, 201]:
+                        data = json.loads(response_text)
+                        video_id = data.get("data", {}).get("video_id")
+
+                        if video_id:
+                            # Store job info
+                            self._jobs[job_id] = {
+                                "provider": "heygen",
+                                "heygen_id": video_id,
+                                "status": "processing",
+                                "output_name": output_name
+                            }
+
+                            print(f"[VIDEO] HeyGen job created: {video_id}")
+
+                            return VideoResult(
+                                success=True,
+                                status="processing",
+                                job_id=job_id,
+                                provider="heygen",
+                                metadata={
+                                    "heygen_id": video_id,
+                                    "message": "Video is being generated by HeyGen. Poll for status."
+                                }
+                            )
+                        else:
+                            print(f"[VIDEO] HeyGen response: {response_text[:500]}")
+                            return VideoResult(
+                                success=False,
+                                error=f"HeyGen API did not return video_id: {response_text[:200]}"
+                            )
+                    else:
+                        print(f"[VIDEO] HeyGen error: {response_text[:500]}")
+                        return VideoResult(
+                            success=False,
+                            error=f"HeyGen API error: {response.status} - {response_text[:200]}"
+                        )
+
+        except Exception as e:
+            print(f"[VIDEO] HeyGen exception: {str(e)}")
+            return VideoResult(success=False, error=f"HeyGen error: {str(e)}")
+
     async def check_job_status(self, job_id: str) -> VideoResult:
         """Check status of async video generation job"""
         if job_id not in self._jobs:
@@ -233,7 +375,9 @@ class VideoGenerator:
 
         job = self._jobs[job_id]
 
-        if job["provider"] == "did":
+        if job["provider"] == "heygen":
+            return await self._check_heygen_status(job_id, job)
+        elif job["provider"] == "did":
             return await self._check_did_status(job_id, job)
 
         return VideoResult(
@@ -309,6 +453,87 @@ class VideoGenerator:
 
         except Exception as e:
             return VideoResult(success=False, error=f"Status check error: {str(e)}")
+
+    async def _check_heygen_status(self, job_id: str, job: Dict) -> VideoResult:
+        """Check HeyGen job status"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "X-Api-Key": config.heygen_api_key
+                }
+
+                # HeyGen status endpoint
+                heygen_id = job.get("heygen_id")
+                async with session.get(
+                    f"https://api.heygen.com/v1/video_status.get?video_id={heygen_id}",
+                    headers=headers
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        status = data.get("data", {}).get("status")
+                        print(f"[VIDEO] HeyGen status: {status}")
+
+                        if status == "completed":
+                            video_url = data.get("data", {}).get("video_url")
+
+                            # Download video
+                            output_name = job.get("output_name") or job_id
+                            output_path = self.output_dir / f"{output_name}.mp4"
+
+                            print(f"[VIDEO] Downloading HeyGen video from: {video_url}")
+
+                            async with session.get(video_url) as video_response:
+                                if video_response.status == 200:
+                                    video_data = await video_response.read()
+                                    with open(output_path, "wb") as f:
+                                        f.write(video_data)
+
+                                    # Get video as base64
+                                    video_b64 = base64.b64encode(video_data).decode()
+
+                                    # Cleanup job
+                                    del self._jobs[job_id]
+
+                                    print(f"[VIDEO] HeyGen video saved: {output_path}")
+
+                                    return VideoResult(
+                                        success=True,
+                                        status="completed",
+                                        video_path=str(output_path),
+                                        video_url=video_url,
+                                        video_base64=video_b64,
+                                        provider="heygen",
+                                        job_id=job_id,
+                                        metadata=data.get("data", {})
+                                    )
+
+                        elif status in ["pending", "processing", "waiting"]:
+                            return VideoResult(
+                                success=True,
+                                status="processing",
+                                job_id=job_id,
+                                provider="heygen",
+                                metadata={"heygen_status": status}
+                            )
+
+                        elif status == "failed":
+                            error_msg = data.get("data", {}).get("error", "Unknown HeyGen error")
+                            del self._jobs[job_id]
+                            return VideoResult(
+                                success=False,
+                                status="failed",
+                                error=f"HeyGen video failed: {error_msg}",
+                                job_id=job_id
+                            )
+
+                    return VideoResult(
+                        success=False,
+                        error=f"Failed to check HeyGen status: {response.status}"
+                    )
+
+        except Exception as e:
+            print(f"[VIDEO] HeyGen status check error: {str(e)}")
+            return VideoResult(success=False, error=f"HeyGen status check error: {str(e)}")
 
     async def _check_ffmpeg(self) -> bool:
         """Check if FFmpeg is available"""
@@ -780,6 +1005,7 @@ class VideoGenerator:
                 }
                 for p in self.providers
             ],
+            "heygen_configured": bool(config.heygen_api_key),
             "did_configured": bool(config.did_api_key),
             "pending_jobs": len(self._jobs)
         }
