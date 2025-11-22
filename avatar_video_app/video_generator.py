@@ -254,64 +254,120 @@ class VideoGenerator:
         try:
             print(f"[VIDEO] Starting HeyGen video generation...")
 
-            # Read and encode files
-            with open(avatar_path, "rb") as f:
-                image_data = f.read()
-                image_b64 = base64.b64encode(image_data).decode()
-
-            with open(audio_path, "rb") as f:
-                audio_data = f.read()
-                audio_b64 = base64.b64encode(audio_data).decode()
-
-            # Determine image type
-            image_ext = Path(avatar_path).suffix.lower()
-            if image_ext == ".png":
-                image_type = "image/png"
-            elif image_ext in [".jpg", ".jpeg"]:
-                image_type = "image/jpeg"
-            else:
-                image_type = "image/png"
-
             async with aiohttp.ClientSession() as session:
                 headers = {
-                    "X-Api-Key": config.heygen_api_key,
-                    "Content-Type": "application/json"
+                    "X-Api-Key": config.heygen_api_key
                 }
 
-                # First, upload the image to get a photo avatar
-                # HeyGen requires uploading the image first to create a talking photo
-                print(f"[VIDEO] Uploading image to HeyGen...")
+                # Step 1: Upload image to create talking photo
+                print(f"[VIDEO] Step 1: Uploading image to HeyGen...")
 
-                # Create video generation request using talking photo
-                # HeyGen v2 API endpoint for photo avatar
+                with open(avatar_path, "rb") as f:
+                    image_data = f.read()
+
+                # Determine content type
+                image_ext = Path(avatar_path).suffix.lower()
+                if image_ext == ".png":
+                    content_type = "image/png"
+                elif image_ext in [".jpg", ".jpeg"]:
+                    content_type = "image/jpeg"
+                else:
+                    content_type = "image/png"
+
+                # Upload photo using multipart form
+                form_data = aiohttp.FormData()
+                form_data.add_field('file', image_data,
+                                   filename=f'avatar{image_ext}',
+                                   content_type=content_type)
+
+                async with session.post(
+                    "https://api.heygen.com/v1/talking_photo",
+                    headers=headers,
+                    data=form_data,
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    response_text = await response.text()
+                    print(f"[VIDEO] HeyGen upload response: {response.status}")
+
+                    if response.status not in [200, 201]:
+                        print(f"[VIDEO] HeyGen upload error: {response_text[:500]}")
+                        return VideoResult(
+                            success=False,
+                            error=f"HeyGen image upload failed: {response.status} - {response_text[:200]}"
+                        )
+
+                    upload_data = json.loads(response_text)
+                    talking_photo_id = upload_data.get("data", {}).get("talking_photo_id")
+
+                    if not talking_photo_id:
+                        print(f"[VIDEO] HeyGen upload response: {response_text}")
+                        return VideoResult(
+                            success=False,
+                            error=f"HeyGen did not return talking_photo_id"
+                        )
+
+                    print(f"[VIDEO] Got talking_photo_id: {talking_photo_id}")
+
+                # Step 2: Upload audio file
+                print(f"[VIDEO] Step 2: Uploading audio to HeyGen...")
+
+                with open(audio_path, "rb") as f:
+                    audio_data = f.read()
+
+                audio_form = aiohttp.FormData()
+                audio_form.add_field('file', audio_data,
+                                    filename='audio.wav',
+                                    content_type='audio/wav')
+
+                async with session.post(
+                    "https://api.heygen.com/v1/audio/upload",
+                    headers=headers,
+                    data=audio_form,
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    response_text = await response.text()
+                    print(f"[VIDEO] HeyGen audio upload response: {response.status}")
+
+                    if response.status not in [200, 201]:
+                        print(f"[VIDEO] HeyGen audio upload error: {response_text[:500]}")
+                        # Fall back to base64 audio in video request
+                        audio_url = None
+                    else:
+                        audio_upload_data = json.loads(response_text)
+                        audio_url = audio_upload_data.get("data", {}).get("url")
+                        print(f"[VIDEO] Got audio URL: {audio_url[:50] if audio_url else 'None'}...")
+
+                # Step 3: Generate video
+                print(f"[VIDEO] Step 3: Generating video with HeyGen...")
+
+                headers["Content-Type"] = "application/json"
+
+                # Build video generation payload
+                voice_config = {"type": "audio"}
+                if audio_url:
+                    voice_config["audio_url"] = audio_url
+                else:
+                    # Use base64 as fallback
+                    audio_b64 = base64.b64encode(audio_data).decode()
+                    voice_config["audio_url"] = f"data:audio/wav;base64,{audio_b64}"
+
                 payload = {
                     "video_inputs": [
                         {
                             "character": {
                                 "type": "talking_photo",
-                                "talking_photo_id": None,  # Will use direct upload
-                                "talking_photo_style": "normal",
-                                "talking_style": "stable",
-                                "expression": "default",
-                                "super_resolution": False,
-                                # Direct photo upload as base64
-                                "talking_photo_asset": f"data:{image_type};base64,{image_b64}"
+                                "talking_photo_id": talking_photo_id
                             },
-                            "voice": {
-                                "type": "audio",
-                                "audio_asset": f"data:audio/wav;base64,{audio_b64}"
-                            }
+                            "voice": voice_config
                         }
                     ],
                     "dimension": {
                         "width": 1080,
                         "height": 1920
-                    },
-                    "aspect_ratio": "9:16",
-                    "test": False
+                    }
                 }
 
-                print(f"[VIDEO] Sending request to HeyGen API...")
+                print(f"[VIDEO] Sending video generation request...")
 
                 async with session.post(
                     "https://api.heygen.com/v2/video/generate",
@@ -320,7 +376,7 @@ class VideoGenerator:
                     timeout=aiohttp.ClientTimeout(total=120)
                 ) as response:
                     response_text = await response.text()
-                    print(f"[VIDEO] HeyGen response status: {response.status}")
+                    print(f"[VIDEO] HeyGen video response status: {response.status}")
 
                     if response.status in [200, 201]:
                         data = json.loads(response_text)
