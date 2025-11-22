@@ -38,7 +38,6 @@ class AvatarGenerator:
 
     def __init__(self):
         self.config = config
-        self.providers = self._init_providers()
         self.cache_dir = Path(config.temp_dir) / "avatar_cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -46,14 +45,18 @@ class AvatarGenerator:
         """Initialize available image generation providers"""
         providers = []
 
+        # Re-check the API key each time (in case it was loaded after init)
+        api_key = config.openai_api_key or os.getenv("OPENAI_API_KEY")
+
         # OpenAI DALL-E 3
-        if config.openai_api_key:
+        if api_key:
             providers.append({
                 "name": "openai_dalle3",
                 "enabled": True,
                 "priority": 1,
                 "endpoint": "https://api.openai.com/v1/images/generations",
-                "model": "dall-e-3"
+                "model": "dall-e-3",
+                "api_key": api_key
             })
 
         # Add more providers as needed
@@ -110,13 +113,16 @@ Requirements:
 
     async def generate_with_openai(self, prompt: str, style: str) -> AvatarResult:
         """Generate avatar using OpenAI DALL-E 3"""
-        if not config.openai_api_key:
+        # Check both config and environment directly
+        api_key = config.openai_api_key or os.getenv("OPENAI_API_KEY")
+
+        if not api_key:
             return AvatarResult(success=False, error="OpenAI API key not configured")
 
         try:
             async with aiohttp.ClientSession() as session:
                 headers = {
-                    "Authorization": f"Bearer {config.openai_api_key}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json"
                 }
 
@@ -343,8 +349,11 @@ Requirements:
         # Build optimized prompt
         prompt = self._build_avatar_prompt(description, style)
 
+        # Refresh providers list (in case API keys were loaded later)
+        providers = self._init_providers()
+
         # Try providers in order
-        for provider in self.providers:
+        for provider in providers:
             if not provider.get("enabled"):
                 continue
 
