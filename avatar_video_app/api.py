@@ -345,6 +345,12 @@ async def generate_full_video(
 
     try:
         print("\n[PIPELINE] Starting full video generation...")
+        print(f"[PIPELINE] Received parameters:")
+        print(f"[PIPELINE]   avatar_description: {avatar_description[:50] if avatar_description else 'None'}...")
+        print(f"[PIPELINE]   avatar_style: {avatar_style}")
+        print(f"[PIPELINE]   voice_effect: {voice_effect}")
+        print(f"[PIPELINE]   text: {text[:50] if text else 'None'}...")
+        print(f"[PIPELINE]   audio: {audio.filename if audio else 'None'}")
 
         # Step 1: Generate Avatar
         print("[PIPELINE] Step 1: Generating avatar...")
