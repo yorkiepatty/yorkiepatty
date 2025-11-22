@@ -1,0 +1,51 @@
+# Environment variables
+.env
+.env.*
+*.env
+
+# Secret keys and credentials
+*.key
+*.pem
+*.secret
+secret.key
+ai/secret.key
+anthropic.save
+
+# API keys and tokens
+**/credentials.json
+**/secrets.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+package-lock.json
+
+# Models (large files)
+*.pkl
+*.keras
+*.h5
+*.pt
+*.pth
