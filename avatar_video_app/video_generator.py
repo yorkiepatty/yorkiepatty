@@ -310,6 +310,19 @@ class VideoGenerator:
         except Exception as e:
             return VideoResult(success=False, error=f"Status check error: {str(e)}")
 
+    async def _check_ffmpeg(self) -> bool:
+        """Check if FFmpeg is available"""
+        try:
+            process = await asyncio.create_subprocess_exec(
+                "ffmpeg", "-version",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            await process.wait()
+            return process.returncode == 0
+        except Exception:
+            return False
+
     async def _generate_local(
         self,
         avatar_path: str,
@@ -330,10 +343,26 @@ class VideoGenerator:
             except ImportError:
                 pass
 
+            # Check for FFmpeg
+            ffmpeg_available = await self._check_ffmpeg()
+
+            print(f"\n[VIDEO] OpenCV available: {cv2_available}")
+            print(f"[VIDEO] FFmpeg available: {ffmpeg_available}")
+
+            if not ffmpeg_available:
+                return VideoResult(
+                    success=False,
+                    error="FFmpeg not found! Please install FFmpeg: https://ffmpeg.org/download.html (On Windows: download, extract, add to PATH)",
+                    job_id=job_id
+                )
+
             # Get audio duration
             audio_duration = await self._get_audio_duration(audio_path)
             if audio_duration <= 0:
                 audio_duration = 10  # Default fallback
+
+            print(f"[VIDEO] Audio duration: {audio_duration}s")
+            print(f"[VIDEO] Generating video...")
 
             if cv2_available:
                 result = await self._generate_with_opencv(
@@ -347,6 +376,7 @@ class VideoGenerator:
             if result and os.path.exists(output_path):
                 # Get video info
                 file_size = os.path.getsize(output_path)
+                print(f"[VIDEO] SUCCESS! Video created: {output_path} ({file_size} bytes)")
 
                 with open(output_path, "rb") as f:
                     video_b64 = base64.b64encode(f.read()).decode()
@@ -365,13 +395,15 @@ class VideoGenerator:
                     }
                 )
 
+            print(f"[VIDEO] FAILED: Video file not created")
             return VideoResult(
                 success=False,
-                error="Local video generation failed",
+                error="Video generation failed - check if OpenCV and FFmpeg are properly installed",
                 job_id=job_id
             )
 
         except Exception as e:
+            print(f"[VIDEO] ERROR: {str(e)}")
             return VideoResult(success=False, error=f"Local generation error: {str(e)}")
 
     async def _generate_with_opencv(

@@ -411,10 +411,24 @@ async def generate_full_video(
         )
 
         if not video_result.success and video_result.status != "processing":
-            raise HTTPException(
-                status_code=500,
-                detail=f"Video generation failed: {video_result.error}"
-            )
+            # Return error with partial results so user can see what happened
+            return {
+                "success": False,
+                "error": f"Video generation failed: {video_result.error}",
+                "avatar": {
+                    "image_path": avatar_result.image_path,
+                    "image_base64": avatar_result.image_base64,
+                    "style": avatar_result.style
+                },
+                "voice": {
+                    "audio_path": voice_result.audio_path,
+                    "duration": voice_result.duration
+                },
+                "video": {
+                    "status": "failed",
+                    "error": video_result.error
+                }
+            }
 
         results["steps"].append({
             "step": "video",

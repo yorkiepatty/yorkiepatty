@@ -62,9 +62,11 @@ function GenerateButton({
           // Video is being processed
           setVideoJobId(videoData.job_id)
           setVideoStatus('processing')
+        } else if (videoData.error) {
+          setError(`Video generation failed: ${videoData.error}`)
         }
       } else {
-        setError('Video generation failed')
+        setError(response.data.error || response.data.detail || 'Video generation failed')
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to generate video')
