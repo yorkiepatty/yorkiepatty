@@ -99,7 +99,6 @@ soupsieve==2.8
 soxr==1.0.0
 SpeechRecognition==3.14.3
 SQLAlchemy==2.0.44
-srt==3.5.3
 starlette==0.48.0
 sympy==1.14.0
 tensorboard>=2.18.0
