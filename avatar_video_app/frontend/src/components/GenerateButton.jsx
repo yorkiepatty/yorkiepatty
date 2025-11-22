@@ -31,15 +31,28 @@ function GenerateButton({
       formData.append('avatar_style', avatarStyle)
       formData.append('voice_effect', voiceEffect)
 
-      // Add audio source
-      if (voiceMode === 'tts') {
-        formData.append('text', ttsText)
+      // Add audio source - debug logging
+      console.log('[GenerateButton] Voice mode:', voiceMode)
+      console.log('[GenerateButton] TTS text:', ttsText)
+      console.log('[GenerateButton] TTS text length:', ttsText?.length)
+
+      if (voiceMode === 'tts' && ttsText && ttsText.trim()) {
+        console.log('[GenerateButton] Adding TTS text to form')
+        formData.append('text', ttsText.trim())
       } else if (processedAudio?.blob) {
+        console.log('[GenerateButton] Adding processed audio')
         formData.append('audio', processedAudio.blob, 'voice.wav')
       } else if (recordedAudio) {
+        console.log('[GenerateButton] Adding recorded audio')
         formData.append('audio', recordedAudio, 'recording.webm')
       } else if (uploadedAudio) {
+        console.log('[GenerateButton] Adding uploaded audio')
         formData.append('audio', uploadedAudio, uploadedAudio.name)
+      } else {
+        console.log('[GenerateButton] WARNING: No audio source!')
+        setError('Please add voice: record, upload audio, or enter text for TTS')
+        setIsGenerating(false)
+        return
       }
 
       const response = await axios.post('/api/generate-full', formData, {
