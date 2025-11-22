@@ -55,23 +55,25 @@ class VideoGenerator:
         """Initialize video generation providers"""
         providers = []
 
-        # D-ID API (talking avatars)
-        if config.did_api_key:
-            providers.append({
-                "name": "did",
-                "enabled": True,
-                "priority": 1,
-                "endpoint": "https://api.d-id.com/talks",
-                "max_duration": 180  # 3 minutes
-            })
-
-        # Local/placeholder generator
+        # Local generator is primary - works with ANY avatar (animals, cartoons, etc.)
         providers.append({
             "name": "local",
             "enabled": True,
-            "priority": 99,
-            "description": "Local video generator using OpenCV/FFmpeg"
+            "priority": 1,
+            "description": "Local video generator using OpenCV/FFmpeg - works with any avatar type"
         })
+
+        # D-ID API (talking avatars) - only works with HUMAN faces
+        # Disabled by default since it doesn't support animals/cartoons
+        if config.did_api_key:
+            providers.append({
+                "name": "did",
+                "enabled": False,  # Disabled by default - human faces only
+                "priority": 2,
+                "endpoint": "https://api.d-id.com/talks",
+                "max_duration": 180,  # 3 minutes
+                "note": "Only works with human faces - not animals or cartoons"
+            })
 
         return sorted(providers, key=lambda x: x.get("priority", 99))
 
@@ -379,7 +381,7 @@ class VideoGenerator:
         output_path: Path,
         duration: float
     ) -> bool:
-        """Generate video using OpenCV with simple animation"""
+        """Generate video using OpenCV with animated talking effects"""
         try:
             import cv2
             import numpy as np
@@ -389,7 +391,7 @@ class VideoGenerator:
             if img is None:
                 return False
 
-            # Resize to target resolution
+            # Resize to target resolution (portrait mode for social media)
             target_h, target_w = 1920, 1080
             img = cv2.resize(img, (target_w, target_h))
 
@@ -403,25 +405,50 @@ class VideoGenerator:
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             out = cv2.VideoWriter(temp_video, fourcc, fps, (target_w, target_h))
 
-            # Generate frames with subtle animation
+            # Try to analyze audio for lip-sync timing
+            audio_energy = await self._analyze_audio_energy(audio_path, total_frames)
+
+            # Generate frames with talking animation
             for frame_idx in range(total_frames):
                 frame = img.copy()
-
-                # Add subtle "talking" animation
                 t = frame_idx / fps
 
-                # Subtle scale pulse (simulating breathing/talking)
-                scale = 1.0 + 0.005 * np.sin(t * 4 * np.pi)
+                # Get audio energy for this frame (simulates when "talking")
+                energy = audio_energy[frame_idx] if audio_energy else np.sin(t * 8 * np.pi) * 0.5 + 0.5
 
-                # Apply slight zoom effect
+                # 1. Subtle breathing/scale animation
+                breath_scale = 1.0 + 0.003 * np.sin(t * 1.5 * np.pi)
+
+                # 2. Talking pulse - more prominent when audio is active
+                talk_scale = 1.0 + 0.008 * energy * np.sin(t * 12 * np.pi)
+
+                # Combined scale
+                scale = breath_scale * talk_scale
+
+                # 3. Slight head bob when talking
+                bob_y = int(5 * energy * np.sin(t * 6 * np.pi))
+
+                # Apply transformations
                 h, w = frame.shape[:2]
                 center = (w // 2, h // 2)
                 M = cv2.getRotationMatrix2D(center, 0, scale)
                 frame = cv2.warpAffine(frame, M, (w, h))
 
-                # Add subtle brightness variation (simulating expression)
-                brightness = int(5 * np.sin(t * 6 * np.pi))
+                # 4. Apply head bob translation
+                M_translate = np.float32([[1, 0, 0], [0, 1, bob_y]])
+                frame = cv2.warpAffine(frame, M_translate, (w, h))
+
+                # 5. Add subtle brightness variation based on talking
+                brightness = int(8 * energy * np.sin(t * 10 * np.pi))
                 frame = cv2.add(frame, np.ones_like(frame) * brightness, dtype=cv2.CV_8UC3)
+
+                # 6. Add subtle glow effect when talking (simulates energy/expression)
+                if energy > 0.5:
+                    # Add warm glow overlay
+                    glow = np.zeros_like(frame)
+                    glow[:, :, 2] = int(20 * (energy - 0.5))  # Red channel
+                    glow[:, :, 1] = int(10 * (energy - 0.5))  # Green channel
+                    frame = cv2.addWeighted(frame, 1.0, glow, 0.3, 0)
 
                 out.write(frame)
 
@@ -516,6 +543,94 @@ class VideoGenerator:
             pass
 
         return 0.0
+
+    async def _analyze_audio_energy(self, audio_path: str, num_frames: int) -> Optional[List[float]]:
+        """
+        Analyze audio to extract energy levels for lip-sync animation.
+        Returns a list of energy values (0-1) for each video frame.
+        """
+        try:
+            import numpy as np
+
+            # Try librosa first (best quality)
+            try:
+                import librosa
+                y, sr = librosa.load(audio_path, sr=22050, mono=True)
+
+                # Calculate RMS energy
+                hop_length = max(1, len(y) // num_frames)
+                rms = librosa.feature.rms(y=y, hop_length=hop_length)[0]
+
+                # Resample to match video frames
+                if len(rms) != num_frames:
+                    indices = np.linspace(0, len(rms) - 1, num_frames).astype(int)
+                    rms = rms[indices]
+
+                # Normalize to 0-1 range
+                rms = (rms - rms.min()) / (rms.max() - rms.min() + 1e-8)
+
+                # Apply smoothing for more natural animation
+                from scipy.ndimage import gaussian_filter1d
+                rms = gaussian_filter1d(rms, sigma=2)
+
+                return rms.tolist()
+
+            except ImportError:
+                pass
+
+            # Fallback: Try reading WAV directly
+            try:
+                import wave
+                import struct
+
+                with wave.open(audio_path, 'rb') as wav:
+                    n_channels = wav.getnchannels()
+                    sampwidth = wav.getsampwidth()
+                    framerate = wav.getframerate()
+                    n_frames = wav.getnframes()
+
+                    raw_data = wav.readframes(n_frames)
+
+                    # Convert to samples
+                    if sampwidth == 2:
+                        fmt = f'{n_frames * n_channels}h'
+                        samples = np.array(struct.unpack(fmt, raw_data), dtype=np.float32)
+                    else:
+                        samples = np.frombuffer(raw_data, dtype=np.int8).astype(np.float32)
+
+                    # Make mono
+                    if n_channels > 1:
+                        samples = samples.reshape(-1, n_channels).mean(axis=1)
+
+                    # Calculate energy per video frame
+                    samples_per_frame = max(1, len(samples) // num_frames)
+                    energy = []
+                    for i in range(num_frames):
+                        start = i * samples_per_frame
+                        end = min(start + samples_per_frame, len(samples))
+                        chunk = samples[start:end]
+                        rms = np.sqrt(np.mean(chunk ** 2)) if len(chunk) > 0 else 0
+                        energy.append(rms)
+
+                    # Normalize
+                    energy = np.array(energy)
+                    energy = (energy - energy.min()) / (energy.max() - energy.min() + 1e-8)
+
+                    return energy.tolist()
+
+            except Exception:
+                pass
+
+            # Final fallback: Generate synthetic energy pattern
+            t = np.linspace(0, num_frames / 30, num_frames)  # Assume 30fps
+            # Create varied pattern that simulates speech rhythm
+            energy = 0.5 + 0.3 * np.sin(t * 4 * np.pi) + 0.2 * np.sin(t * 7 * np.pi)
+            energy = np.clip(energy, 0, 1)
+            return energy.tolist()
+
+        except Exception as e:
+            print(f"Audio analysis error: {e}")
+            return None
 
     def get_provider_status(self) -> Dict[str, Any]:
         """Get status of video generation providers"""

@@ -21,7 +21,9 @@ Create talking avatar videos up to 3 minutes long from text descriptions. Choose
 - **Video Generation**:
   - Up to 3-minute videos
   - Lip-sync animation
-  - Multiple output providers (D-ID API or local FFmpeg)
+  - Multiple providers:
+    - **D-ID API**: Professional lip-sync for human faces only
+    - **Local FFmpeg**: Works with ANY avatar (animals, cartoons, etc.)
   - Video gallery with download support
 
 - **Yorkie Helper**: Cute animated assistant in the bottom corner
