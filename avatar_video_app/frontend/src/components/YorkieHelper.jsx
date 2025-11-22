@@ -41,8 +41,22 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [mouthOpen, setMouthOpen] = useState(false)
   const [tailWag, setTailWag] = useState(true)
+  const [voiceEnabled, setVoiceEnabled] = useState(true)
   const messageTimeoutRef = useRef(null)
   const mouthIntervalRef = useRef(null)
+  const speechSynthRef = useRef(null)
+
+  // Initialize speech synthesis
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthRef.current = window.speechSynthesis
+    }
+    return () => {
+      if (speechSynthRef.current) {
+        speechSynthRef.current.cancel()
+      }
+    }
+  }, [])
 
   // Get appropriate messages based on state
   const getMessages = () => {
@@ -51,27 +65,88 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
     return YORKIE_MESSAGES[currentStep] || YORKIE_MESSAGES.idle
   }
 
+  // Speak the message using Web Speech API
+  const speakMessage = (text) => {
+    if (!speechSynthRef.current || !voiceEnabled) return
+
+    // Cancel any ongoing speech
+    speechSynthRef.current.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 1.1  // Slightly faster, more energetic
+    utterance.pitch = 1.4  // Higher pitch for cute dog voice
+    utterance.volume = 0.8
+
+    // Try to find a good voice
+    const voices = speechSynthRef.current.getVoices()
+    const preferredVoice = voices.find(v =>
+      v.name.includes('Female') ||
+      v.name.includes('Samantha') ||
+      v.name.includes('Victoria') ||
+      v.lang.startsWith('en')
+    )
+    if (preferredVoice) {
+      utterance.voice = preferredVoice
+    }
+
+    // Sync mouth animation with speech
+    utterance.onstart = () => {
+      setIsSpeaking(true)
+      if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+      mouthIntervalRef.current = setInterval(() => {
+        setMouthOpen(prev => !prev)
+      }, 100)
+    }
+
+    utterance.onend = () => {
+      setIsSpeaking(false)
+      if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+      setMouthOpen(false)
+    }
+
+    utterance.onerror = () => {
+      setIsSpeaking(false)
+      if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+      setMouthOpen(false)
+    }
+
+    speechSynthRef.current.speak(utterance)
+  }
+
   // Show new message
   const showMessage = (customMessage = null) => {
     const messages = getMessages()
     const newMessage = customMessage || messages[Math.floor(Math.random() * messages.length)]
     setMessage(newMessage)
     setIsOpen(true)
-    setIsSpeaking(true)
 
-    // Start lip-sync animation
-    if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
-    mouthIntervalRef.current = setInterval(() => {
-      setMouthOpen(prev => !prev)
-    }, 100)
+    // Speak the message
+    speakMessage(newMessage)
 
-    // Stop speaking after message duration
-    if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current)
-    messageTimeoutRef.current = setTimeout(() => {
-      setIsSpeaking(false)
+    // If voice not available, still animate
+    if (!speechSynthRef.current || !voiceEnabled) {
+      setIsSpeaking(true)
       if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
-      setMouthOpen(false)
-    }, newMessage.length * 50) // ~50ms per character
+      mouthIntervalRef.current = setInterval(() => {
+        setMouthOpen(prev => !prev)
+      }, 100)
+
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current)
+      messageTimeoutRef.current = setTimeout(() => {
+        setIsSpeaking(false)
+        if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+        setMouthOpen(false)
+      }, newMessage.length * 50)
+    }
+  }
+
+  // Toggle voice on/off
+  const toggleVoice = (e) => {
+    e.stopPropagation()
+    setVoiceEnabled(prev => !prev)
+    if (speechSynthRef.current) {
+      speechSynthRef.current.cancel()
+    }
   }
 
   // Auto-show message on step change
@@ -202,6 +277,15 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
           </div>
         )}
+
+        {/* Mute/Unmute button */}
+        <button
+          onClick={toggleVoice}
+          className="absolute -bottom-1 -left-1 w-6 h-6 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center shadow-lg text-xs"
+          title={voiceEnabled ? 'Mute Yorkie' : 'Unmute Yorkie'}
+        >
+          {voiceEnabled ? '🔊' : '🔇'}
+        </button>
       </button>
 
       {/* Navigation hints */}
