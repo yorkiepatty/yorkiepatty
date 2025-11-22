@@ -160,31 +160,48 @@ class VoiceProcessor:
     async def _convert_to_wav(self, input_path: Path) -> Optional[Path]:
         """Convert audio file to WAV format"""
         output_path = input_path.with_suffix(".wav")
+        print(f"[VOICE] Converting {input_path} to WAV...")
 
-        # Try using ffmpeg
-        try:
-            process = await asyncio.create_subprocess_exec(
-                "ffmpeg", "-i", str(input_path), "-ar", str(config.sample_rate),
-                "-ac", str(config.audio_channels), "-y", str(output_path),
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            await process.wait()
+        # Try using ffmpeg - check common Windows paths too
+        ffmpeg_paths = [
+            "ffmpeg",  # System PATH
+            r"C:\ffmpeg\ffmpeg-8.0-essentials_build\bin\ffmpeg.exe",  # User's install location
+            r"C:\ffmpeg\bin\ffmpeg.exe",
+        ]
 
-            if output_path.exists():
-                return output_path
-        except Exception:
-            pass
+        for ffmpeg_cmd in ffmpeg_paths:
+            try:
+                print(f"[VOICE] Trying ffmpeg at: {ffmpeg_cmd}")
+                process = await asyncio.create_subprocess_exec(
+                    ffmpeg_cmd, "-i", str(input_path), "-ar", str(config.sample_rate),
+                    "-ac", str(config.audio_channels), "-y", str(output_path),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await process.communicate()
+
+                if output_path.exists() and output_path.stat().st_size > 0:
+                    print(f"[VOICE] FFmpeg conversion successful!")
+                    return output_path
+                else:
+                    print(f"[VOICE] FFmpeg failed: {stderr.decode()[:200] if stderr else 'Unknown error'}")
+            except FileNotFoundError:
+                print(f"[VOICE] FFmpeg not found at: {ffmpeg_cmd}")
+            except Exception as e:
+                print(f"[VOICE] FFmpeg error: {e}")
 
         # Try using librosa
         if self.librosa_available:
             try:
+                print(f"[VOICE] Trying librosa for conversion...")
                 y, sr = self.librosa.load(str(input_path), sr=config.sample_rate, mono=True)
                 self.soundfile.write(str(output_path), y, config.sample_rate)
+                print(f"[VOICE] Librosa conversion successful!")
                 return output_path
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[VOICE] Librosa conversion failed: {e}")
 
+        print(f"[VOICE] ERROR: All conversion methods failed!")
         return None
 
     async def _apply_effect(
