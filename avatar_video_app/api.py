@@ -340,10 +340,14 @@ async def generate_full_video(
     - audio: Upload audio file
     - text: Use text-to-speech
     """
+    import traceback
     results = {"steps": []}
 
     try:
+        print("\n[PIPELINE] Starting full video generation...")
+
         # Step 1: Generate Avatar
+        print("[PIPELINE] Step 1: Generating avatar...")
         avatar_result = await avatar_generator.generate(
             description=avatar_description,
             style=avatar_style
@@ -362,8 +366,10 @@ async def generate_full_video(
         })
 
         # Step 2: Process Voice
+        print("[PIPELINE] Step 2: Processing voice...")
         if audio:
             # Use uploaded audio
+            print(f"[PIPELINE] Using uploaded audio: {audio.filename}")
             audio_data = await audio.read()
             input_format = audio.filename.split(".")[-1].lower() if audio.filename else "wav"
 
@@ -374,6 +380,7 @@ async def generate_full_video(
             )
         elif text:
             # Use TTS
+            print(f"[PIPELINE] Using TTS with text length: {len(text)}")
             voice_result = await voice_processor.text_to_speech(
                 text=text,
                 effect_name=voice_effect
@@ -463,6 +470,9 @@ async def generate_full_video(
     except HTTPException:
         raise
     except Exception as e:
+        print(f"\n[PIPELINE] ERROR: {str(e)}")
+        print("[PIPELINE] Full traceback:")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 
