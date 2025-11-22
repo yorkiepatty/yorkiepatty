@@ -504,100 +504,53 @@ class VideoGenerator:
                 else:
                     energy = abs(np.sin(t * 6 * np.pi)) * 0.8
 
-                # === 1. MOUTH MOVEMENT - Create lip separation effect ===
-                if energy > 0.1:
-                    # Extract mouth region
-                    mouth_region = frame[mouth_y_start:mouth_y_end, mouth_x_start:mouth_x_end].copy()
-                    mr_h, mr_w = mouth_region.shape[:2]
+                # === 1. SIMPLE TALKING ANIMATION - Scale lower face region ===
+                # This creates a subtle "jaw movement" effect without complex warping
+                if energy > 0.15:
+                    # Simple approach: slightly stretch the lower portion of the image
+                    # This simulates jaw movement without complex warping artifacts
 
-                    if mr_h > 20 and mr_w > 20:
-                        # Calculate how much to open the mouth (more energy = more open)
-                        open_pixels = int(mr_h * energy * 0.4)  # Up to 40% opening
+                    # Define the jaw/lower face region
+                    jaw_y_start = int(h * 0.6)  # Lower 40% of image
+                    jaw_y_end = h
 
-                        if open_pixels > 3:
-                            # Create mouth opening by pulling lips apart from center
-                            lip_line = mr_h // 2  # Where the lips meet
+                    # Calculate stretch amount based on energy
+                    stretch_amount = int(energy * 15)  # Up to 15 pixels
 
-                            # Create destination map for remapping
-                            map_y = np.zeros((mr_h, mr_w), dtype=np.float32)
-                            map_x = np.zeros((mr_h, mr_w), dtype=np.float32)
+                    if stretch_amount > 2:
+                        # Extract lower region
+                        lower_region = frame[jaw_y_start:jaw_y_end, :].copy()
+                        lr_h, lr_w = lower_region.shape[:2]
 
-                            for y in range(mr_h):
-                                for x in range(mr_w):
-                                    map_x[y, x] = x
+                        # Stretch it vertically (make it taller)
+                        new_h = lr_h + stretch_amount
+                        stretched = cv2.resize(lower_region, (lr_w, new_h), interpolation=cv2.INTER_LINEAR)
 
-                                    # Calculate distance from lip line
-                                    dist_from_lip = y - lip_line
+                        # Take the top portion that fits
+                        frame[jaw_y_start:jaw_y_end, :] = stretched[:lr_h, :]
 
-                                    # Create opening effect - push pixels away from center
-                                    if dist_from_lip < 0:  # Above lip line - push up
-                                        # More push near the center, less at edges
-                                        center_factor = 1.0 - abs(x - mr_w/2) / (mr_w/2)
-                                        push = -open_pixels * 0.5 * center_factor * (1 - abs(dist_from_lip) / lip_line)
-                                        map_y[y, x] = y + push
-                                    else:  # Below lip line - push down
-                                        center_factor = 1.0 - abs(x - mr_w/2) / (mr_w/2)
-                                        push = open_pixels * 0.5 * center_factor * (1 - dist_from_lip / (mr_h - lip_line))
-                                        map_y[y, x] = y + push
-
-                            # Apply the remap
-                            opened_mouth = cv2.remap(mouth_region, map_x, map_y, cv2.INTER_LINEAR,
-                                                     borderMode=cv2.BORDER_REFLECT)
-
-                            # Add dark interior where mouth opens (center band)
-                            gap_center = lip_line
-                            gap_size = int(open_pixels * 0.3)
-                            if gap_size > 1:
-                                for gy in range(max(0, gap_center - gap_size), min(mr_h, gap_center + gap_size)):
-                                    # Fade the darkness towards edges
-                                    darkness = 1.0 - abs(gy - gap_center) / gap_size
-                                    for gx in range(mr_w):
-                                        # More dark in center, less at sides
-                                        x_factor = 1.0 - (abs(gx - mr_w/2) / (mr_w/2)) ** 2
-                                        blend = darkness * x_factor * 0.6
-                                        opened_mouth[gy, gx] = (
-                                            opened_mouth[gy, gx] * (1 - blend) +
-                                            np.array([30, 20, 40]) * blend
-                                        ).astype(np.uint8)
-
-                            # Create smooth blend mask (elliptical, centered)
-                            mask = np.zeros((mr_h, mr_w), dtype=np.float32)
-                            cv2.ellipse(mask, (mr_w//2, mr_h//2), (mr_w//2 - 5, mr_h//2 - 5),
-                                       0, 0, 360, 1.0, -1)
-                            mask = cv2.GaussianBlur(mask, (21, 21), 0)
-                            mask_3ch = np.stack([mask, mask, mask], axis=-1)
-
-                            # Blend with original
-                            blended = (opened_mouth.astype(float) * mask_3ch +
-                                       mouth_region.astype(float) * (1 - mask_3ch))
-                            frame[mouth_y_start:mouth_y_end, mouth_x_start:mouth_x_end] = blended.astype(np.uint8)
-
-                # === 2. EYE BLINKING ===
+                # === 2. EYE BLINKING - Simple brightness reduction ===
+                # Instead of complex warping, just darken the eye area briefly
                 if frame_idx in blink_frames:
-                    # Squish the eye region vertically to simulate blink
+                    # Simple blink: darken the eye region
                     eye_region = frame[eye_y_start:eye_y_end, :].copy()
-                    er_h = eye_region.shape[0]
 
-                    # Calculate blink progress (0 = open, 1 = closed)
-                    blink_start = min([bf for bf in blink_frames if bf <= frame_idx and bf >= frame_idx - int(fps * 0.15)], default=frame_idx)
-                    blink_progress = (frame_idx - blink_start) / max(1, int(fps * 0.075))
-                    if blink_progress > 1:
-                        blink_progress = 2 - blink_progress  # Opening back up
-                    blink_progress = max(0, min(1, blink_progress))
+                    # Calculate blink intensity
+                    blink_start = min([bf for bf in blink_frames if bf <= frame_idx], default=frame_idx)
+                    frames_into_blink = frame_idx - blink_start
+                    blink_duration = int(fps * 0.12)  # ~120ms blink
 
-                    # Squish factor (1 = normal, 0.3 = almost closed)
-                    squish = 1.0 - (blink_progress * 0.6)
-                    new_h = max(10, int(er_h * squish))
+                    if frames_into_blink < blink_duration:
+                        # Darken amount peaks at middle of blink
+                        progress = frames_into_blink / blink_duration
+                        if progress < 0.5:
+                            darken = progress * 2  # 0 to 1
+                        else:
+                            darken = (1 - progress) * 2  # 1 to 0
 
-                    # Resize and pad
-                    squished = cv2.resize(eye_region, (eye_region.shape[1], new_h))
-                    pad_top = (er_h - new_h) // 2
-                    pad_bottom = er_h - new_h - pad_top
-
-                    if pad_top > 0 or pad_bottom > 0:
-                        squished = cv2.copyMakeBorder(squished, pad_top, pad_bottom, 0, 0,
-                                                      cv2.BORDER_REFLECT)
-                    frame[eye_y_start:eye_y_end, :] = squished[:er_h, :]
+                        # Apply darkening (simulates eyelid closing)
+                        darkened = (eye_region.astype(float) * (1 - darken * 0.4)).astype(np.uint8)
+                        frame[eye_y_start:eye_y_end, :] = darkened
 
                 # === 3. SUBTLE HEAD MOVEMENT ===
                 # Small scale breathing

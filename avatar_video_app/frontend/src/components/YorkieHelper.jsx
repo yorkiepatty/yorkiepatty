@@ -73,20 +73,28 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
     speechSynthRef.current.cancel()
 
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 1.1  // Slightly faster, more energetic
-    utterance.pitch = 1.4  // Higher pitch for cute dog voice
+    utterance.rate = 1.2  // Slightly faster, more energetic
+    utterance.pitch = 1.8  // Much higher pitch for cute dog voice
     utterance.volume = 0.8
 
-    // Try to find a good voice
+    // Try to find a female voice - be more specific
     const voices = speechSynthRef.current.getVoices()
-    const preferredVoice = voices.find(v =>
-      v.name.includes('Female') ||
-      v.name.includes('Samantha') ||
-      v.name.includes('Victoria') ||
-      v.lang.startsWith('en')
+    // Look for specific female voices first
+    let selectedVoice = voices.find(v =>
+      v.name.includes('Zira') ||  // Windows female
+      v.name.includes('Samantha') ||  // Mac female
+      v.name.includes('Victoria') ||  // Mac female
+      v.name.includes('Karen') ||  // Australian female
+      v.name.includes('Moira') ||  // Irish female
+      v.name.includes('Fiona') ||  // Scottish female
+      (v.name.includes('Female') && v.lang.startsWith('en'))
     )
-    if (preferredVoice) {
-      utterance.voice = preferredVoice
+    // Fallback to any English voice if no female found
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith('en'))
+    }
+    if (selectedVoice) {
+      utterance.voice = selectedVoice
     }
 
     // Sync mouth animation with speech
@@ -229,37 +237,9 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
           🐕
         </div>
 
-        {/* Lip-sync overlay - shows animated mouth when speaking */}
+        {/* Speaking animation - just use pulsing ring effect */}
         {isSpeaking && (
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 pointer-events-none">
-            <div className={`transition-all duration-75 ${mouthOpen ? 'scale-y-100' : 'scale-y-50'}`}>
-              <svg width="30" height="20" viewBox="0 0 30 20">
-                {/* Mouth shape that opens/closes */}
-                <ellipse
-                  cx="15"
-                  cy="10"
-                  rx="12"
-                  ry={mouthOpen ? 8 : 3}
-                  fill="#FF6B7A"
-                  stroke="#8B4557"
-                  strokeWidth="2"
-                  className="transition-all duration-75"
-                />
-                {/* Tongue */}
-                {mouthOpen && (
-                  <ellipse cx="15" cy="14" rx="6" ry="4" fill="#FF4081" />
-                )}
-              </svg>
-            </div>
-          </div>
-        )}
-
-        {/* Animated ears/movement effect */}
-        {isSpeaking && (
-          <>
-            <div className="absolute -top-1 left-2 w-3 h-3 bg-amber-400 rounded-full animate-bounce opacity-70" style={{ animationDelay: '0s' }} />
-            <div className="absolute -top-1 right-2 w-3 h-3 bg-amber-400 rounded-full animate-bounce opacity-70" style={{ animationDelay: '0.1s' }} />
-          </>
+          <div className="absolute inset-0 rounded-full border-4 border-primary-400 animate-ping opacity-30" />
         )}
 
         {/* Wag indicator */}
