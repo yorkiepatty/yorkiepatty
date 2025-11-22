@@ -1,0 +1,225 @@
+import React, { useState, useEffect, useRef } from 'react'
+
+// Path to your Yorkie image - place your yorkie.png in the public folder
+// or update this path to where your image is located
+const YORKIE_IMAGE = '/yorkie.png'  // Place your yorkie pic in frontend/public/yorkie.png
+
+// Yorkie messages for each step
+const YORKIE_MESSAGES = {
+  1: [
+    "Woof! Let's create your avatar! Describe who you want to be!",
+    "Pick a style that matches your vibe! I love the cartoon one!",
+    "Be creative with your description - the more detail, the better!"
+  ],
+  2: [
+    "Now let's add your voice! Bark bark!",
+    "You can record, upload, or type what you want to say!",
+    "Try the voice effects - the chipmunk one is fun like me!"
+  ],
+  3: [
+    "Almost there! Your video is being created!",
+    "This is so exciting! I can't wait to see it!",
+    "Woof woof! You're doing great!"
+  ],
+  complete: [
+    "Your video is ready! You did it!",
+    "That looks amazing! Time to share it!",
+    "Great job! Want to make another one?"
+  ],
+  idle: [
+    "*wags tail happily*",
+    "*tilts head curiously*",
+    "*panting excitedly*",
+    "Click on me for tips!",
+    "I'm here to help! Woof!"
+  ]
+}
+
+function YorkieHelper({ currentStep, isGenerating, videoReady }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [message, setMessage] = useState('')
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [mouthOpen, setMouthOpen] = useState(false)
+  const [tailWag, setTailWag] = useState(true)
+  const messageTimeoutRef = useRef(null)
+  const mouthIntervalRef = useRef(null)
+
+  // Get appropriate messages based on state
+  const getMessages = () => {
+    if (videoReady) return YORKIE_MESSAGES.complete
+    if (isGenerating) return YORKIE_MESSAGES[3]
+    return YORKIE_MESSAGES[currentStep] || YORKIE_MESSAGES.idle
+  }
+
+  // Show new message
+  const showMessage = (customMessage = null) => {
+    const messages = getMessages()
+    const newMessage = customMessage || messages[Math.floor(Math.random() * messages.length)]
+    setMessage(newMessage)
+    setIsOpen(true)
+    setIsSpeaking(true)
+
+    // Start lip-sync animation
+    if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+    mouthIntervalRef.current = setInterval(() => {
+      setMouthOpen(prev => !prev)
+    }, 100)
+
+    // Stop speaking after message duration
+    if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current)
+    messageTimeoutRef.current = setTimeout(() => {
+      setIsSpeaking(false)
+      if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+      setMouthOpen(false)
+    }, newMessage.length * 50) // ~50ms per character
+  }
+
+  // Auto-show message on step change
+  useEffect(() => {
+    const timer = setTimeout(() => showMessage(), 500)
+    return () => clearTimeout(timer)
+  }, [currentStep, isGenerating, videoReady])
+
+  // Tail wagging animation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTailWag(prev => !prev)
+    }, 300)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current)
+      if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+    }
+  }, [])
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      {/* Speech Bubble */}
+      {isOpen && message && (
+        <div
+          className="absolute bottom-full right-0 mb-2 max-w-xs animate-fade-in"
+          onClick={() => showMessage()}
+        >
+          <div className="bg-white rounded-2xl rounded-br-none p-4 shadow-xl relative">
+            <p className="text-gray-800 text-sm font-medium">{message}</p>
+            {/* Speech bubble tail */}
+            <div className="absolute -bottom-2 right-4 w-4 h-4 bg-white transform rotate-45" />
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsOpen(false)
+            }}
+            className="absolute -top-2 -right-2 w-6 h-6 bg-gray-200 rounded-full text-gray-600 hover:bg-gray-300 flex items-center justify-center text-xs"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Yorkie Avatar */}
+      <button
+        onClick={() => {
+          if (isOpen) {
+            showMessage()
+          } else {
+            showMessage()
+          }
+        }}
+        className={`w-24 h-24 rounded-full shadow-xl hover:scale-110 transition-transform relative overflow-hidden ${
+          isSpeaking ? 'ring-4 ring-primary-400 ring-opacity-50 animate-pulse' : ''
+        }`}
+        title="Click for help!"
+      >
+        {/* Your Yorkie Image */}
+        <img
+          src={YORKIE_IMAGE}
+          alt="Yorkie Helper"
+          className="w-full h-full object-cover rounded-full"
+          onError={(e) => {
+            // Fallback to gradient if image not found
+            e.target.style.display = 'none'
+            e.target.nextSibling.style.display = 'flex'
+          }}
+        />
+
+        {/* Fallback avatar if no image */}
+        <div
+          className="w-full h-full bg-gradient-to-br from-amber-300 to-amber-500 rounded-full items-center justify-center text-4xl hidden"
+        >
+          🐕
+        </div>
+
+        {/* Lip-sync overlay - shows animated mouth when speaking */}
+        {isSpeaking && (
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 pointer-events-none">
+            <div className={`transition-all duration-75 ${mouthOpen ? 'scale-y-100' : 'scale-y-50'}`}>
+              <svg width="30" height="20" viewBox="0 0 30 20">
+                {/* Mouth shape that opens/closes */}
+                <ellipse
+                  cx="15"
+                  cy="10"
+                  rx="12"
+                  ry={mouthOpen ? 8 : 3}
+                  fill="#FF6B7A"
+                  stroke="#8B4557"
+                  strokeWidth="2"
+                  className="transition-all duration-75"
+                />
+                {/* Tongue */}
+                {mouthOpen && (
+                  <ellipse cx="15" cy="14" rx="6" ry="4" fill="#FF4081" />
+                )}
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {/* Animated ears/movement effect */}
+        {isSpeaking && (
+          <>
+            <div className="absolute -top-1 left-2 w-3 h-3 bg-amber-400 rounded-full animate-bounce opacity-70" style={{ animationDelay: '0s' }} />
+            <div className="absolute -top-1 right-2 w-3 h-3 bg-amber-400 rounded-full animate-bounce opacity-70" style={{ animationDelay: '0.1s' }} />
+          </>
+        )}
+
+        {/* Wag indicator */}
+        <div
+          className={`absolute -right-1 bottom-3 text-lg transform origin-left transition-transform ${
+            tailWag ? 'rotate-12' : '-rotate-12'
+          }`}
+        >
+          💕
+        </div>
+
+        {/* Speaking indicator */}
+        {isSpeaking && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+          </div>
+        )}
+      </button>
+
+      {/* Navigation hints */}
+      <div className="absolute bottom-full right-0 mb-1 flex gap-1">
+        {[1, 2, 3].map((step) => (
+          <div
+            key={step}
+            className={`w-2 h-2 rounded-full transition-colors ${
+              currentStep >= step
+                ? 'bg-primary-400'
+                : 'bg-white/30'
+            }`}
+            title={`Step ${step}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default YorkieHelper

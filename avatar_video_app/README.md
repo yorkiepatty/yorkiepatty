@@ -24,6 +24,11 @@ Create talking avatar videos up to 3 minutes long from text descriptions. Choose
   - Multiple output providers (D-ID API or local FFmpeg)
   - Video gallery with download support
 
+- **Yorkie Helper**: Cute animated assistant in the bottom corner
+  - Provides navigation tips for each step
+  - Lip-sync animation when speaking
+  - Customizable with your own Yorkie image!
+
 ## Quick Start
 
 ### 1. Install Python Dependencies
@@ -47,7 +52,17 @@ npm install
 npm run dev
 ```
 
-### 4. Open the App
+### 4. Add Your Yorkie Image (Optional)
+
+Place your Yorkie picture in the public folder:
+
+```bash
+cp /path/to/your/yorkie.png avatar_video_app/frontend/public/yorkie.png
+```
+
+The Yorkie helper will use your custom image with lip-sync animation!
+
+### 5. Open the App
 
 Visit `http://localhost:3000` in your browser.
 
@@ -115,7 +130,8 @@ avatar_video_app/
             ├── VoiceEffects.jsx
             ├── GenerateButton.jsx
             ├── VideoPreview.jsx
-            └── VideoGallery.jsx
+            ├── VideoGallery.jsx
+            └── YorkieHelper.jsx
 ```
 
 ## Usage Examples

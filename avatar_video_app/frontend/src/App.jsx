@@ -6,6 +6,7 @@ import VoiceEffects from './components/VoiceEffects'
 import VideoPreview from './components/VideoPreview'
 import GenerateButton from './components/GenerateButton'
 import VideoGallery from './components/VideoGallery'
+import YorkieHelper from './components/YorkieHelper'
 
 function App() {
   // State for the entire app
@@ -214,6 +215,13 @@ function App() {
           <p className="mt-1">Powered by AI Technology</p>
         </div>
       </footer>
+
+      {/* Yorkie Helper - Bottom right corner */}
+      <YorkieHelper
+        currentStep={currentStep}
+        isGenerating={isGenerating}
+        videoReady={videoStatus === 'completed'}
+      />
     </div>
   )
 }
