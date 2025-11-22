@@ -228,9 +228,10 @@ function VoiceRecorder({
             {isRecording && (
               <button
                 onClick={stopRecording}
-                className="w-20 h-20 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg recording-indicator"
+                className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 rounded-xl flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg animate-pulse"
               >
-                <div className="w-8 h-8 bg-white rounded" />
+                <div className="w-6 h-6 bg-white rounded" />
+                <span className="text-white font-bold text-xl">STOP RECORDING</span>
               </button>
             )}
 
