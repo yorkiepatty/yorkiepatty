@@ -1,0 +1,44 @@
+# Core AI/ML
+anthropic
+openai
+ollama
+transformers
+torch
+tensorflow
+keras
+
+# Web frameworks
+fastapi
+flask
+uvicorn
+websockets
+
+# Audio/Speech
+SpeechRecognition
+gTTS
+vosk
+sounddevice
+soundfile
+librosa
+
+# Vision
+opencv-python
+pillow
+
+# Data processing
+numpy
+pandas
+scikit-learn
+scipy
+
+# AWS
+boto3
+
+# Utils
+python-dotenv
+requests
+beautifulsoup4
+pyyaml
+cryptography
+tqdm
+nltk
