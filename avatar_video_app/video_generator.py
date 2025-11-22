@@ -457,14 +457,41 @@ class VideoGenerator:
             # Try to analyze audio for lip-sync timing
             audio_energy = await self._analyze_audio_energy(audio_path, total_frames)
 
-            # Define mouth region (lower center of image - works for faces and animals)
-            h, w = img.shape[:2]
-            mouth_center_y = int(h * 0.65)  # 65% down from top
-            mouth_center_x = w // 2
-            mouth_region_h = int(h * 0.15)  # Height of mouth region
-            mouth_region_w = int(w * 0.3)   # Width of mouth region
+            if audio_energy:
+                max_energy = max(audio_energy)
+                min_energy = min(audio_energy)
+                print(f"[VIDEO] Audio energy range: {min_energy:.3f} - {max_energy:.3f}")
+            else:
+                print(f"[VIDEO] WARNING: No audio energy data, using sine wave simulation")
 
-            print(f"[VIDEO] Mouth region: center=({mouth_center_x}, {mouth_center_y}), size=({mouth_region_w}x{mouth_region_h})")
+            # Image dimensions
+            h, w = img.shape[:2]
+
+            # Define regions for animation (works for faces and animals)
+            # Mouth region: lower third, center
+            mouth_y_start = int(h * 0.55)
+            mouth_y_end = int(h * 0.75)
+            mouth_x_start = int(w * 0.3)
+            mouth_x_end = int(w * 0.7)
+
+            # Eye region: upper third
+            eye_y_start = int(h * 0.25)
+            eye_y_end = int(h * 0.45)
+
+            print(f"[VIDEO] Mouth region: y={mouth_y_start}-{mouth_y_end}, x={mouth_x_start}-{mouth_x_end}")
+
+            # Blink timing (random blinks every 2-5 seconds)
+            blink_frames = []
+            blink_time = 0
+            while blink_time < duration:
+                blink_time += np.random.uniform(2.0, 5.0)
+                if blink_time < duration:
+                    blink_frame = int(blink_time * fps)
+                    # Add blink duration (about 0.15 seconds)
+                    for bf in range(blink_frame, min(blink_frame + int(fps * 0.15), total_frames)):
+                        blink_frames.append(bf)
+
+            print(f"[VIDEO] Scheduled {len(set(blink_frames))} blink frames")
 
             # Generate frames with talking animation
             for frame_idx in range(total_frames):
@@ -472,77 +499,94 @@ class VideoGenerator:
                 t = frame_idx / fps
 
                 # Get audio energy for this frame
-                energy = audio_energy[frame_idx] if audio_energy else abs(np.sin(t * 8 * np.pi))
+                if audio_energy and frame_idx < len(audio_energy):
+                    energy = audio_energy[frame_idx]
+                else:
+                    energy = abs(np.sin(t * 6 * np.pi)) * 0.8
 
-                # === MOUTH MOVEMENT ===
-                # Create mouth opening effect by warping the lower portion
-                mouth_open = energy * 0.4  # How much the mouth opens (0-0.4)
-
-                if mouth_open > 0.05:  # Only animate if there's significant audio
-                    # Define source and destination points for perspective warp
-                    # This creates a "jaw drop" effect
-
-                    # Region bounds
-                    y1 = max(0, mouth_center_y - mouth_region_h // 2)
-                    y2 = min(h, mouth_center_y + mouth_region_h // 2)
-                    x1 = max(0, mouth_center_x - mouth_region_w // 2)
-                    x2 = min(w, mouth_center_x + mouth_region_w // 2)
-
+                # === 1. MOUTH MOVEMENT - Vertical stretch of lower face ===
+                if energy > 0.1:
                     # Extract mouth region
-                    mouth_region = frame[y1:y2, x1:x2].copy()
+                    mouth_region = frame[mouth_y_start:mouth_y_end, mouth_x_start:mouth_x_end].copy()
                     mr_h, mr_w = mouth_region.shape[:2]
 
-                    if mr_h > 10 and mr_w > 10:
-                        # Calculate stretch amount
-                        stretch = int(mr_h * mouth_open * 0.3)
+                    if mr_h > 20 and mr_w > 20:
+                        # Calculate how much to open the mouth (more energy = more open)
+                        open_amount = int(mr_h * energy * 0.25)  # Up to 25% stretch
 
-                        # Stretch the lower half of mouth region vertically
-                        mid_y = mr_h // 2
-                        upper_part = mouth_region[:mid_y, :]
-                        lower_part = mouth_region[mid_y:, :]
+                        if open_amount > 2:
+                            # Split at middle and stretch lower half down
+                            mid = mr_h // 2
+                            upper = mouth_region[:mid, :]
+                            lower = mouth_region[mid:, :]
 
-                        # Stretch lower part
-                        if stretch > 0 and lower_part.shape[0] > 0:
-                            new_lower_h = lower_part.shape[0] + stretch
-                            lower_stretched = cv2.resize(lower_part, (mr_w, new_lower_h))
+                            # Stretch lower portion
+                            new_lower_h = lower.shape[0] + open_amount
+                            lower_stretched = cv2.resize(lower, (mr_w, new_lower_h), interpolation=cv2.INTER_LINEAR)
 
-                            # Create new mouth region with stretched lower part
-                            new_mouth = np.vstack([upper_part, lower_stretched[:lower_part.shape[0] + stretch//2, :]])
+                            # Combine (take only what fits)
+                            combined_h = min(upper.shape[0] + lower_stretched.shape[0], mr_h + open_amount)
+                            combined = np.vstack([upper, lower_stretched])[:mr_h, :]
 
-                            # Resize back to original size and blend
-                            new_mouth_resized = cv2.resize(new_mouth, (mr_w, mr_h))
-
-                            # Blend with original using a gradient mask for smooth edges
+                            # Create smooth blend mask
                             mask = np.zeros((mr_h, mr_w), dtype=np.float32)
-                            cv2.ellipse(mask, (mr_w//2, mr_h//2), (mr_w//3, mr_h//3), 0, 0, 360, 1.0, -1)
-                            mask = cv2.GaussianBlur(mask, (21, 21), 0)
-                            mask = np.stack([mask] * 3, axis=-1)
+                            cv2.ellipse(mask, (mr_w//2, mr_h//2), (mr_w//2 - 10, mr_h//2 - 10),
+                                       0, 0, 360, 1.0, -1)
+                            mask = cv2.GaussianBlur(mask, (31, 31), 0)
+                            mask_3ch = np.stack([mask, mask, mask], axis=-1)
 
-                            blended = (new_mouth_resized * mask + mouth_region * (1 - mask)).astype(np.uint8)
-                            frame[y1:y2, x1:x2] = blended
+                            # Blend with original
+                            blended = (combined.astype(float) * mask_3ch +
+                                       mouth_region.astype(float) * (1 - mask_3ch))
+                            frame[mouth_y_start:mouth_y_end, mouth_x_start:mouth_x_end] = blended.astype(np.uint8)
 
-                # === SUBTLE OVERALL ANIMATIONS ===
-                # 1. Breathing animation
-                breath_scale = 1.0 + 0.005 * np.sin(t * 1.5 * np.pi)
+                # === 2. EYE BLINKING ===
+                if frame_idx in blink_frames:
+                    # Squish the eye region vertically to simulate blink
+                    eye_region = frame[eye_y_start:eye_y_end, :].copy()
+                    er_h = eye_region.shape[0]
 
-                # 2. Head bob when talking
-                bob_y = int(3 * energy * np.sin(t * 8 * np.pi))
-                bob_x = int(2 * energy * np.sin(t * 5 * np.pi))
+                    # Calculate blink progress (0 = open, 1 = closed)
+                    blink_start = min([bf for bf in blink_frames if bf <= frame_idx and bf >= frame_idx - int(fps * 0.15)], default=frame_idx)
+                    blink_progress = (frame_idx - blink_start) / max(1, int(fps * 0.075))
+                    if blink_progress > 1:
+                        blink_progress = 2 - blink_progress  # Opening back up
+                    blink_progress = max(0, min(1, blink_progress))
 
-                # Apply scale
+                    # Squish factor (1 = normal, 0.3 = almost closed)
+                    squish = 1.0 - (blink_progress * 0.6)
+                    new_h = max(10, int(er_h * squish))
+
+                    # Resize and pad
+                    squished = cv2.resize(eye_region, (eye_region.shape[1], new_h))
+                    pad_top = (er_h - new_h) // 2
+                    pad_bottom = er_h - new_h - pad_top
+
+                    if pad_top > 0 or pad_bottom > 0:
+                        squished = cv2.copyMakeBorder(squished, pad_top, pad_bottom, 0, 0,
+                                                      cv2.BORDER_REFLECT)
+                    frame[eye_y_start:eye_y_end, :] = squished[:er_h, :]
+
+                # === 3. SUBTLE HEAD MOVEMENT ===
+                # Small scale breathing
+                breath = 1.0 + 0.008 * np.sin(t * 1.2 * np.pi)
+
+                # Small movement when talking
+                move_x = int(4 * energy * np.sin(t * 5 * np.pi))
+                move_y = int(3 * energy * np.sin(t * 7 * np.pi))
+
+                # Apply transformations
                 center = (w // 2, h // 2)
-                M = cv2.getRotationMatrix2D(center, 0, breath_scale)
+                M = cv2.getRotationMatrix2D(center, 0, breath)
+                M[0, 2] += move_x
+                M[1, 2] += move_y
                 frame = cv2.warpAffine(frame, M, (w, h), borderMode=cv2.BORDER_REFLECT)
-
-                # Apply translation (head bob)
-                M_translate = np.float32([[1, 0, bob_x], [0, 1, bob_y]])
-                frame = cv2.warpAffine(frame, M_translate, (w, h), borderMode=cv2.BORDER_REFLECT)
 
                 out.write(frame)
 
-                # Progress indicator every 100 frames
+                # Progress indicator
                 if frame_idx % 100 == 0:
-                    print(f"[VIDEO] Progress: {frame_idx}/{total_frames} frames ({100*frame_idx//total_frames}%)")
+                    print(f"[VIDEO] Progress: {frame_idx}/{total_frames} ({100*frame_idx//total_frames}%) energy={energy:.2f}")
 
             out.release()
             print(f"[VIDEO] Frames generated, combining with audio...")
