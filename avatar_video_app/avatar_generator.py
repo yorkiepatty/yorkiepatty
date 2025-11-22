@@ -116,7 +116,13 @@ Requirements:
         # Check both config and environment directly
         api_key = config.openai_api_key or os.getenv("OPENAI_API_KEY")
 
+        print(f"\n[OPENAI] Attempting OpenAI DALL-E 3 generation...")
+        print(f"[OPENAI] API Key found: {bool(api_key)}")
+        if api_key:
+            print(f"[OPENAI] API Key starts with: {api_key[:7]}...")
+
         if not api_key:
+            print("[OPENAI] ERROR: No API key configured!")
             return AvatarResult(success=False, error="OpenAI API key not configured")
 
         try:
@@ -135,13 +141,16 @@ Requirements:
                     "response_format": "b64_json"
                 }
 
+                print(f"[OPENAI] Sending request to OpenAI API...")
                 async with session.post(
                     "https://api.openai.com/v1/images/generations",
                     headers=headers,
                     json=payload,
                     timeout=aiohttp.ClientTimeout(total=120)
                 ) as response:
+                    print(f"[OPENAI] Response status: {response.status}")
                     if response.status == 200:
+                        print("[OPENAI] SUCCESS! Image generated!")
                         data = await response.json()
                         image_b64 = data["data"][0]["b64_json"]
                         revised_prompt = data["data"][0].get("revised_prompt", prompt)
@@ -169,14 +178,18 @@ Requirements:
                         )
                     else:
                         error_data = await response.text()
+                        print(f"[OPENAI] ERROR: Status {response.status}")
+                        print(f"[OPENAI] Error details: {error_data}")
                         return AvatarResult(
                             success=False,
                             error=f"OpenAI API error: {response.status} - {error_data}"
                         )
 
         except asyncio.TimeoutError:
+            print("[OPENAI] ERROR: Request timed out after 120 seconds")
             return AvatarResult(success=False, error="OpenAI request timed out")
         except Exception as e:
+            print(f"[OPENAI] ERROR: Exception occurred: {str(e)}")
             return AvatarResult(success=False, error=f"OpenAI error: {str(e)}")
 
     def generate_placeholder(self, description: str, style: str) -> AvatarResult:
@@ -352,19 +365,33 @@ Requirements:
         # Refresh providers list (in case API keys were loaded later)
         providers = self._init_providers()
 
+        print(f"\n{'='*60}")
+        print(f"[AVATAR] Starting avatar generation")
+        print(f"[AVATAR] Description: {description[:50]}...")
+        print(f"[AVATAR] Style: {style}")
+        print(f"[AVATAR] Available providers: {[p['name'] for p in providers]}")
+        print(f"{'='*60}")
+
         # Try providers in order
         for provider in providers:
+            print(f"\n[AVATAR] Trying provider: {provider['name']}")
             if not provider.get("enabled"):
                 continue
 
             if provider["name"] == "openai_dalle3":
                 result = await self.generate_with_openai(prompt, style)
                 if result.success:
+                    print(f"[AVATAR] OpenAI succeeded!")
                     return result
+                else:
+                    print(f"[AVATAR] OpenAI failed: {result.error}")
+                    print(f"[AVATAR] Falling back to next provider...")
 
             elif provider["name"] == "placeholder":
+                print(f"[AVATAR] Using placeholder generator (fallback)")
                 result = self.generate_placeholder(description, style)
                 if result.success:
+                    print(f"[AVATAR] Placeholder generated successfully")
                     return result
 
         return AvatarResult(
