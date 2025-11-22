@@ -77,6 +77,11 @@ class StatusResponse(BaseModel):
     data: Optional[dict] = None
 
 
+class APIKeyRequest(BaseModel):
+    """Request to set API key"""
+    api_key: str = Field(..., description="OpenAI API key")
+
+
 # ============== API Endpoints ==============
 
 @app.get("/")
@@ -106,6 +111,43 @@ async def health_check():
             "avatar": avatar_generator.get_provider_status(),
             "video": video_generator.get_provider_status()
         }
+    }
+
+
+# ============== Settings Endpoints ==============
+
+@app.post("/api/settings/apikey")
+async def set_api_key(request: APIKeyRequest):
+    """Set OpenAI API key from the app"""
+    api_key = request.api_key.strip()
+
+    # Validate key format
+    if not api_key.startswith("sk-"):
+        return {"success": False, "message": "Invalid API key format. Key should start with 'sk-'"}
+
+    # Set in environment and config
+    os.environ["OPENAI_API_KEY"] = api_key
+    config.openai_api_key = api_key
+
+    print(f"\n[SETTINGS] API Key updated via app!")
+    print(f"[SETTINGS] Key starts with: {api_key[:10]}...")
+
+    return {
+        "success": True,
+        "message": "API key saved! You can now generate AI avatars.",
+        "key_preview": f"{api_key[:10]}...{api_key[-4:]}"
+    }
+
+
+@app.get("/api/settings/status")
+async def get_settings_status():
+    """Check if API keys are configured"""
+    api_key = config.openai_api_key or os.getenv("OPENAI_API_KEY")
+    has_key = bool(api_key) and api_key.startswith("sk-")
+
+    return {
+        "openai_configured": has_key,
+        "key_preview": f"{api_key[:10]}...{api_key[-4:]}" if has_key else None
     }
 
 

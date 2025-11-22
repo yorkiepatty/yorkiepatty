@@ -7,6 +7,7 @@ import VideoPreview from './components/VideoPreview'
 import GenerateButton from './components/GenerateButton'
 import VideoGallery from './components/VideoGallery'
 import YorkieHelper from './components/YorkieHelper'
+import Settings from './components/Settings'
 
 function App() {
   // State for the entire app
@@ -34,6 +35,9 @@ function App() {
   const [videoJobId, setVideoJobId] = useState(null)
   const [videoStatus, setVideoStatus] = useState(null)
 
+  // Settings state
+  const [settingsOpen, setSettingsOpen] = useState(false)
+
   // Reset all state
   const resetAll = useCallback(() => {
     setCurrentStep(1)
@@ -59,7 +63,7 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <Header onReset={resetAll} />
+      <Header onReset={resetAll} onOpenSettings={() => setSettingsOpen(true)} />
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {error && (
@@ -222,6 +226,9 @@ function App() {
         isGenerating={isGenerating}
         videoReady={videoStatus === 'completed'}
       />
+
+      {/* Settings Modal */}
+      <Settings isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }
