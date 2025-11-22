@@ -2,21 +2,54 @@
 Configuration for Avatar Video App
 """
 import os
+import sys
+import tempfile
 from dataclasses import dataclass
 from typing import Optional
 from pathlib import Path
 
-# Load .env file
+# Load .env file with verbose output
+print("\n" + "="*60)
+print("[CONFIG] Loading configuration...")
+
+env_loaded = False
+env_file_used = None
+
 try:
     from dotenv import load_dotenv
-    # Look for .env in parent directories
-    env_path = Path(__file__).parent.parent / '.env'
-    if env_path.exists():
-        load_dotenv(env_path)
-    else:
+
+    # Try multiple locations for .env file
+    possible_paths = [
+        Path(__file__).parent.parent / '.env',  # yorkiepatty/.env
+        Path.cwd() / '.env',  # Current working directory
+        Path.home() / '.env',  # User home directory
+    ]
+
+    for env_path in possible_paths:
+        print(f"[CONFIG] Checking for .env at: {env_path}")
+        if env_path.exists():
+            print(f"[CONFIG] FOUND .env file at: {env_path}")
+            load_dotenv(env_path, override=True)
+            env_loaded = True
+            env_file_used = env_path
+            break
+
+    if not env_loaded:
+        print("[CONFIG] No .env file found, using environment variables only")
         load_dotenv()  # Try default locations
+
 except ImportError:
-    pass  # python-dotenv not installed
+    print("[CONFIG] WARNING: python-dotenv not installed, using environment variables only")
+
+# Show what was loaded
+api_key = os.getenv("OPENAI_API_KEY", "")
+if api_key and api_key.startswith("sk-"):
+    print(f"[CONFIG] OpenAI API Key: LOADED ({api_key[:12]}...)")
+elif api_key:
+    print(f"[CONFIG] OpenAI API Key: INVALID FORMAT (starts with: {api_key[:10]}...)")
+else:
+    print("[CONFIG] OpenAI API Key: NOT SET")
+print("="*60 + "\n")
 
 @dataclass
 class AvatarConfig:
@@ -44,11 +77,15 @@ class AvatarConfig:
     # Voice changer presets
     voice_effects: list = None
 
-    # Storage paths
-    temp_dir: str = "/tmp/avatar_video_app"
+    # Storage paths (auto-detect based on OS)
+    temp_dir: str = None
     output_dir: str = "./avatar_outputs"
 
     def __post_init__(self):
+        # Set temp directory based on OS
+        if self.temp_dir is None:
+            self.temp_dir = os.path.join(tempfile.gettempdir(), "avatar_video_app")
+
         # Load API keys from environment
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.did_api_key = os.getenv("DID_API_KEY")
