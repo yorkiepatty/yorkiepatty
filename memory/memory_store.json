@@ -376,5 +376,11 @@
     "output": "Saved memory cleanly before exit.",
     "intent": "system",
     "timestamp": "2025-10-23T11:01:55.543738Z"
+  },
+  {
+    "input": "System Shutdown",
+    "output": "Saved memory cleanly before exit.",
+    "intent": "system",
+    "timestamp": "2025-11-22T09:54:51.507103Z"
   }
 ]

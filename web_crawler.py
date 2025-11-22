@@ -1,4 +1,7 @@
-from newspaper import Article
+try:
+    from newspaper import Article
+except ImportError:
+    Article = None  # newspaper not available
 
 # --- Your existing functions are here ---
 

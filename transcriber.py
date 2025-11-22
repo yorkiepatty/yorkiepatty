@@ -7,9 +7,18 @@ import os
 import sys
 import json
 import queue
-import sounddevice as sd
-import vosk
-import webrtcvad
+try:
+    import sounddevice as sd
+except OSError:
+    sd = None  # No audio hardware available
+try:
+    import vosk
+except ImportError:
+    vosk = None
+try:
+    import webrtcvad
+except ImportError:
+    webrtcvad = None
 import time
 
 # -------------------------------------------------------------
@@ -39,8 +48,12 @@ MODEL_PATH = os.path.join(SPEECH_DIR, "vosk-model-small-en-us-0.15")
 # Tell Python to just use this path — no error checking
 print(f"🎯 Loading Vosk model directly from: {MODEL_PATH}")
 
-# Initialize the model directly (no if-checks, no fallback)
-model = vosk.Model(MODEL_PATH)
+# Initialize the model directly (with fallback for missing vosk)
+if vosk is not None and os.path.exists(MODEL_PATH):
+    model = vosk.Model(MODEL_PATH)
+else:
+    model = None
+    print("⚠️ Vosk not available - speech recognition disabled")
 
 # -------------------------------------------------------------
 # Load custom AlphaVox vocabulary (optional)
@@ -65,7 +78,7 @@ FRAME_DURATION = 30  # ms
 FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION / 1000) * 2
 
 q = queue.Queue()
-vad = webrtcvad.Vad(2)
+vad = webrtcvad.Vad(2) if webrtcvad else None
 
 
 def callback(indata, frames, time_info, status):
