@@ -351,42 +351,50 @@ class VideoGenerator:
                 with open(audio_path, "rb") as f:
                     audio_data = f.read()
 
-                audio_headers = {
-                    "X-Api-Key": heygen_key,
-                    "Content-Type": "audio/wav"
-                }
+                # Try different audio content types
+                audio_content_types = ["audio/mpeg", "audio/x-wav", "audio/wav"]
+                audio_url = None
 
-                async with session.post(
-                    "https://upload.heygen.com/v1/asset",
-                    headers=audio_headers,
-                    data=audio_data,  # Raw binary
-                    timeout=aiohttp.ClientTimeout(total=60)
-                ) as response:
-                    response_text = await response.text()
-                    print(f"[VIDEO] HeyGen audio upload response: {response.status}")
+                for audio_ct in audio_content_types:
+                    audio_headers = {
+                        "X-Api-Key": heygen_key,
+                        "Content-Type": audio_ct
+                    }
 
-                    if response.status not in [200, 201]:
-                        print(f"[VIDEO] HeyGen audio upload error: {response_text[:300]}")
-                        # Fall back to base64 audio in video request
-                        audio_url = None
-                    else:
-                        audio_upload_data = json.loads(response_text)
-                        audio_url = audio_upload_data.get("data", {}).get("url")
-                        print(f"[VIDEO] Got audio URL: {audio_url[:50] if audio_url else 'None'}...")
+                    print(f"[VIDEO] Trying audio upload with Content-Type: {audio_ct}")
+
+                    async with session.post(
+                        "https://upload.heygen.com/v1/asset",
+                        headers=audio_headers,
+                        data=audio_data,
+                        timeout=aiohttp.ClientTimeout(total=60)
+                    ) as response:
+                        response_text = await response.text()
+                        print(f"[VIDEO] HeyGen audio upload response: {response.status}")
+
+                        if response.status in [200, 201]:
+                            audio_upload_data = json.loads(response_text)
+                            audio_url = audio_upload_data.get("data", {}).get("url")
+                            if audio_url:
+                                print(f"[VIDEO] Got audio URL: {audio_url[:80]}...")
+                                break
+                        else:
+                            print(f"[VIDEO] Audio upload failed with {audio_ct}: {response_text[:200]}")
+
+                if not audio_url:
+                    print(f"[VIDEO] All audio content types failed, HeyGen cannot proceed")
+                    return VideoResult(
+                        success=False,
+                        error="HeyGen audio upload failed with all content types"
+                    )
 
                 # Step 3: Generate video
                 print(f"[VIDEO] Step 3: Generating video with HeyGen...")
 
-                headers["Content-Type"] = "application/json"
-
-                # Build video generation payload
-                voice_config = {"type": "audio"}
-                if audio_url:
-                    voice_config["audio_url"] = audio_url
-                else:
-                    # Use base64 as fallback
-                    audio_b64 = base64.b64encode(audio_data).decode()
-                    voice_config["audio_url"] = f"data:audio/wav;base64,{audio_b64}"
+                video_headers = {
+                    "X-Api-Key": heygen_key,
+                    "Content-Type": "application/json"
+                }
 
                 payload = {
                     "video_inputs": [
@@ -395,7 +403,10 @@ class VideoGenerator:
                                 "type": "talking_photo",
                                 "talking_photo_id": talking_photo_id
                             },
-                            "voice": voice_config
+                            "voice": {
+                                "type": "audio",
+                                "audio_url": audio_url
+                            }
                         }
                     ],
                     "dimension": {
@@ -408,7 +419,7 @@ class VideoGenerator:
 
                 async with session.post(
                     "https://api.heygen.com/v2/video/generate",
-                    headers=headers,
+                    headers=video_headers,
                     json=payload,
                     timeout=aiohttp.ClientTimeout(total=120)
                 ) as response:
