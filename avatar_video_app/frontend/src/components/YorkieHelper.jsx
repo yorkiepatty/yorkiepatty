@@ -101,9 +101,10 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
     utterance.onstart = () => {
       setIsSpeaking(true)
       if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+      // Faster mouth movement for more natural talking look
       mouthIntervalRef.current = setInterval(() => {
         setMouthOpen(prev => !prev)
-      }, 100)
+      }, 80)  // 80ms for quicker mouth movement
     }
 
     utterance.onend = () => {
@@ -214,30 +215,65 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
           }
         }}
         className={`w-24 h-24 rounded-full shadow-xl hover:scale-110 transition-transform relative overflow-hidden ${
-          isSpeaking ? 'ring-4 ring-primary-400 ring-opacity-50 animate-pulse' : ''
+          isSpeaking ? 'ring-4 ring-primary-400 ring-opacity-50' : ''
         }`}
         title="Click for help!"
       >
-        {/* Your Yorkie Image */}
-        <img
-          src={YORKIE_IMAGE}
-          alt="Yorkie Helper"
-          className="w-full h-full object-cover rounded-full"
-          onError={(e) => {
-            // Fallback to gradient if image not found
-            e.target.style.display = 'none'
-            e.target.nextSibling.style.display = 'flex'
-          }}
-        />
+        {/* Your Yorkie Image with lip sync */}
+        <div className="relative w-full h-full">
+          {/* Upper face (eyes area) - stays still */}
+          <div
+            className="absolute inset-0 rounded-full overflow-hidden"
+            style={{ clipPath: 'inset(0 0 55% 0)' }}
+          >
+            <img
+              src={YORKIE_IMAGE}
+              alt="Yorkie Helper"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none'
+              }}
+            />
+          </div>
+
+          {/* Lower face (mouth area) - animates when speaking */}
+          <div
+            className="absolute inset-0 rounded-full overflow-hidden transition-transform duration-50"
+            style={{
+              clipPath: 'inset(45% 0 0 0)',
+              transform: mouthOpen ? 'translateY(5px) scaleY(1.12)' : 'translateY(0) scaleY(1)'
+            }}
+          >
+            <img
+              src={YORKIE_IMAGE}
+              alt=""
+              className="w-full h-full object-cover transition-transform duration-50"
+              style={{
+                transform: mouthOpen ? 'translateY(-5px)' : 'translateY(0)'
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none'
+              }}
+            />
+          </div>
+
+          {/* Full image fallback for browsers that don't support clip-path well */}
+          <img
+            src={YORKIE_IMAGE}
+            alt="Yorkie Helper"
+            className="absolute inset-0 w-full h-full object-cover rounded-full opacity-0"
+            style={{ zIndex: -1 }}
+          />
+        </div>
 
         {/* Fallback avatar if no image */}
         <div
-          className="w-full h-full bg-gradient-to-br from-amber-300 to-amber-500 rounded-full items-center justify-center text-4xl hidden"
+          className="absolute inset-0 w-full h-full bg-gradient-to-br from-amber-300 to-amber-500 rounded-full items-center justify-center text-4xl hidden"
         >
           🐕
         </div>
 
-        {/* Speaking animation - just use pulsing ring effect */}
+        {/* Speaking animation - pulsing ring effect */}
         {isSpeaking && (
           <div className="absolute inset-0 rounded-full border-4 border-primary-400 animate-ping opacity-30" />
         )}
