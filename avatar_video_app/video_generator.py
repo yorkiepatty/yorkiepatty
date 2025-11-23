@@ -832,53 +832,72 @@ class VideoGenerator:
                 else:
                     energy = abs(np.sin(t * 6 * np.pi)) * 0.8
 
-                # === 1. SIMPLE TALKING ANIMATION - Scale lower face region ===
-                # This creates a subtle "jaw movement" effect without complex warping
-                if energy > 0.15:
-                    # Simple approach: slightly stretch the lower portion of the image
-                    # This simulates jaw movement without complex warping artifacts
+                # === 1. MOUTH/JAW ANIMATION - More aggressive stretching ===
+                # Lower threshold and bigger effect for visible lip movement
+                if energy > 0.05:  # Lower threshold to catch more speech
+                    # Define the mouth/jaw region (lower portion of face)
+                    jaw_y_start = int(h * 0.55)  # Start at 55% down
+                    jaw_y_end = int(h * 0.85)    # End at 85%
 
-                    # Define the jaw/lower face region
-                    jaw_y_start = int(h * 0.6)  # Lower 40% of image
-                    jaw_y_end = h
+                    # Much larger stretch for visibility
+                    stretch_amount = int(energy * 50)  # Up to 50 pixels stretch
 
-                    # Calculate stretch amount based on energy
-                    stretch_amount = int(energy * 15)  # Up to 15 pixels
+                    if stretch_amount > 3:
+                        # Extract the jaw region
+                        jaw_region = frame[jaw_y_start:jaw_y_end, :].copy()
+                        jr_h, jr_w = jaw_region.shape[:2]
 
-                    if stretch_amount > 2:
-                        # Extract lower region
-                        lower_region = frame[jaw_y_start:jaw_y_end, :].copy()
-                        lr_h, lr_w = lower_region.shape[:2]
+                        # Stretch it vertically (simulates mouth opening)
+                        new_h = jr_h + stretch_amount
+                        stretched = cv2.resize(jaw_region, (jr_w, new_h), interpolation=cv2.INTER_LINEAR)
 
-                        # Stretch it vertically (make it taller)
-                        new_h = lr_h + stretch_amount
-                        stretched = cv2.resize(lower_region, (lr_w, new_h), interpolation=cv2.INTER_LINEAR)
+                        # Put the top part back (this creates "mouth opening down" effect)
+                        frame[jaw_y_start:jaw_y_end, :] = stretched[:jr_h, :]
 
-                        # Take the top portion that fits
-                        frame[jaw_y_start:jaw_y_end, :] = stretched[:lr_h, :]
+                        # Also add a slight horizontal squeeze in mouth area for more realism
+                        mouth_center_y = int(h * 0.65)
+                        mouth_h = int(h * 0.1)
+                        squeeze = 1.0 - (energy * 0.05)  # Slight horizontal squeeze
+                        mouth_region = frame[mouth_center_y:mouth_center_y+mouth_h, :].copy()
+                        mr_h, mr_w = mouth_region.shape[:2]
+                        new_w = int(mr_w * squeeze)
+                        if new_w > 10:
+                            squeezed = cv2.resize(mouth_region, (new_w, mr_h))
+                            pad = (mr_w - new_w) // 2
+                            frame[mouth_center_y:mouth_center_y+mouth_h, pad:pad+new_w] = squeezed
 
-                # === 2. EYE BLINKING - Simple brightness reduction ===
-                # Instead of complex warping, just darken the eye area briefly
+                # === 2. EYE BLINKING - Squish vertically for visible blink ===
                 if frame_idx in blink_frames:
-                    # Simple blink: darken the eye region
                     eye_region = frame[eye_y_start:eye_y_end, :].copy()
+                    er_h, er_w = eye_region.shape[:2]
 
-                    # Calculate blink intensity
+                    # Calculate blink progress
                     blink_start = min([bf for bf in blink_frames if bf <= frame_idx], default=frame_idx)
                     frames_into_blink = frame_idx - blink_start
-                    blink_duration = int(fps * 0.12)  # ~120ms blink
+                    blink_duration = int(fps * 0.15)  # 150ms blink
 
                     if frames_into_blink < blink_duration:
-                        # Darken amount peaks at middle of blink
                         progress = frames_into_blink / blink_duration
+                        # Squish factor: starts at 1, goes to 0.3 at peak, back to 1
                         if progress < 0.5:
-                            darken = progress * 2  # 0 to 1
+                            squish = 1.0 - (progress * 2 * 0.7)  # 1.0 -> 0.3
                         else:
-                            darken = (1 - progress) * 2  # 1 to 0
+                            squish = 0.3 + ((progress - 0.5) * 2 * 0.7)  # 0.3 -> 1.0
 
-                        # Apply darkening (simulates eyelid closing)
-                        darkened = (eye_region.astype(float) * (1 - darken * 0.4)).astype(np.uint8)
-                        frame[eye_y_start:eye_y_end, :] = darkened
+                        # Squish the eye region vertically
+                        new_eye_h = max(int(er_h * squish), 5)
+                        squished_eyes = cv2.resize(eye_region, (er_w, new_eye_h))
+
+                        # Center the squished region
+                        pad_top = (er_h - new_eye_h) // 2
+                        pad_bottom = er_h - new_eye_h - pad_top
+
+                        # Fill with skin-colored padding (use average of region)
+                        avg_color = eye_region.mean(axis=(0, 1)).astype(np.uint8)
+                        padded = np.full((er_h, er_w, 3), avg_color, dtype=np.uint8)
+                        padded[pad_top:pad_top+new_eye_h, :] = squished_eyes
+
+                        frame[eye_y_start:eye_y_end, :] = padded
 
                 # === 3. SUBTLE HEAD MOVEMENT ===
                 # Small scale breathing
