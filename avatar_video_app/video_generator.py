@@ -154,6 +154,15 @@ class VideoGenerator:
                 if result.success:
                     return result
 
+        # Check HeyGen at runtime (in case it wasn't in providers at init time)
+        if config.heygen_api_key and not any(p["name"] == "heygen" for p in self.providers):
+            print("[VIDEO] HeyGen API key found at runtime, trying HeyGen...")
+            result = await self._generate_with_heygen(
+                avatar_image_path, audio_path, job_id, output_name
+            )
+            if result.success or result.status == "processing":
+                return result
+
         return VideoResult(
             success=False,
             error="All video generation providers failed",
@@ -248,15 +257,20 @@ class VideoGenerator:
         output_name: Optional[str]
     ) -> VideoResult:
         """Generate video using HeyGen API with photo avatar"""
-        if not config.heygen_api_key:
+        # Reload API key from environment at runtime
+        import os
+        heygen_key = config.heygen_api_key or os.getenv("HEYGEN_API_KEY")
+
+        if not heygen_key:
             return VideoResult(success=False, error="HeyGen API key not configured")
 
         try:
             print(f"[VIDEO] Starting HeyGen video generation...")
+            print(f"[VIDEO] Using HeyGen API key: {heygen_key[:10]}...")
 
             async with aiohttp.ClientSession() as session:
                 headers = {
-                    "X-Api-Key": config.heygen_api_key
+                    "X-Api-Key": heygen_key
                 }
 
                 # Step 1: Upload image to create talking photo
@@ -512,10 +526,13 @@ class VideoGenerator:
 
     async def _check_heygen_status(self, job_id: str, job: Dict) -> VideoResult:
         """Check HeyGen job status"""
+        import os
+        heygen_key = config.heygen_api_key or os.getenv("HEYGEN_API_KEY")
+
         try:
             async with aiohttp.ClientSession() as session:
                 headers = {
-                    "X-Api-Key": config.heygen_api_key
+                    "X-Api-Key": heygen_key
                 }
 
                 # HeyGen status endpoint
