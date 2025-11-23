@@ -832,19 +832,22 @@ class VideoGenerator:
                 else:
                     energy = abs(np.sin(t * 6 * np.pi)) * 0.8
 
-                # === 1. MOUTH/JAW ANIMATION - More aggressive stretching ===
+                # === 1. MOUTH/JAW ANIMATION - Only in face center region ===
                 # Lower threshold and bigger effect for visible lip movement
                 if energy > 0.05:  # Lower threshold to catch more speech
-                    # Define the mouth/jaw region (lower portion of face)
-                    jaw_y_start = int(h * 0.55)  # Start at 55% down
-                    jaw_y_end = int(h * 0.85)    # End at 85%
+                    # Define the mouth/jaw region - CENTER of image only (where face is)
+                    jaw_y_start = int(h * 0.55)
+                    jaw_y_end = int(h * 0.85)
+                    # Only affect center 40% of width (where face is)
+                    face_x_start = int(w * 0.30)
+                    face_x_end = int(w * 0.70)
 
                     # Much larger stretch for visibility
-                    stretch_amount = int(energy * 50)  # Up to 50 pixels stretch
+                    stretch_amount = int(energy * 40)  # Up to 40 pixels stretch
 
                     if stretch_amount > 3:
-                        # Extract the jaw region
-                        jaw_region = frame[jaw_y_start:jaw_y_end, :].copy()
+                        # Extract ONLY the face region (not full width)
+                        jaw_region = frame[jaw_y_start:jaw_y_end, face_x_start:face_x_end].copy()
                         jr_h, jr_w = jaw_region.shape[:2]
 
                         # Stretch it vertically (simulates mouth opening)
@@ -852,23 +855,15 @@ class VideoGenerator:
                         stretched = cv2.resize(jaw_region, (jr_w, new_h), interpolation=cv2.INTER_LINEAR)
 
                         # Put the top part back (this creates "mouth opening down" effect)
-                        frame[jaw_y_start:jaw_y_end, :] = stretched[:jr_h, :]
+                        frame[jaw_y_start:jaw_y_end, face_x_start:face_x_end] = stretched[:jr_h, :]
 
-                        # Also add a slight horizontal squeeze in mouth area for more realism
-                        mouth_center_y = int(h * 0.65)
-                        mouth_h = int(h * 0.1)
-                        squeeze = 1.0 - (energy * 0.05)  # Slight horizontal squeeze
-                        mouth_region = frame[mouth_center_y:mouth_center_y+mouth_h, :].copy()
-                        mr_h, mr_w = mouth_region.shape[:2]
-                        new_w = int(mr_w * squeeze)
-                        if new_w > 10:
-                            squeezed = cv2.resize(mouth_region, (new_w, mr_h))
-                            pad = (mr_w - new_w) // 2
-                            frame[mouth_center_y:mouth_center_y+mouth_h, pad:pad+new_w] = squeezed
-
-                # === 2. EYE BLINKING - Squish vertically for visible blink ===
+                # === 2. EYE BLINKING - Only in face center region ===
                 if frame_idx in blink_frames:
-                    eye_region = frame[eye_y_start:eye_y_end, :].copy()
+                    # Only affect center region where eyes are
+                    eye_x_start = int(w * 0.25)
+                    eye_x_end = int(w * 0.75)
+
+                    eye_region = frame[eye_y_start:eye_y_end, eye_x_start:eye_x_end].copy()
                     er_h, er_w = eye_region.shape[:2]
 
                     # Calculate blink progress
@@ -878,26 +873,25 @@ class VideoGenerator:
 
                     if frames_into_blink < blink_duration:
                         progress = frames_into_blink / blink_duration
-                        # Squish factor: starts at 1, goes to 0.3 at peak, back to 1
+                        # Squish factor: starts at 1, goes to 0.4 at peak, back to 1
                         if progress < 0.5:
-                            squish = 1.0 - (progress * 2 * 0.7)  # 1.0 -> 0.3
+                            squish = 1.0 - (progress * 2 * 0.6)  # 1.0 -> 0.4
                         else:
-                            squish = 0.3 + ((progress - 0.5) * 2 * 0.7)  # 0.3 -> 1.0
+                            squish = 0.4 + ((progress - 0.5) * 2 * 0.6)  # 0.4 -> 1.0
 
                         # Squish the eye region vertically
-                        new_eye_h = max(int(er_h * squish), 5)
+                        new_eye_h = max(int(er_h * squish), 10)
                         squished_eyes = cv2.resize(eye_region, (er_w, new_eye_h))
 
                         # Center the squished region
                         pad_top = (er_h - new_eye_h) // 2
-                        pad_bottom = er_h - new_eye_h - pad_top
 
-                        # Fill with skin-colored padding (use average of region)
+                        # Fill with skin-colored padding (use average of region edges)
                         avg_color = eye_region.mean(axis=(0, 1)).astype(np.uint8)
                         padded = np.full((er_h, er_w, 3), avg_color, dtype=np.uint8)
                         padded[pad_top:pad_top+new_eye_h, :] = squished_eyes
 
-                        frame[eye_y_start:eye_y_end, :] = padded
+                        frame[eye_y_start:eye_y_end, eye_x_start:eye_x_end] = padded
 
                 # === 3. SUBTLE HEAD MOVEMENT ===
                 # Small scale breathing
