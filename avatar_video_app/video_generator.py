@@ -624,7 +624,12 @@ class VideoGenerator:
                             )
 
                         elif status == "failed":
-                            error_msg = data.get("data", {}).get("error", "Unknown HeyGen error")
+                            # Log full error details from HeyGen
+                            error_data = data.get("data", {})
+                            error_msg = error_data.get("error", "Unknown HeyGen error")
+                            print(f"[VIDEO] HeyGen FAILED! Full response data:")
+                            print(f"[VIDEO]   error: {error_msg}")
+                            print(f"[VIDEO]   full data: {error_data}")
                             del self._jobs[job_id]
                             return VideoResult(
                                 success=False,
