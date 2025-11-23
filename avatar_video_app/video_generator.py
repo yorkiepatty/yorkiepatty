@@ -113,6 +113,14 @@ class VideoGenerator:
         """
         job_id = self._generate_job_id()
 
+        # Debug: Show available providers
+        import os
+        print(f"\n[VIDEO] ========== VIDEO GENERATION START ==========")
+        print(f"[VIDEO] Available providers: {[p['name'] for p in self.providers]}")
+        print(f"[VIDEO] config.heygen_api_key: {'SET' if config.heygen_api_key else 'NOT SET'}")
+        print(f"[VIDEO] os.getenv HEYGEN_API_KEY: {'SET' if os.getenv('HEYGEN_API_KEY') else 'NOT SET'}")
+        print(f"[VIDEO] ===============================================\n")
+
         # Validate inputs
         if not os.path.exists(avatar_image_path):
             return VideoResult(
@@ -155,13 +163,19 @@ class VideoGenerator:
                     return result
 
         # Check HeyGen at runtime (in case it wasn't in providers at init time)
-        if config.heygen_api_key and not any(p["name"] == "heygen" for p in self.providers):
-            print("[VIDEO] HeyGen API key found at runtime, trying HeyGen...")
+        import os
+        heygen_key_runtime = config.heygen_api_key or os.getenv("HEYGEN_API_KEY")
+        print(f"[VIDEO] Runtime HeyGen check: key={'YES' if heygen_key_runtime else 'NO'}, in_providers={any(p['name'] == 'heygen' for p in self.providers)}")
+
+        if heygen_key_runtime:
+            print("[VIDEO] HeyGen API key found, trying HeyGen...")
             result = await self._generate_with_heygen(
                 avatar_image_path, audio_path, job_id, output_name
             )
             if result.success or result.status == "processing":
                 return result
+            else:
+                print(f"[VIDEO] HeyGen failed: {result.error}, falling back to local...")
 
         return VideoResult(
             success=False,
