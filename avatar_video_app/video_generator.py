@@ -308,33 +308,49 @@ class VideoGenerator:
                                    filename=f'avatar{image_ext}',
                                    content_type=content_type)
 
-                async with session.post(
-                    "https://api.heygen.com/v1/talking_photo",
-                    headers=headers,
-                    data=form_data,
-                    timeout=aiohttp.ClientTimeout(total=60)
-                ) as response:
-                    response_text = await response.text()
-                    print(f"[VIDEO] HeyGen upload response: {response.status}")
+                # Try v2 endpoint first, then v1
+                upload_endpoints = [
+                    "https://api.heygen.com/v2/photo_avatar/talking_photo",
+                    "https://api.heygen.com/v1/photo_avatar.add",
+                    "https://api.heygen.com/v1/talking_photo.add",
+                ]
 
-                    if response.status not in [200, 201]:
-                        print(f"[VIDEO] HeyGen upload error: {response_text[:500]}")
-                        return VideoResult(
-                            success=False,
-                            error=f"HeyGen image upload failed: {response.status} - {response_text[:200]}"
-                        )
+                talking_photo_id = None
+                for endpoint in upload_endpoints:
+                    print(f"[VIDEO] Trying upload endpoint: {endpoint}")
+                    form_data = aiohttp.FormData()
+                    form_data.add_field('file', image_data,
+                                       filename=f'avatar{image_ext}',
+                                       content_type=content_type)
 
-                    upload_data = json.loads(response_text)
-                    talking_photo_id = upload_data.get("data", {}).get("talking_photo_id")
+                    async with session.post(
+                        endpoint,
+                        headers=headers,
+                        data=form_data,
+                        timeout=aiohttp.ClientTimeout(total=60)
+                    ) as response:
+                        response_text = await response.text()
+                        print(f"[VIDEO] HeyGen upload response: {response.status}")
 
-                    if not talking_photo_id:
-                        print(f"[VIDEO] HeyGen upload response: {response_text}")
-                        return VideoResult(
-                            success=False,
-                            error=f"HeyGen did not return talking_photo_id"
-                        )
+                        if response.status in [200, 201]:
+                            upload_data = json.loads(response_text)
+                            talking_photo_id = (
+                                upload_data.get("data", {}).get("talking_photo_id") or
+                                upload_data.get("data", {}).get("photo_id") or
+                                upload_data.get("data", {}).get("id")
+                            )
+                            if talking_photo_id:
+                                print(f"[VIDEO] Got talking_photo_id: {talking_photo_id}")
+                                break
+                        else:
+                            print(f"[VIDEO] Endpoint {endpoint} failed: {response.status}")
 
-                    print(f"[VIDEO] Got talking_photo_id: {talking_photo_id}")
+                if not talking_photo_id:
+                    print(f"[VIDEO] All HeyGen upload endpoints failed")
+                    return VideoResult(
+                        success=False,
+                        error=f"HeyGen image upload failed - all endpoints returned errors"
+                    )
 
                 # Step 2: Upload audio file
                 print(f"[VIDEO] Step 2: Uploading audio to HeyGen...")
