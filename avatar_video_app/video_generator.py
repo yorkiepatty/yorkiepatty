@@ -136,17 +136,25 @@ class VideoGenerator:
                 job_id=job_id
             )
 
+        # Track if we should skip HeyGen (e.g., no face detected for animal avatars)
+        skip_heygen = False
+
         # Try providers in order
         for provider in self.providers:
             if not provider.get("enabled"):
                 continue
 
-            if provider["name"] == "heygen":
+            if provider["name"] == "heygen" and not skip_heygen:
                 result = await self._generate_with_heygen(
                     avatar_image_path, audio_path, job_id, output_name
                 )
                 if result.success or result.status == "processing":
                     return result
+                # If HeyGen can't detect a face, use local animation instead
+                if result.error == "NO_FACE_DETECTED":
+                    print("[VIDEO] HeyGen can't detect face (animal/cartoon avatar), using local animation...")
+                    skip_heygen = True
+                    # Continue to local provider
 
             elif provider["name"] == "did":
                 result = await self._generate_with_did(
@@ -167,15 +175,25 @@ class VideoGenerator:
         heygen_key_runtime = config.heygen_api_key or os.getenv("HEYGEN_API_KEY")
         print(f"[VIDEO] Runtime HeyGen check: key={'YES' if heygen_key_runtime else 'NO'}, in_providers={any(p['name'] == 'heygen' for p in self.providers)}")
 
-        if heygen_key_runtime:
+        if heygen_key_runtime and not skip_heygen:
             print("[VIDEO] HeyGen API key found, trying HeyGen...")
             result = await self._generate_with_heygen(
                 avatar_image_path, audio_path, job_id, output_name
             )
             if result.success or result.status == "processing":
                 return result
+            elif result.error == "NO_FACE_DETECTED":
+                print("[VIDEO] HeyGen can't detect face, falling back to local animation...")
             else:
                 print(f"[VIDEO] HeyGen failed: {result.error}, falling back to local...")
+
+        # Final fallback to local
+        print("[VIDEO] Using local animation as final fallback...")
+        result = await self._generate_local(
+            avatar_image_path, audio_path, job_id, output_name
+        )
+        if result.success:
+            return result
 
         return VideoResult(
             success=False,
@@ -325,6 +343,16 @@ class VideoGenerator:
 
                     if response.status in [200, 201]:
                         upload_data = json.loads(response_text)
+
+                        # Check for "no face detected" error in response
+                        error_msg = upload_data.get("error", {}).get("message", "") or upload_data.get("message", "")
+                        if "face" in error_msg.lower() or "detect" in error_msg.lower():
+                            print(f"[VIDEO] HeyGen: No face detected in image, will use local animation")
+                            return VideoResult(
+                                success=False,
+                                error="NO_FACE_DETECTED"  # Special error code for fallback
+                            )
+
                         talking_photo_id = (
                             upload_data.get("data", {}).get("talking_photo_id") or
                             upload_data.get("data", {}).get("photo_id") or
@@ -340,6 +368,13 @@ class VideoGenerator:
                             )
                     else:
                         print(f"[VIDEO] HeyGen upload failed: {response.status}")
+                        # Check if it's a "no face" error
+                        if "face" in response_text.lower() or "detect" in response_text.lower():
+                            print(f"[VIDEO] HeyGen: No face detected, falling back to local")
+                            return VideoResult(
+                                success=False,
+                                error="NO_FACE_DETECTED"
+                            )
                         return VideoResult(
                             success=False,
                             error=f"HeyGen image upload failed: {response.status} - {response_text[:200]}"
@@ -841,30 +876,63 @@ class VideoGenerator:
                 else:
                     energy = abs(np.sin(t * 6 * np.pi)) * 0.8
 
-                # === 1. MOUTH/JAW ANIMATION - Only in face center region ===
-                # Lower threshold and bigger effect for visible lip movement
+                # === 1. MOUTH/JAW ANIMATION - Split and separate upper/lower face ===
                 if energy > 0.05:  # Lower threshold to catch more speech
-                    # Define the mouth/jaw region - CENTER of image only (where face is)
-                    jaw_y_start = int(h * 0.55)
-                    jaw_y_end = int(h * 0.85)
-                    # Only affect center 40% of width (where face is)
-                    face_x_start = int(w * 0.30)
-                    face_x_end = int(w * 0.70)
+                    # The mouth split line - where upper and lower jaw meet
+                    mouth_line_y = int(h * 0.62)  # Mouth line position
 
-                    # Much larger stretch for visibility
-                    stretch_amount = int(energy * 40)  # Up to 40 pixels stretch
+                    # Face center region (where the face is)
+                    face_x_start = int(w * 0.25)
+                    face_x_end = int(w * 0.75)
+                    face_width = face_x_end - face_x_start
 
-                    if stretch_amount > 3:
-                        # Extract ONLY the face region (not full width)
-                        jaw_region = frame[jaw_y_start:jaw_y_end, face_x_start:face_x_end].copy()
-                        jr_h, jr_w = jaw_region.shape[:2]
+                    # Calculate jaw drop amount
+                    jaw_drop = int(energy * 30)  # Up to 30 pixels drop
 
-                        # Stretch it vertically (simulates mouth opening)
-                        new_h = jr_h + stretch_amount
-                        stretched = cv2.resize(jaw_region, (jr_w, new_h), interpolation=cv2.INTER_LINEAR)
+                    if jaw_drop > 3:
+                        # --- LOWER JAW: Move down ---
+                        lower_y_start = mouth_line_y
+                        lower_y_end = min(int(h * 0.85), h)
 
-                        # Put the top part back (this creates "mouth opening down" effect)
-                        frame[jaw_y_start:jaw_y_end, face_x_start:face_x_end] = stretched[:jr_h, :]
+                        # Extract lower face region
+                        lower_face = frame[lower_y_start:lower_y_end, face_x_start:face_x_end].copy()
+                        lf_h, lf_w = lower_face.shape[:2]
+
+                        # Create gap by filling with dark color (mouth interior)
+                        gap_color = frame[mouth_line_y - 5:mouth_line_y, face_x_start:face_x_end].mean(axis=(0, 1)) * 0.3
+                        gap_region = np.full((jaw_drop, face_width, 3), gap_color, dtype=np.uint8)
+
+                        # Shift the lower face down by inserting gap
+                        new_lower_start = lower_y_start + jaw_drop
+                        if new_lower_start + lf_h <= h:
+                            # Insert dark gap (mouth interior)
+                            frame[lower_y_start:lower_y_start + jaw_drop, face_x_start:face_x_end] = gap_region
+                            # Move lower jaw down (compress to fit)
+                            remaining_space = lower_y_end - new_lower_start
+                            if remaining_space > 10:
+                                compressed = cv2.resize(lower_face, (lf_w, remaining_space))
+                                frame[new_lower_start:lower_y_end, face_x_start:face_x_end] = compressed
+
+                        # Smooth the transition edges
+                        # Left edge blend
+                        blend_width = 15
+                        for i in range(blend_width):
+                            alpha = i / blend_width
+                            x = face_x_start + i
+                            if x < w:
+                                frame[lower_y_start:lower_y_start + jaw_drop, x] = (
+                                    frame[lower_y_start:lower_y_start + jaw_drop, x] * alpha +
+                                    frame[lower_y_start:lower_y_start + jaw_drop, face_x_start - 1 if face_x_start > 0 else 0] * (1 - alpha)
+                                ).astype(np.uint8)
+                        # Right edge blend
+                        for i in range(blend_width):
+                            alpha = i / blend_width
+                            x = face_x_end - i - 1
+                            if x >= 0:
+                                frame[lower_y_start:lower_y_start + jaw_drop, x] = (
+                                    frame[lower_y_start:lower_y_start + jaw_drop, x] * alpha +
+                                    frame[lower_y_start:lower_y_start + jaw_drop, min(face_x_end, w - 1)] * (1 - alpha)
+                                ).astype(np.uint8)
 
                 # === 2. EYE BLINKING - Only in face center region ===
                 if frame_idx in blink_frames:
