@@ -308,11 +308,11 @@ class VideoGenerator:
                                    filename=f'avatar{image_ext}',
                                    content_type=content_type)
 
-                # Try v2 endpoint first, then v1
+                # Try different endpoints - note upload.heygen.com domain for uploads!
                 upload_endpoints = [
+                    "https://upload.heygen.com/v1/talking_photo",  # Correct upload domain
                     "https://api.heygen.com/v2/photo_avatar/talking_photo",
-                    "https://api.heygen.com/v1/photo_avatar.add",
-                    "https://api.heygen.com/v1/talking_photo.add",
+                    "https://api.heygen.com/v1/talking_photo",
                 ]
 
                 talking_photo_id = None
