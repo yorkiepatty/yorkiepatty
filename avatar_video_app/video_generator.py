@@ -302,78 +302,71 @@ class VideoGenerator:
                 else:
                     content_type = "image/png"
 
-                # Upload photo using multipart form
-                form_data = aiohttp.FormData()
-                form_data.add_field('file', image_data,
-                                   filename=f'avatar{image_ext}',
-                                   content_type=content_type)
+                # Upload photo - HeyGen wants raw binary data, NOT multipart form!
+                # curl -XPOST https://upload.heygen.com/v1/talking_photo \
+                #   -H 'x-api-key: xxx' --data-binary '@file' -H 'Content-Type: image/jpeg'
 
-                # Try different endpoints - note upload.heygen.com domain for uploads!
-                upload_endpoints = [
-                    "https://upload.heygen.com/v1/talking_photo",  # Correct upload domain
-                    "https://api.heygen.com/v2/photo_avatar/talking_photo",
-                    "https://api.heygen.com/v1/talking_photo",
-                ]
+                upload_headers = {
+                    "X-Api-Key": heygen_key,
+                    "Content-Type": content_type  # image/png or image/jpeg
+                }
 
-                talking_photo_id = None
-                for endpoint in upload_endpoints:
-                    print(f"[VIDEO] Trying upload endpoint: {endpoint}")
-                    form_data = aiohttp.FormData()
-                    form_data.add_field('file', image_data,
-                                       filename=f'avatar{image_ext}',
-                                       content_type=content_type)
+                print(f"[VIDEO] Uploading to HeyGen with Content-Type: {content_type}")
 
-                    async with session.post(
-                        endpoint,
-                        headers=headers,
-                        data=form_data,
-                        timeout=aiohttp.ClientTimeout(total=60)
-                    ) as response:
-                        response_text = await response.text()
-                        print(f"[VIDEO] HeyGen upload response: {response.status}")
+                async with session.post(
+                    "https://upload.heygen.com/v1/talking_photo",
+                    headers=upload_headers,
+                    data=image_data,  # Raw binary, not form data
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    response_text = await response.text()
+                    print(f"[VIDEO] HeyGen upload response: {response.status}")
+                    print(f"[VIDEO] HeyGen upload body: {response_text[:300]}")
 
-                        if response.status in [200, 201]:
-                            upload_data = json.loads(response_text)
-                            talking_photo_id = (
-                                upload_data.get("data", {}).get("talking_photo_id") or
-                                upload_data.get("data", {}).get("photo_id") or
-                                upload_data.get("data", {}).get("id")
-                            )
-                            if talking_photo_id:
-                                print(f"[VIDEO] Got talking_photo_id: {talking_photo_id}")
-                                break
+                    if response.status in [200, 201]:
+                        upload_data = json.loads(response_text)
+                        talking_photo_id = (
+                            upload_data.get("data", {}).get("talking_photo_id") or
+                            upload_data.get("data", {}).get("photo_id") or
+                            upload_data.get("data", {}).get("id")
+                        )
+                        if talking_photo_id:
+                            print(f"[VIDEO] Got talking_photo_id: {talking_photo_id}")
                         else:
-                            print(f"[VIDEO] Endpoint {endpoint} failed: {response.status}")
+                            print(f"[VIDEO] HeyGen upload failed - no ID in response")
+                            return VideoResult(
+                                success=False,
+                                error=f"HeyGen upload succeeded but no talking_photo_id returned"
+                            )
+                    else:
+                        print(f"[VIDEO] HeyGen upload failed: {response.status}")
+                        return VideoResult(
+                            success=False,
+                            error=f"HeyGen image upload failed: {response.status} - {response_text[:200]}"
+                        )
 
-                if not talking_photo_id:
-                    print(f"[VIDEO] All HeyGen upload endpoints failed")
-                    return VideoResult(
-                        success=False,
-                        error=f"HeyGen image upload failed - all endpoints returned errors"
-                    )
-
-                # Step 2: Upload audio file
+                # Step 2: Upload audio file (raw binary)
                 print(f"[VIDEO] Step 2: Uploading audio to HeyGen...")
 
                 with open(audio_path, "rb") as f:
                     audio_data = f.read()
 
-                audio_form = aiohttp.FormData()
-                audio_form.add_field('file', audio_data,
-                                    filename='audio.wav',
-                                    content_type='audio/wav')
+                audio_headers = {
+                    "X-Api-Key": heygen_key,
+                    "Content-Type": "audio/wav"
+                }
 
                 async with session.post(
-                    "https://api.heygen.com/v1/audio/upload",
-                    headers=headers,
-                    data=audio_form,
+                    "https://upload.heygen.com/v1/asset",
+                    headers=audio_headers,
+                    data=audio_data,  # Raw binary
                     timeout=aiohttp.ClientTimeout(total=60)
                 ) as response:
                     response_text = await response.text()
                     print(f"[VIDEO] HeyGen audio upload response: {response.status}")
 
                     if response.status not in [200, 201]:
-                        print(f"[VIDEO] HeyGen audio upload error: {response_text[:500]}")
+                        print(f"[VIDEO] HeyGen audio upload error: {response_text[:300]}")
                         # Fall back to base64 audio in video request
                         audio_url = None
                     else:
