@@ -10,7 +10,7 @@ function VideoPreview({
   setError
 }) {
   const [pollCount, setPollCount] = useState(0)
-  const MAX_POLLS = 60 // 5 minutes at 5 second intervals
+  const MAX_POLLS = 120 // 10 minutes at 5 second intervals (HeyGen can take a while)
 
   // Poll for job status if processing
   useEffect(() => {
@@ -24,7 +24,8 @@ function VideoPreview({
         if (data.status === 'completed') {
           setVideo({
             path: data.video_path,
-            url: data.video_url
+            url: data.video_url,
+            base64: data.video_base64  // Include base64 for direct playback
           })
           setStatus('completed')
           clearInterval(pollInterval)
