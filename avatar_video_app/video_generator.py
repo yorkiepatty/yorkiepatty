@@ -91,10 +91,21 @@ class VideoGenerator:
             providers.append({
                 "name": "sieve",
                 "enabled": True,
-                "priority": 1,  # Use for animals when HeyGen fails
+                "priority": 2,  # Use for animals when HeyGen fails
                 "endpoint": "https://mango.sievedata.com/v2/push",
                 "max_duration": 180,
                 "note": "Hedra-powered lip-sync - works with animals and non-human characters"
+            })
+
+        # Hedra direct API - WORKS WITH ANIMALS and non-human characters!
+        if config.hedra_api_key:
+            providers.append({
+                "name": "hedra",
+                "enabled": True,
+                "priority": 1,  # High priority for animals when HeyGen fails
+                "endpoint": "https://api.hedra.com/web-app/public",
+                "max_duration": 180,
+                "note": "Hedra Character API - works with animals and non-human characters"
             })
 
         return sorted(providers, key=lambda x: x.get("priority", 99))
@@ -169,6 +180,13 @@ class VideoGenerator:
                     use_sieve_for_animals = True
                     # Continue to try Sieve
 
+            elif provider["name"] == "hedra":
+                result = await self._generate_with_hedra(
+                    avatar_image_path, audio_path, job_id, output_name
+                )
+                if result.success or result.status == "processing":
+                    return result
+
             elif provider["name"] == "sieve":
                 result = await self._generate_with_sieve(
                     avatar_image_path, audio_path, job_id, output_name
@@ -190,11 +208,12 @@ class VideoGenerator:
                 if result.success:
                     return result
 
-        # Check HeyGen at runtime (in case it wasn't in providers at init time)
+        # Check API keys at runtime (in case they weren't in providers at init time)
         import os
         heygen_key_runtime = config.heygen_api_key or os.getenv("HEYGEN_API_KEY")
         sieve_key_runtime = config.sieve_api_key or os.getenv("SIEVE_API_KEY")
-        print(f"[VIDEO] Runtime check: HeyGen={'YES' if heygen_key_runtime else 'NO'}, Sieve={'YES' if sieve_key_runtime else 'NO'}")
+        hedra_key_runtime = config.hedra_api_key or os.getenv("HEDRA_API_KEY")
+        print(f"[VIDEO] Runtime check: HeyGen={'YES' if heygen_key_runtime else 'NO'}, Hedra={'YES' if hedra_key_runtime else 'NO'}, Sieve={'YES' if sieve_key_runtime else 'NO'}")
 
         if heygen_key_runtime and not skip_heygen:
             print("[VIDEO] HeyGen API key found, trying HeyGen...")
@@ -209,7 +228,17 @@ class VideoGenerator:
             else:
                 print(f"[VIDEO] HeyGen failed: {result.error}, falling back...")
 
-        # Try Sieve for animals/non-human faces
+        # Try Hedra for animals/non-human faces (preferred)
+        if use_sieve_for_animals and hedra_key_runtime:
+            print("[VIDEO] Trying Hedra (works with animals)...")
+            result = await self._generate_with_hedra(
+                avatar_image_path, audio_path, job_id, output_name
+            )
+            if result.success or result.status == "processing":
+                return result
+            print(f"[VIDEO] Hedra failed: {result.error}")
+
+        # Try Sieve for animals/non-human faces (fallback)
         if use_sieve_for_animals and sieve_key_runtime:
             print("[VIDEO] Trying Sieve (works with animals)...")
             result = await self._generate_with_sieve(
@@ -638,6 +667,153 @@ class VideoGenerator:
             print(f"[VIDEO] Sieve exception: {str(e)}")
             return VideoResult(success=False, error=f"Sieve error: {str(e)}")
 
+    async def _generate_with_hedra(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        job_id: str,
+        output_name: Optional[str]
+    ) -> VideoResult:
+        """Generate video using Hedra direct API - works with animals!"""
+        import os
+        hedra_key = config.hedra_api_key or os.getenv("HEDRA_API_KEY")
+
+        if not hedra_key:
+            return VideoResult(success=False, error="Hedra API key not configured")
+
+        try:
+            print(f"[VIDEO] Starting Hedra video generation...")
+            print(f"[VIDEO] Using Hedra API key: {hedra_key[:10]}...")
+
+            base_url = "https://api.hedra.com/web-app/public"
+
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "x-api-key": hedra_key,
+                    "Content-Type": "application/json"
+                }
+
+                # Step 1: Create image asset
+                print(f"[VIDEO] Step 1: Creating image asset...")
+                image_filename = os.path.basename(avatar_path)
+                async with session.post(
+                    f"{base_url}/assets",
+                    headers=headers,
+                    json={"name": image_filename, "type": "image"}
+                ) as response:
+                    if response.status not in [200, 201]:
+                        error_text = await response.text()
+                        return VideoResult(success=False, error=f"Hedra image asset creation failed: {error_text[:200]}")
+                    image_asset = await response.json()
+                    image_id = image_asset.get("id")
+                    print(f"[VIDEO] Created image asset: {image_id}")
+
+                # Step 2: Upload image file
+                print(f"[VIDEO] Step 2: Uploading image...")
+                with open(avatar_path, "rb") as f:
+                    image_data = f.read()
+                form_data = aiohttp.FormData()
+                form_data.add_field('file', image_data, filename=image_filename)
+                upload_headers = {"x-api-key": hedra_key}
+                async with session.post(
+                    f"{base_url}/assets/{image_id}/upload",
+                    headers=upload_headers,
+                    data=form_data
+                ) as response:
+                    if response.status not in [200, 201]:
+                        error_text = await response.text()
+                        return VideoResult(success=False, error=f"Hedra image upload failed: {error_text[:200]}")
+                    print(f"[VIDEO] Image uploaded successfully")
+
+                # Step 3: Create audio asset
+                print(f"[VIDEO] Step 3: Creating audio asset...")
+                audio_filename = os.path.basename(audio_path)
+                async with session.post(
+                    f"{base_url}/assets",
+                    headers=headers,
+                    json={"name": audio_filename, "type": "audio"}
+                ) as response:
+                    if response.status not in [200, 201]:
+                        error_text = await response.text()
+                        return VideoResult(success=False, error=f"Hedra audio asset creation failed: {error_text[:200]}")
+                    audio_asset = await response.json()
+                    audio_id = audio_asset.get("id")
+                    print(f"[VIDEO] Created audio asset: {audio_id}")
+
+                # Step 4: Upload audio file
+                print(f"[VIDEO] Step 4: Uploading audio...")
+                with open(audio_path, "rb") as f:
+                    audio_data = f.read()
+                form_data = aiohttp.FormData()
+                form_data.add_field('file', audio_data, filename=audio_filename)
+                async with session.post(
+                    f"{base_url}/assets/{audio_id}/upload",
+                    headers=upload_headers,
+                    data=form_data
+                ) as response:
+                    if response.status not in [200, 201]:
+                        error_text = await response.text()
+                        return VideoResult(success=False, error=f"Hedra audio upload failed: {error_text[:200]}")
+                    print(f"[VIDEO] Audio uploaded successfully")
+
+                # Step 5: Submit generation request
+                print(f"[VIDEO] Step 5: Submitting generation request...")
+                gen_payload = {
+                    "imageId": image_id,
+                    "audioId": audio_id,
+                    "aspectRatio": "9:16",  # Portrait mode
+                    "resolution": "540p"
+                }
+                async with session.post(
+                    f"{base_url}/generations",
+                    headers=headers,
+                    json=gen_payload
+                ) as response:
+                    response_text = await response.text()
+                    print(f"[VIDEO] Hedra generation response: {response.status}")
+
+                    if response.status in [200, 201]:
+                        data = json.loads(response_text)
+                        hedra_gen_id = data.get("id") or data.get("generationId")
+
+                        if hedra_gen_id:
+                            # Store job info
+                            self._jobs[job_id] = {
+                                "provider": "hedra",
+                                "hedra_id": hedra_gen_id,
+                                "status": "processing",
+                                "output_name": output_name
+                            }
+
+                            print(f"[VIDEO] Hedra generation created: {hedra_gen_id}")
+
+                            return VideoResult(
+                                success=True,
+                                status="processing",
+                                job_id=job_id,
+                                provider="hedra",
+                                metadata={
+                                    "hedra_id": hedra_gen_id,
+                                    "message": "Video is being generated by Hedra. Poll for status."
+                                }
+                            )
+                        else:
+                            print(f"[VIDEO] Hedra response: {response_text[:500]}")
+                            return VideoResult(
+                                success=False,
+                                error=f"Hedra API did not return generation_id: {response_text[:200]}"
+                            )
+                    else:
+                        print(f"[VIDEO] Hedra error: {response_text[:500]}")
+                        return VideoResult(
+                            success=False,
+                            error=f"Hedra API error: {response.status} - {response_text[:200]}"
+                        )
+
+        except Exception as e:
+            print(f"[VIDEO] Hedra exception: {str(e)}")
+            return VideoResult(success=False, error=f"Hedra error: {str(e)}")
+
     async def check_job_status(self, job_id: str) -> VideoResult:
         """Check status of async video generation job"""
         if job_id not in self._jobs:
@@ -655,6 +831,8 @@ class VideoGenerator:
             return await self._check_did_status(job_id, job)
         elif job["provider"] == "sieve":
             return await self._check_sieve_status(job_id, job)
+        elif job["provider"] == "hedra":
+            return await self._check_hedra_status(job_id, job)
 
         return VideoResult(
             success=False,
@@ -920,6 +1098,106 @@ class VideoGenerator:
         except Exception as e:
             print(f"[VIDEO] Sieve status check error: {str(e)}")
             return VideoResult(success=False, error=f"Sieve status check error: {str(e)}")
+
+    async def _check_hedra_status(self, job_id: str, job: Dict) -> VideoResult:
+        """Check Hedra job status"""
+        import os
+        hedra_key = config.hedra_api_key or os.getenv("HEDRA_API_KEY")
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "x-api-key": hedra_key
+                }
+
+                # Hedra status endpoint
+                hedra_id = job.get("hedra_id")
+                base_url = "https://api.hedra.com/web-app/public"
+
+                async with session.get(
+                    f"{base_url}/generations/{hedra_id}",
+                    headers=headers
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        status = data.get("status", "").lower()
+                        print(f"[VIDEO] Hedra status: {status}")
+
+                        if status in ["completed", "complete", "done"]:
+                            # Get the output video URL
+                            video_url = data.get("videoUrl") or data.get("video_url") or data.get("result_url")
+
+                            if not video_url:
+                                # Try to find URL in nested structure
+                                output = data.get("output", {})
+                                video_url = output.get("url") or output.get("video_url")
+
+                            if video_url:
+                                # Download video
+                                output_name = job.get("output_name") or job_id
+                                output_path = self.output_dir / f"{output_name}.mp4"
+
+                                print(f"[VIDEO] Downloading Hedra video from: {video_url}")
+
+                                async with session.get(video_url) as video_response:
+                                    if video_response.status == 200:
+                                        video_data = await video_response.read()
+                                        with open(output_path, "wb") as f:
+                                            f.write(video_data)
+
+                                        # Get video as base64
+                                        video_b64 = base64.b64encode(video_data).decode()
+
+                                        # Cleanup job
+                                        del self._jobs[job_id]
+
+                                        print(f"[VIDEO] Hedra video saved: {output_path}")
+
+                                        return VideoResult(
+                                            success=True,
+                                            status="completed",
+                                            video_path=str(output_path),
+                                            video_url=video_url,
+                                            video_base64=video_b64,
+                                            provider="hedra",
+                                            job_id=job_id,
+                                            metadata=data
+                                        )
+                            else:
+                                print(f"[VIDEO] Hedra finished but no video URL found: {data}")
+                                return VideoResult(
+                                    success=False,
+                                    error="Hedra completed but no video URL in response"
+                                )
+
+                        elif status in ["queued", "processing", "pending", "running", "in_progress"]:
+                            return VideoResult(
+                                success=True,
+                                status="processing",
+                                job_id=job_id,
+                                provider="hedra",
+                                metadata={"hedra_status": status}
+                            )
+
+                        elif status in ["failed", "error"]:
+                            error_msg = data.get("error", data.get("message", "Unknown Hedra error"))
+                            print(f"[VIDEO] Hedra FAILED: {error_msg}")
+                            del self._jobs[job_id]
+                            return VideoResult(
+                                success=False,
+                                status="failed",
+                                error=f"Hedra video failed: {error_msg}",
+                                job_id=job_id
+                            )
+
+                    return VideoResult(
+                        success=False,
+                        error=f"Failed to check Hedra status: {response.status}"
+                    )
+
+        except Exception as e:
+            print(f"[VIDEO] Hedra status check error: {str(e)}")
+            return VideoResult(success=False, error=f"Hedra status check error: {str(e)}")
 
     async def _check_ffmpeg(self) -> bool:
         """Check if FFmpeg is available"""

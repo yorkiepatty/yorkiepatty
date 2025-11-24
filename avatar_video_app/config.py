@@ -60,6 +60,7 @@ class AvatarConfig:
     elevenlabs_api_key: Optional[str] = None
     heygen_api_key: Optional[str] = None
     sieve_api_key: Optional[str] = None  # For animal/non-human avatar lip-sync
+    hedra_api_key: Optional[str] = None  # Hedra - works with animals/non-human characters
 
     # Avatar settings
     default_avatar_size: tuple = (512, 512)
@@ -94,6 +95,7 @@ class AvatarConfig:
         self.elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
         self.heygen_api_key = os.getenv("HEYGEN_API_KEY")
         self.sieve_api_key = os.getenv("SIEVE_API_KEY")
+        self.hedra_api_key = os.getenv("HEDRA_API_KEY")
 
         # Default avatar styles
         if self.avatar_styles is None:
