@@ -80,10 +80,21 @@ class VideoGenerator:
             providers.append({
                 "name": "did",
                 "enabled": False,  # Disabled by default - human faces only
-                "priority": 2,
+                "priority": 3,
                 "endpoint": "https://api.d-id.com/talks",
                 "max_duration": 180,  # 3 minutes
                 "note": "Only works with human faces - not animals or cartoons"
+            })
+
+        # Sieve API (Hedra backend) - WORKS WITH ANIMALS and non-human characters!
+        if config.sieve_api_key:
+            providers.append({
+                "name": "sieve",
+                "enabled": True,
+                "priority": 1,  # Use for animals when HeyGen fails
+                "endpoint": "https://mango.sievedata.com/v2/push",
+                "max_duration": 180,
+                "note": "Hedra-powered lip-sync - works with animals and non-human characters"
             })
 
         return sorted(providers, key=lambda x: x.get("priority", 99))
@@ -138,6 +149,7 @@ class VideoGenerator:
 
         # Track if we should skip HeyGen (e.g., no face detected for animal avatars)
         skip_heygen = False
+        use_sieve_for_animals = False
 
         # Try providers in order
         for provider in self.providers:
@@ -150,11 +162,19 @@ class VideoGenerator:
                 )
                 if result.success or result.status == "processing":
                     return result
-                # If HeyGen can't detect a face, use local animation instead
+                # If HeyGen can't detect a face, try Sieve (works with animals)
                 if result.error == "NO_FACE_DETECTED":
-                    print("[VIDEO] HeyGen can't detect face (animal/cartoon avatar), using local animation...")
+                    print("[VIDEO] HeyGen can't detect face (animal/cartoon avatar), trying Sieve...")
                     skip_heygen = True
-                    # Continue to local provider
+                    use_sieve_for_animals = True
+                    # Continue to try Sieve
+
+            elif provider["name"] == "sieve":
+                result = await self._generate_with_sieve(
+                    avatar_image_path, audio_path, job_id, output_name
+                )
+                if result.success or result.status == "processing":
+                    return result
 
             elif provider["name"] == "did":
                 result = await self._generate_with_did(
@@ -173,7 +193,8 @@ class VideoGenerator:
         # Check HeyGen at runtime (in case it wasn't in providers at init time)
         import os
         heygen_key_runtime = config.heygen_api_key or os.getenv("HEYGEN_API_KEY")
-        print(f"[VIDEO] Runtime HeyGen check: key={'YES' if heygen_key_runtime else 'NO'}, in_providers={any(p['name'] == 'heygen' for p in self.providers)}")
+        sieve_key_runtime = config.sieve_api_key or os.getenv("SIEVE_API_KEY")
+        print(f"[VIDEO] Runtime check: HeyGen={'YES' if heygen_key_runtime else 'NO'}, Sieve={'YES' if sieve_key_runtime else 'NO'}")
 
         if heygen_key_runtime and not skip_heygen:
             print("[VIDEO] HeyGen API key found, trying HeyGen...")
@@ -183,9 +204,20 @@ class VideoGenerator:
             if result.success or result.status == "processing":
                 return result
             elif result.error == "NO_FACE_DETECTED":
-                print("[VIDEO] HeyGen can't detect face, falling back to local animation...")
+                print("[VIDEO] HeyGen can't detect face, trying Sieve for animals...")
+                use_sieve_for_animals = True
             else:
-                print(f"[VIDEO] HeyGen failed: {result.error}, falling back to local...")
+                print(f"[VIDEO] HeyGen failed: {result.error}, falling back...")
+
+        # Try Sieve for animals/non-human faces
+        if use_sieve_for_animals and sieve_key_runtime:
+            print("[VIDEO] Trying Sieve (works with animals)...")
+            result = await self._generate_with_sieve(
+                avatar_image_path, audio_path, job_id, output_name
+            )
+            if result.success or result.status == "processing":
+                return result
+            print(f"[VIDEO] Sieve failed: {result.error}")
 
         # Final fallback to local
         print("[VIDEO] Using local animation as final fallback...")
@@ -503,6 +535,109 @@ class VideoGenerator:
             print(f"[VIDEO] HeyGen exception: {str(e)}")
             return VideoResult(success=False, error=f"HeyGen error: {str(e)}")
 
+    async def _generate_with_sieve(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        job_id: str,
+        output_name: Optional[str]
+    ) -> VideoResult:
+        """Generate video using Sieve API (Hedra backend) - works with animals!"""
+        import os
+        sieve_key = config.sieve_api_key or os.getenv("SIEVE_API_KEY")
+
+        if not sieve_key:
+            return VideoResult(success=False, error="Sieve API key not configured")
+
+        try:
+            print(f"[VIDEO] Starting Sieve video generation (Hedra backend)...")
+            print(f"[VIDEO] Using Sieve API key: {sieve_key[:10]}...")
+
+            # Read image and audio as base64
+            with open(avatar_path, "rb") as f:
+                image_data = base64.b64encode(f.read()).decode()
+
+            with open(audio_path, "rb") as f:
+                audio_data = base64.b64encode(f.read()).decode()
+
+            # Determine content types
+            image_ext = Path(avatar_path).suffix.lower()
+            image_mime = "image/png" if image_ext == ".png" else "image/jpeg"
+
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "X-API-Key": sieve_key,
+                    "Content-Type": "application/json"
+                }
+
+                # Sieve portrait-avatar API call
+                payload = {
+                    "function": "sieve/portrait-avatar",
+                    "inputs": {
+                        "source_image": {
+                            "data": f"data:{image_mime};base64,{image_data}"
+                        },
+                        "driving_audio": {
+                            "data": f"data:audio/wav;base64,{audio_data}"
+                        },
+                        "aspect_ratio": "9:16",  # Portrait mode
+                        "backend": "hedra"  # Use Hedra backend for animal support
+                    }
+                }
+
+                print(f"[VIDEO] Sending to Sieve API...")
+
+                async with session.post(
+                    "https://mango.sievedata.com/v2/push",
+                    headers=headers,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=120)
+                ) as response:
+                    response_text = await response.text()
+                    print(f"[VIDEO] Sieve response status: {response.status}")
+
+                    if response.status in [200, 201]:
+                        data = json.loads(response_text)
+                        sieve_job_id = data.get("id")
+
+                        if sieve_job_id:
+                            # Store job info
+                            self._jobs[job_id] = {
+                                "provider": "sieve",
+                                "sieve_id": sieve_job_id,
+                                "status": "processing",
+                                "output_name": output_name
+                            }
+
+                            print(f"[VIDEO] Sieve job created: {sieve_job_id}")
+
+                            return VideoResult(
+                                success=True,
+                                status="processing",
+                                job_id=job_id,
+                                provider="sieve",
+                                metadata={
+                                    "sieve_id": sieve_job_id,
+                                    "message": "Video is being generated by Sieve (Hedra). Poll for status."
+                                }
+                            )
+                        else:
+                            print(f"[VIDEO] Sieve response: {response_text[:500]}")
+                            return VideoResult(
+                                success=False,
+                                error=f"Sieve API did not return job_id: {response_text[:200]}"
+                            )
+                    else:
+                        print(f"[VIDEO] Sieve error: {response_text[:500]}")
+                        return VideoResult(
+                            success=False,
+                            error=f"Sieve API error: {response.status} - {response_text[:200]}"
+                        )
+
+        except Exception as e:
+            print(f"[VIDEO] Sieve exception: {str(e)}")
+            return VideoResult(success=False, error=f"Sieve error: {str(e)}")
+
     async def check_job_status(self, job_id: str) -> VideoResult:
         """Check status of async video generation job"""
         if job_id not in self._jobs:
@@ -518,6 +653,8 @@ class VideoGenerator:
             return await self._check_heygen_status(job_id, job)
         elif job["provider"] == "did":
             return await self._check_did_status(job_id, job)
+        elif job["provider"] == "sieve":
+            return await self._check_sieve_status(job_id, job)
 
         return VideoResult(
             success=False,
@@ -681,6 +818,108 @@ class VideoGenerator:
         except Exception as e:
             print(f"[VIDEO] HeyGen status check error: {str(e)}")
             return VideoResult(success=False, error=f"HeyGen status check error: {str(e)}")
+
+    async def _check_sieve_status(self, job_id: str, job: Dict) -> VideoResult:
+        """Check Sieve job status"""
+        import os
+        sieve_key = config.sieve_api_key or os.getenv("SIEVE_API_KEY")
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "X-API-Key": sieve_key
+                }
+
+                # Sieve status endpoint
+                sieve_id = job.get("sieve_id")
+                async with session.get(
+                    f"https://mango.sievedata.com/v2/jobs/{sieve_id}",
+                    headers=headers
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        status = data.get("status")
+                        print(f"[VIDEO] Sieve status: {status}")
+
+                        if status == "finished":
+                            # Get the output video URL
+                            outputs = data.get("outputs", [])
+                            video_url = None
+                            for output in outputs:
+                                if output.get("type") == "video" or "video" in str(output.get("data", "")):
+                                    video_url = output.get("data", {}).get("url") or output.get("url")
+                                    break
+
+                            if not video_url and outputs:
+                                # Try to get any URL from outputs
+                                video_url = outputs[0].get("data", {}).get("url") or outputs[0].get("url")
+
+                            if video_url:
+                                # Download video
+                                output_name = job.get("output_name") or job_id
+                                output_path = self.output_dir / f"{output_name}.mp4"
+
+                                print(f"[VIDEO] Downloading Sieve video from: {video_url}")
+
+                                async with session.get(video_url) as video_response:
+                                    if video_response.status == 200:
+                                        video_data = await video_response.read()
+                                        with open(output_path, "wb") as f:
+                                            f.write(video_data)
+
+                                        # Get video as base64
+                                        video_b64 = base64.b64encode(video_data).decode()
+
+                                        # Cleanup job
+                                        del self._jobs[job_id]
+
+                                        print(f"[VIDEO] Sieve video saved: {output_path}")
+
+                                        return VideoResult(
+                                            success=True,
+                                            status="completed",
+                                            video_path=str(output_path),
+                                            video_url=video_url,
+                                            video_base64=video_b64,
+                                            provider="sieve",
+                                            job_id=job_id,
+                                            metadata=data
+                                        )
+                            else:
+                                print(f"[VIDEO] Sieve finished but no video URL found: {data}")
+                                return VideoResult(
+                                    success=False,
+                                    error="Sieve completed but no video URL in response"
+                                )
+
+                        elif status in ["queued", "processing", "running"]:
+                            return VideoResult(
+                                success=True,
+                                status="processing",
+                                job_id=job_id,
+                                provider="sieve",
+                                metadata={"sieve_status": status}
+                            )
+
+                        elif status in ["failed", "error"]:
+                            error_msg = data.get("error", "Unknown Sieve error")
+                            print(f"[VIDEO] Sieve FAILED: {error_msg}")
+                            del self._jobs[job_id]
+                            return VideoResult(
+                                success=False,
+                                status="failed",
+                                error=f"Sieve video failed: {error_msg}",
+                                job_id=job_id
+                            )
+
+                    return VideoResult(
+                        success=False,
+                        error=f"Failed to check Sieve status: {response.status}"
+                    )
+
+        except Exception as e:
+            print(f"[VIDEO] Sieve status check error: {str(e)}")
+            return VideoResult(success=False, error=f"Sieve status check error: {str(e)}")
 
     async def _check_ffmpeg(self) -> bool:
         """Check if FFmpeg is available"""
