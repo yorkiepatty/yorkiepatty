@@ -221,54 +221,41 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
       >
         {/* Your Yorkie Image with lip sync */}
         <div className="relative w-full h-full">
-          {/* Upper face (eyes area) - stays still */}
-          <div
-            className="absolute inset-0 rounded-full overflow-hidden"
-            style={{ clipPath: 'inset(0 0 55% 0)' }}
-          >
-            <img
-              src={YORKIE_IMAGE}
-              alt="Yorkie Helper"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none'
-              }}
-            />
-          </div>
-
-          {/* Lower face (mouth area) - animates when speaking */}
-          <div
-            className="absolute inset-0 rounded-full overflow-hidden transition-transform duration-50"
-            style={{
-              clipPath: 'inset(45% 0 0 0)',
-              transform: mouthOpen ? 'translateY(5px) scaleY(1.12)' : 'translateY(0) scaleY(1)'
-            }}
-          >
-            <img
-              src={YORKIE_IMAGE}
-              alt=""
-              className="w-full h-full object-cover transition-transform duration-50"
-              style={{
-                transform: mouthOpen ? 'translateY(-5px)' : 'translateY(0)'
-              }}
-              onError={(e) => {
-                e.target.style.display = 'none'
-              }}
-            />
-          </div>
-
-          {/* Full image fallback for browsers that don't support clip-path well */}
+          {/* Main Yorkie image */}
           <img
             src={YORKIE_IMAGE}
             alt="Yorkie Helper"
-            className="absolute inset-0 w-full h-full object-cover rounded-full opacity-0"
-            style={{ zIndex: -1 }}
+            className="w-full h-full object-cover rounded-full transition-transform duration-75"
+            style={{
+              transform: mouthOpen
+                ? 'scaleY(1.03) translateY(1px)'
+                : 'scaleY(1) translateY(0)',
+              transformOrigin: 'center 60%'
+            }}
+            onError={(e) => {
+              e.target.style.display = 'none'
+              e.target.nextSibling.style.display = 'flex'
+            }}
           />
+
+          {/* Animated "talking" chin/jaw overlay - only visible when speaking */}
+          {isSpeaking && (
+            <div
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full transition-all duration-75"
+              style={{
+                width: '60%',
+                height: mouthOpen ? '12px' : '4px',
+                background: 'radial-gradient(ellipse, rgba(60,40,30,0.7) 0%, transparent 70%)',
+                bottom: '28%',
+                filter: 'blur(2px)'
+              }}
+            />
+          )}
         </div>
 
         {/* Fallback avatar if no image */}
         <div
-          className="absolute inset-0 w-full h-full bg-gradient-to-br from-amber-300 to-amber-500 rounded-full items-center justify-center text-4xl hidden"
+          className="w-full h-full bg-gradient-to-br from-amber-300 to-amber-500 rounded-full items-center justify-center text-4xl hidden"
         >
           🐕
         </div>
