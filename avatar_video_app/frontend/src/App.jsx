@@ -8,8 +8,15 @@ import GenerateButton from './components/GenerateButton'
 import VideoGallery from './components/VideoGallery'
 import YorkieHelper from './components/YorkieHelper'
 import Settings from './components/Settings'
+import ConversationMode from './components/ConversationMode'
+import SplitScreenPlayer from './components/SplitScreenPlayer'
 
 function App() {
+  // App mode state
+  const [appMode, setAppMode] = useState(null) // null | 'single' | 'conversation'
+  const [conversationData, setConversationData] = useState(null)
+  const [conversationVideos, setConversationVideos] = useState(null)
+
   // State for the entire app
   const [currentStep, setCurrentStep] = useState(1)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -61,9 +68,105 @@ function App() {
   // Check if ready to generate
   const canGenerate = avatarPath && (processedAudio || recordedAudio || uploadedAudio || ttsText)
 
+  // Handle conversation generation
+  const handleConversationGenerate = async (conversation) => {
+    setConversationData(conversation)
+    setIsGenerating(true)
+    // TODO: Generate videos for conversation
+    // For now, just store the conversation data
+    console.log('Generating conversation:', conversation)
+    setIsGenerating(false)
+  }
+
+  // Mode selection screen
+  if (appMode === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <Header onReset={() => setAppMode(null)} onOpenSettings={() => setSettingsOpen(true)} />
+
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <h1 className="text-5xl font-bold text-white text-center mb-4">
+            Welcome to Avatar Video Creator
+          </h1>
+          <p className="text-white/80 text-center text-xl mb-16">
+            Choose how you want to create your video
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Single Avatar Mode */}
+            <button
+              onClick={() => setAppMode('single')}
+              className="bg-white/10 backdrop-blur-lg border-2 border-white/20 hover:border-primary-400 rounded-3xl p-10 text-left transition-all group hover:scale-105"
+            >
+              <div className="text-6xl mb-6">🎬</div>
+              <h2 className="text-3xl font-bold text-white mb-3">Single Avatar</h2>
+              <p className="text-white/70 text-lg mb-6">
+                Create a talking avatar video with a single character.
+                Upload an image, add your voice, and generate!
+              </p>
+              <div className="text-primary-300 group-hover:text-primary-200 font-medium text-lg">
+                Start Creating →
+              </div>
+            </button>
+
+            {/* Conversation Mode */}
+            <button
+              onClick={() => setAppMode('conversation')}
+              className="bg-white/10 backdrop-blur-lg border-2 border-white/20 hover:border-accent-400 rounded-3xl p-10 text-left transition-all group hover:scale-105"
+            >
+              <div className="text-6xl mb-6">💬</div>
+              <h2 className="text-3xl font-bold text-white mb-3">Conversation Mode</h2>
+              <p className="text-white/70 text-lg mb-6">
+                Create conversations between two avatars!
+                AI-powered or fully scripted - perfect for skits and storytelling.
+              </p>
+              <div className="text-accent-300 group-hover:text-accent-200 font-medium text-lg">
+                Start Conversation →
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <YorkieHelper
+          currentStep={1}
+          isGenerating={false}
+          videoReady={false}
+        />
+
+        {settingsOpen && (
+          <Settings onClose={() => setSettingsOpen(false)} />
+        )}
+      </div>
+    )
+  }
+
+  // Conversation Mode
+  if (appMode === 'conversation') {
+    if (conversationVideos) {
+      return (
+        <SplitScreenPlayer
+          conversation={{ ...conversationData, videos: conversationVideos }}
+          onClose={() => {
+            setConversationVideos(null)
+            setConversationData(null)
+            setAppMode(null)
+          }}
+        />
+      )
+    }
+
+    return (
+      <ConversationMode
+        onBack={() => setAppMode(null)}
+        onGenerate={handleConversationGenerate}
+      />
+    )
+  }
+
+  // Single Avatar Mode (existing flow)
   return (
     <div className="min-h-screen">
-      <Header onReset={resetAll} onOpenSettings={() => setSettingsOpen(true)} />
+      <Header onReset={() => { resetAll(); setAppMode(null); }} onOpenSettings={() => setSettingsOpen(true)} />
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {error && (
