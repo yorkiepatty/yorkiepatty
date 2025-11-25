@@ -228,7 +228,7 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
             showMessage()
           }
         }}
-        className={`w-32 h-32 rounded-full shadow-xl hover:scale-110 transition-transform relative overflow-hidden ${
+        className={`w-40 h-40 rounded-full shadow-xl hover:scale-110 transition-transform relative overflow-hidden ${
           isSpeaking ? 'ring-4 ring-primary-400 ring-opacity-50' : ''
         }`}
         title="Click for help!"
