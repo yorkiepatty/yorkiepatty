@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 // Path to your Yorkie image - place your yorkie.png in the public folder
 // or update this path to where your image is located
 const YORKIE_IMAGE = '/yorkie.png'  // Place your yorkie pic in frontend/public/yorkie.png
+const YORKIE_TALKING_VIDEO = '/yorkie-talking.mp4'  // 5-second Hedra video of Yorkie talking
 
 // Yorkie messages for each step
 const YORKIE_MESSAGES = {
@@ -45,6 +46,7 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
   const messageTimeoutRef = useRef(null)
   const mouthIntervalRef = useRef(null)
   const speechSynthRef = useRef(null)
+  const videoRef = useRef(null)
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -172,6 +174,18 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
     return () => clearInterval(interval)
   }, [])
 
+  // Play/pause talking video based on speaking state
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isSpeaking) {
+        videoRef.current.play().catch(err => console.log('Video play failed:', err))
+      } else {
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0  // Reset to start
+      }
+    }
+  }, [isSpeaking])
+
   // Cleanup
   useEffect(() => {
     return () => {
@@ -219,36 +233,26 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
         }`}
         title="Click for help!"
       >
-        {/* Your Yorkie Image with lip sync */}
+        {/* Yorkie - show video when speaking, static image when not */}
         <div className="relative w-full h-full">
-          {/* Main Yorkie image */}
-          <img
-            src={YORKIE_IMAGE}
-            alt="Yorkie Helper"
-            className="w-full h-full object-cover rounded-full transition-transform duration-75"
-            style={{
-              transform: mouthOpen
-                ? 'scaleY(1.03) translateY(1px)'
-                : 'scaleY(1) translateY(0)',
-              transformOrigin: 'center 60%'
-            }}
-            onError={(e) => {
-              e.target.style.display = 'none'
-              e.target.nextSibling.style.display = 'flex'
-            }}
-          />
-
-          {/* Animated "talking" chin/jaw overlay - only visible when speaking */}
+          {/* Talking video - only visible when speaking */}
           {isSpeaking && (
-            <div
-              className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full transition-all duration-75"
-              style={{
-                width: '60%',
-                height: mouthOpen ? '12px' : '4px',
-                background: 'radial-gradient(ellipse, rgba(60,40,30,0.7) 0%, transparent 70%)',
-                bottom: '28%',
-                filter: 'blur(2px)'
-              }}
+            <video
+              ref={videoRef}
+              src={YORKIE_TALKING_VIDEO}
+              className="w-full h-full object-cover rounded-full"
+              loop
+              muted
+              playsInline
+            />
+          )}
+
+          {/* Static image - visible when NOT speaking */}
+          {!isSpeaking && (
+            <img
+              src={YORKIE_IMAGE}
+              alt="Yorkie Helper"
+              className="w-full h-full object-cover rounded-full"
             />
           )}
         </div>
