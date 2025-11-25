@@ -241,6 +241,7 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
               ref={videoRef}
               src={YORKIE_TALKING_VIDEO}
               className="w-full h-full object-cover rounded-full"
+              style={{ imageRendering: 'crisp-edges' }}
               loop
               muted
               playsInline
