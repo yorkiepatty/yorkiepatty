@@ -72,10 +72,65 @@ function App() {
   const handleConversationGenerate = async (conversation) => {
     setConversationData(conversation)
     setIsGenerating(true)
-    // TODO: Generate videos for conversation
-    // For now, just store the conversation data
-    console.log('Generating conversation:', conversation)
-    setIsGenerating(false)
+    setError(null)
+
+    try {
+      // Call backend API to start conversation generation
+      const response = await fetch('/api/conversation/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(conversation)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to start conversation generation')
+      }
+
+      const data = await response.json()
+      const jobId = data.job_id
+
+      console.log(`[CONVERSATION] Started job ${jobId}, polling for status...`)
+
+      // Poll for completion
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`/api/conversation/status/${jobId}`)
+          const statusData = await statusResponse.json()
+
+          console.log(`[CONVERSATION] Progress: ${statusData.progress}/${statusData.total_lines}`)
+
+          if (statusData.status === 'completed') {
+            clearInterval(pollInterval)
+            setIsGenerating(false)
+
+            // Set videos and show player
+            setConversationVideos(statusData.videos)
+            console.log('[CONVERSATION] Generation completed!', statusData.videos)
+
+          } else if (statusData.status === 'failed') {
+            clearInterval(pollInterval)
+            setIsGenerating(false)
+            setError(`Conversation generation failed: ${statusData.errors.join(', ')}`)
+          }
+        } catch (err) {
+          console.error('[CONVERSATION] Status check error:', err)
+        }
+      }, 5000) // Poll every 5 seconds
+
+      // Timeout after 30 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval)
+        if (isGenerating) {
+          setIsGenerating(false)
+          setError('Conversation generation timed out')
+        }
+      }, 30 * 60 * 1000)
+
+    } catch (err) {
+      console.error('[CONVERSATION] Generation error:', err)
+      setError(err.message || 'Failed to generate conversation')
+      setIsGenerating(false)
+    }
   }
 
   // Mode selection screen

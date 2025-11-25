@@ -21,6 +21,10 @@ from .voice_processor import voice_processor, VoiceResult
 from .video_generator import video_generator, VideoResult
 
 
+# Conversation job tracking
+conversation_jobs = {}
+
+
 # Create FastAPI app
 app = FastAPI(
     title="Avatar Video App",
@@ -80,6 +84,14 @@ class StatusResponse(BaseModel):
 class APIKeyRequest(BaseModel):
     """Request to set API key"""
     api_key: str = Field(..., description="OpenAI API key")
+
+
+class ConversationRequest(BaseModel):
+    """Request to generate conversation videos"""
+    character1: dict = Field(..., description="First character data")
+    character2: dict = Field(..., description="Second character data")
+    script: List[dict] = Field(..., description="Conversation script with speaker and text")
+    mode: str = Field(..., description="Conversation mode: ai or scripted")
 
 
 # ============== API Endpoints ==============
@@ -523,6 +535,199 @@ async def generate_full_video(
         print("[PIPELINE] Full traceback:")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============== Conversation Endpoints ==============
+
+@app.post("/api/conversation/generate")
+async def generate_conversation(request: ConversationRequest, background_tasks: BackgroundTasks):
+    """Generate videos for a conversation between two avatars"""
+    try:
+        # Generate unique job ID
+        job_id = f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{os.urandom(4).hex()}"
+
+        # Initialize job tracking
+        conversation_jobs[job_id] = {
+            "status": "processing",
+            "progress": 0,
+            "total_lines": len(request.script),
+            "videos": [],
+            "errors": [],
+            "started_at": datetime.now().isoformat()
+        }
+
+        # Start background task to generate videos
+        background_tasks.add_task(
+            generate_conversation_videos,
+            job_id,
+            request.character1,
+            request.character2,
+            request.script,
+            request.mode
+        )
+
+        return {
+            "success": True,
+            "job_id": job_id,
+            "message": f"Conversation generation started ({len(request.script)} lines)",
+            "total_lines": len(request.script)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/conversation/status/{job_id}")
+async def get_conversation_status(job_id: str):
+    """Get status of conversation generation"""
+    if job_id not in conversation_jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job = conversation_jobs[job_id]
+
+    return {
+        "success": True,
+        "job_id": job_id,
+        "status": job["status"],
+        "progress": job["progress"],
+        "total_lines": job["total_lines"],
+        "videos": job["videos"],
+        "errors": job["errors"],
+        "started_at": job.get("started_at"),
+        "completed_at": job.get("completed_at")
+    }
+
+
+async def generate_conversation_videos(
+    job_id: str,
+    character1: dict,
+    character2: dict,
+    script: List[dict],
+    mode: str
+):
+    """Background task to generate all conversation videos"""
+    try:
+        print(f"[CONVERSATION] Starting generation for job {job_id}")
+        print(f"[CONVERSATION] {len(script)} lines to generate")
+
+        # Decode avatar images from base64 if needed
+        char1_image_path = await save_character_avatar(character1, "char1")
+        char2_image_path = await save_character_avatar(character2, "char2")
+
+        # Generate videos for each line
+        for index, line in enumerate(script):
+            try:
+                print(f"[CONVERSATION] Generating line {index + 1}/{len(script)}: {line['text'][:50]}...")
+
+                # Determine which character is speaking
+                speaker_num = line['speaker']
+                character = character1 if speaker_num == 1 else character2
+                avatar_path = char1_image_path if speaker_num == 1 else char2_image_path
+
+                # Generate TTS audio for this line
+                print(f"[CONVERSATION] Generating TTS for line {index + 1}...")
+                voice_result = await voice_processor.generate_tts(
+                    text=line['text'],
+                    voice=character.get('voice', 'default')
+                )
+
+                if not voice_result.success:
+                    raise Exception(f"TTS failed: {voice_result.error}")
+
+                # Generate video for this line
+                print(f"[CONVERSATION] Generating video for line {index + 1}...")
+                video_result = await video_generator.generate_video(
+                    avatar_image_path=avatar_path,
+                    audio_path=voice_result.audio_path,
+                    output_name=f"{job_id}_line_{index}"
+                )
+
+                # Handle async video generation (HeyGen, Hedra, etc.)
+                if video_result.status == "processing":
+                    # Poll until complete
+                    max_polls = 120  # 10 minutes
+                    poll_count = 0
+                    while poll_count < max_polls:
+                        await asyncio.sleep(5)
+                        video_result = await video_generator.check_job_status(video_result.job_id)
+                        if video_result.status == "completed":
+                            break
+                        elif video_result.status == "failed":
+                            raise Exception(f"Video generation failed: {video_result.error}")
+                        poll_count += 1
+
+                    if poll_count >= max_polls:
+                        raise Exception("Video generation timed out")
+
+                # Store video result
+                conversation_jobs[job_id]["videos"].append({
+                    "index": index,
+                    "speaker": speaker_num,
+                    "text": line['text'],
+                    "video_path": video_result.video_path,
+                    "video_base64": video_result.video_base64,
+                    "provider": video_result.provider
+                })
+
+                # Update progress
+                conversation_jobs[job_id]["progress"] = index + 1
+                print(f"[CONVERSATION] Completed line {index + 1}/{len(script)}")
+
+            except Exception as e:
+                error_msg = f"Line {index + 1} failed: {str(e)}"
+                print(f"[CONVERSATION] ERROR: {error_msg}")
+                conversation_jobs[job_id]["errors"].append(error_msg)
+
+        # Mark as completed
+        conversation_jobs[job_id]["status"] = "completed"
+        conversation_jobs[job_id]["completed_at"] = datetime.now().isoformat()
+        print(f"[CONVERSATION] Job {job_id} completed successfully")
+
+    except Exception as e:
+        print(f"[CONVERSATION] Job {job_id} failed: {str(e)}")
+        conversation_jobs[job_id]["status"] = "failed"
+        conversation_jobs[job_id]["errors"].append(str(e))
+        conversation_jobs[job_id]["completed_at"] = datetime.now().isoformat()
+
+
+async def save_character_avatar(character: dict, prefix: str) -> str:
+    """Save character avatar image and return path"""
+    avatar_image = character.get('avatarImage', '')
+
+    if not avatar_image:
+        # No avatar image provided, use a default or raise error
+        raise Exception(f"Character {character.get('name', 'unknown')} has no avatar image")
+
+    # If it's a base64 data URL
+    if avatar_image.startswith('data:image'):
+        # Extract base64 data
+        header, base64_data = avatar_image.split(',', 1)
+        image_data = base64.b64decode(base64_data)
+
+        # Determine file extension from header
+        if 'png' in header:
+            ext = 'png'
+        elif 'jpeg' in header or 'jpg' in header:
+            ext = 'jpg'
+        else:
+            ext = 'png'
+
+        # Save to temp file
+        temp_dir = Path(config.temp_dir) / "conversation"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        avatar_path = temp_dir / f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+        with open(avatar_path, 'wb') as f:
+            f.write(image_data)
+
+        return str(avatar_path)
+
+    # If it's already a file path
+    elif os.path.exists(avatar_image):
+        return avatar_image
+
+    else:
+        raise Exception(f"Invalid avatar image for character {character.get('name', 'unknown')}")
 
 
 # ============== Static Files (for frontend) ==============
