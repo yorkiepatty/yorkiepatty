@@ -44,3 +44,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Audio cache
+static/audio/
