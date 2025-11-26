@@ -76,6 +76,7 @@ protobuf==4.25.8
 pycparser==2.23
 pydantic==1.10.15
 pydantic_core==2.41.4
+PyAudio==0.2.14
 pygame==2.6.1
 Pygments==2.19.2
 python-dateutil==2.9.0.post0
