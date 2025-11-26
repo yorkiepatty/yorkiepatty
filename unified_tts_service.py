@@ -95,8 +95,12 @@ class UnifiedTTSService:
             self.text_to_speech_impl = None
 
     def _elevenlabs_tts(self, text: str, voice: Optional[str] = None, output_path: Optional[str] = None, **kwargs) -> Optional[str]:
-        """Use ElevenLabs for TTS."""
-        voice = voice or self.voice_name
+        """Use ElevenLabs for TTS.
+
+        Note: If voice is None, the ElevenLabs service will use its own configured
+        voice ID (prioritizing ELEVENLABS_VOICE_ID from .env, then manifest, then default).
+        """
+        # Don't override with manifest voice - let ElevenLabs service handle its own defaults
         return self.service.text_to_speech(text, voice=voice, output_path=output_path, **kwargs)
 
     def _gtts_tts(self, text: str, voice_id: str = "calming", output_path: Optional[str] = None, **kwargs) -> Optional[str]:

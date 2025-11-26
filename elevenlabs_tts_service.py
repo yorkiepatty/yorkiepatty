@@ -37,12 +37,25 @@ class ElevenLabsTTSService:
         """Initialize the ElevenLabs TTS service."""
         self.api_key = os.getenv("ELEVENLABS_API_KEY")
         self.client = None
-        self.voice_name = "Sunny"  # Default from manifest
+        self.voice_id = None  # Voice ID (priority: .env > manifest > default)
+        self.voice_name = "Sunny"  # Default voice name
         self.cache_dir = Path("static/audio")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Load configuration from manifest
         self._load_manifest_config()
+
+        # Override with environment variable if set
+        env_voice_id = os.getenv("ELEVENLABS_VOICE_ID")
+        if env_voice_id and env_voice_id != "your_elevenlabs_voice_id_here":
+            self.voice_id = env_voice_id
+            logger.info(f"Using ElevenLabs voice ID from .env: {self.voice_id}")
+        elif self.voice_id:
+            logger.info(f"Using ElevenLabs voice ID from manifest: {self.voice_id}")
+        else:
+            # Use voice name as fallback
+            self.voice_id = self.voice_name
+            logger.info(f"Using voice name as ID: {self.voice_id}")
 
         # Initialize client if API key is available
         if self.api_key and self.api_key != "your_elevenlabs_api_key_here":
@@ -68,8 +81,11 @@ class ElevenLabsTTSService:
                 # Load TTS settings
                 tts_config = manifest.get('tts', {})
                 if tts_config.get('provider') == 'elevenlabs':
-                    self.voice_name = tts_config.get('voice', 'Derek')
-                    logger.info(f"Loaded ElevenLabs voice from manifest: {self.voice_name}")
+                    voice = tts_config.get('voice', 'Sunny')
+                    # Voice can be either a name or ID in the manifest
+                    self.voice_name = voice
+                    self.voice_id = voice  # May be overridden by .env
+                    logger.info(f"Loaded ElevenLabs voice from manifest: {voice}")
         except Exception as e:
             logger.warning(f"Could not load manifest configuration: {e}")
 
@@ -93,7 +109,7 @@ class ElevenLabsTTSService:
 
         Args:
             text: Text to convert to speech
-            voice: Voice name (defaults to manifest voice)
+            voice: Voice ID or name (defaults to ELEVENLABS_VOICE_ID from .env or manifest voice)
             output_path: Optional path to save audio file
             model: ElevenLabs model to use
             stability: Voice stability (0.0-1.0)
@@ -108,7 +124,7 @@ class ElevenLabsTTSService:
             logger.error("ElevenLabs service not available. Check API key and installation.")
             return None
 
-        voice = voice or self.voice_name
+        voice = voice or self.voice_id
 
         try:
             # Generate cache key

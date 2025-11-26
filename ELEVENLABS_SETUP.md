@@ -12,21 +12,32 @@ pip install -r requirements.txt
 
 This will install the `elevenlabs` package (version 1.10.0) along with other dependencies.
 
-### 2. Get Your ElevenLabs API Key
+### 2. Get Your ElevenLabs API Key and Voice ID
 
 1. Go to [ElevenLabs](https://elevenlabs.io/)
 2. Sign up or log in to your account
 3. Navigate to your profile settings
 4. Copy your API key
+5. Browse to the Voices section to find your voice ID
+   - Each voice has a unique ID (e.g., `21m00Tcm4TlvDq8ikWAM`)
+   - You can use either the voice ID or voice name (like "Sunny")
 
-### 3. Configure Your API Key
+### 3. Configure Your Settings
 
-Edit your `.env` file and replace the placeholder:
+Edit your `.env` file and replace the placeholders:
 
 ```bash
 # ElevenLabs Voice Settings (recommended - see derek_manifest.yaml)
 ELEVENLABS_API_KEY=your_actual_api_key_here
+ELEVENLABS_VOICE_ID=your_actual_voice_id_here
 ```
+
+**Voice Configuration Priority:**
+1. `ELEVENLABS_VOICE_ID` in `.env` (highest priority - recommended for production)
+2. `voice` setting in `derek_manifest.yaml` (good for default/development)
+3. "Sunny" (built-in default)
+
+**Note:** You can use either the voice ID (recommended for consistency) or voice name. Voice IDs are more reliable as they don't change if you rename a voice.
 
 ### 4. Verify Configuration
 
@@ -103,9 +114,26 @@ The TTS provider is configured in `derek_manifest.yaml`:
 ```yaml
 tts:
   provider: "elevenlabs"  # Can be: elevenlabs, gtts, polly
-  voice: "Sunny"          # Default voice name
+  voice: "Sunny"          # Default voice name or ID
   enable_auto_speech: true
 ```
+
+### Environment Variables
+
+Configure ElevenLabs in your `.env` file:
+
+```bash
+# Required
+ELEVENLABS_API_KEY=sk-...your-api-key-here...
+
+# Optional - Voice ID (overrides manifest setting)
+ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
+```
+
+**When to use each:**
+- Use `ELEVENLABS_VOICE_ID` in `.env` for production deployments or when you need to use different voices per environment
+- Use `voice` in `derek_manifest.yaml` for default/development settings
+- The `.env` setting always takes priority over the manifest
 
 ### Voice Settings
 
