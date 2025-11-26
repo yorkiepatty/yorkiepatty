@@ -23,6 +23,7 @@ import tempfile
 import uuid
 import traceback
 import logging
+from datetime import datetime
 from typing import cast, Iterable, Any, Optional
 import threading
 from pathlib import Path
@@ -276,29 +277,46 @@ Your clarity, independence, and loyalty must never be compromised.
     
     def _initialize_speech_recognition(self):
         """Initialize speech recognition with optimal settings for natural conversation"""
-        self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
-        
-        # Enhanced settings to avoid cutting off natural speech
-        self.recognizer.energy_threshold = 3000  # Lower threshold for better sensitivity
-        self.recognizer.dynamic_energy_threshold = True
-        self.recognizer.dynamic_energy_adjustment_damping = 0.15
-        self.recognizer.dynamic_energy_ratio = 1.5
-        
-        # CRITICAL: Extended pause detection to handle natural pauses
-        self.recognizer.pause_threshold = 2.0  # Wait 2 seconds of silence (was 1.2)
-        self.recognizer.phrase_threshold = 0.2  # Min phrase length (shorter = more responsive)
-        self.recognizer.non_speaking_duration = 0.8  # Allow longer pauses mid-sentence (was 0.5)
-        
-        # Calibrate microphone
-        print("🎤 Calibrating microphone...")
-        print("   (Please be COMPLETELY SILENT for 3 seconds...)")
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source, duration=3)
-        
-        self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 3000)
-        print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
-        print(f"   Derek will wait 2 seconds of silence before processing your speech.")
+        try:
+            self.recognizer = sr.Recognizer()
+            self.microphone = sr.Microphone()
+
+            # Enhanced settings to avoid cutting off natural speech
+            self.recognizer.energy_threshold = 3000  # Lower threshold for better sensitivity
+            self.recognizer.dynamic_energy_threshold = True
+            self.recognizer.dynamic_energy_adjustment_damping = 0.15
+            self.recognizer.dynamic_energy_ratio = 1.5
+
+            # CRITICAL: Extended pause detection to handle natural pauses
+            self.recognizer.pause_threshold = 2.0  # Wait 2 seconds of silence (was 1.2)
+            self.recognizer.phrase_threshold = 0.2  # Min phrase length (shorter = more responsive)
+            self.recognizer.non_speaking_duration = 0.8  # Allow longer pauses mid-sentence (was 0.5)
+
+            # Calibrate microphone
+            print("🎤 Calibrating microphone...")
+            print("   (Please be COMPLETELY SILENT for 3 seconds...)")
+            with self.microphone as source:
+                self.recognizer.adjust_for_ambient_noise(source, duration=3)
+
+            self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 3000)
+            print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
+            print(f"   Sunny will wait 2 seconds of silence before processing your speech.")
+        except AttributeError as e:
+            # PyAudio not installed
+            print("⚠️  PyAudio not installed - Speech recognition disabled")
+            print("   💬 You can still use text input to chat with Sunny!")
+            print("   📦 To enable voice: pip install pyaudio")
+            print("   📖 See WINDOWS_INSTALL_FIX.md for installation help")
+            self.recognizer = None
+            self.microphone = None
+            self.enable_speech = False
+        except Exception as e:
+            # Other audio hardware issues
+            print(f"⚠️  Could not initialize microphone: {e}")
+            print("   💬 Speech recognition disabled - using text input only")
+            self.recognizer = None
+            self.microphone = None
+            self.enable_speech = False
     
     def _initialize_web_search(self):
         """Initialize web search capabilities"""
@@ -444,15 +462,20 @@ Your clarity, independence, and loyalty must never be compromised.
     
     def listen(self):
         """Advanced speech recognition - patient listening, won't cut you off"""
+        # Check if speech recognition is available
+        if not self.enable_speech or not self.recognizer or not self.microphone:
+            # Speech recognition not available, return None to trigger text input
+            return None
+
         text = self.speech_recognition.listen() if hasattr(self, 'speech_recognition') else None
         if text:
             if hasattr(self, 'memory'):
                 self.memory.store("heard", text)
             return text
-        
+
         # Fallback to standard speech recognition
-        print("\n🎤 Listening... (Derek is patient - take your time, he won't cut you off)")
-        
+        print("\n🎤 Listening... (Sunny is patient - take your time)")
+
         for attempt in range(3):  # Up to 3 attempts
             try:
                 with self.microphone as source:
