@@ -45,7 +45,7 @@ jmespath==1.0.1
 joblib==1.5.2
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
-keras==3.1.1
+keras==3.6.0
 lazy_loader==0.4
 libclang==18.1.1
 librosa==0.11.0
