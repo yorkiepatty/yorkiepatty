@@ -1012,22 +1012,33 @@ Please provide a helpful response as Derek, keeping it conversational and under 
     
     def speak(self, text):
         """Advanced speech synthesis with fallback options"""
-        print(f"🗣️  Derek: {text}\n")
-        
-        # Try AWS Polly first
+        print(f"🗣️  Sunny: {text}\n")
+
+        # Try unified TTS service (uses ElevenLabs from manifest, then fallback)
+        try:
+            from unified_tts_service import get_tts_service
+            tts_service = get_tts_service()
+            audio_path = tts_service.text_to_speech(text, voice=self.voice_id if hasattr(self, 'voice_id') else None)
+            if audio_path:
+                playsound(audio_path)
+                return
+        except Exception as e:
+            print(f"⚠️  Unified TTS failed: {e}")
+
+        # Fallback to AWS Polly
         if self.has_polly and self.voice_id in POLLY_VOICES:
             try:
                 return self._speak_polly(text)
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
-        
+
         # Fallback to gTTS
         if self.has_gtts:
             try:
                 return self._speak_gtts(text)
             except Exception as e:
                 print(f"⚠️  gTTS failed: {e}")
-        
+
         # Final fallback - text only
         print("📝 (Voice synthesis unavailable - text only)")
     

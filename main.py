@@ -29,7 +29,7 @@ perplexity_service_module = derek_loader.get_module('perplexity_service')
 memory_engine_module = derek_loader.get_module('memory_engine')
 conversation_engine_module = derek_loader.get_module('conversation_engine')
 brain_module = derek_loader.get_module('brain')
-derek_ultimate_voice_module = derek_loader.get_module('derek_ultimate_voice')
+sunny_ultimate_voice_module = derek_loader.get_module('sunny_ultimate_voice')
 memory_mesh_bridge_module = derek_loader.get_module('memory_mesh_bridge')
 
 # Import classes from loaded modules
@@ -41,10 +41,10 @@ if conversation_engine_module:
     ConversationEngine = conversation_engine_module.ConversationEngine
 if brain_module:
     Derek = brain_module.Derek
-if derek_ultimate_voice_module:
-    DerekUltimateVoice = derek_ultimate_voice_module.DerekUltimateVoice
-    POLLY_VOICES = derek_ultimate_voice_module.POLLY_VOICES
-    playsound = derek_ultimate_voice_module.playsound
+if sunny_ultimate_voice_module:
+    SunnyUltimateVoice = sunny_ultimate_voice_module.SunnyUltimateVoice
+    POLLY_VOICES = sunny_ultimate_voice_module.POLLY_VOICES
+    playsound = sunny_ultimate_voice_module.playsound
 if memory_mesh_bridge_module:
     MemoryMeshBridge = memory_mesh_bridge_module.MemoryMeshBridge
 
@@ -67,20 +67,20 @@ app = FastAPI(
     description="AI COO for The Christman AI Project"
 )
 
-# Initialize DerekUltimateVoice from loaded modules
+# Initialize SunnyUltimateVoice from loaded modules
 try:
-    if DerekUltimateVoice:
-        derek_ultimate_voice = DerekUltimateVoice(
+    if SunnyUltimateVoice:
+        sunny_ultimate_voice = SunnyUltimateVoice(
             ai_provider="auto",
-            voice_id="matthew"
+            voice_id="Sunny"
         )
-        logger.info("✅ DerekUltimateVoice initialized from loaded modules")
+        logger.info("✅ SunnyUltimateVoice initialized from loaded modules")
     else:
-        logger.warning("⚠️ DerekUltimateVoice module not loaded")
-        derek_ultimate_voice = None
+        logger.warning("⚠️ SunnyUltimateVoice module not loaded")
+        sunny_ultimate_voice = None
 except Exception as e:
-    logger.error(f"❌ Failed to initialize DerekUltimateVoice: {str(e)}")
-    derek_ultimate_voice = None
+    logger.error(f"❌ Failed to initialize SunnyUltimateVoice: {str(e)}")
+    sunny_ultimate_voice = None
         
 # Initialize MemoryMeshBridge from loaded modules  
 try:
@@ -111,7 +111,7 @@ class DerekDashboard:
         self.conversation_engine: Optional[ConversationEngine] = None
         self.perplexity_service: Optional[PerplexityService] = None
         self.derek: Optional[Derek] = None
-        self.derek_ultimate_voice = derek_ultimate_voice
+        self.sunny_ultimate_voice = sunny_ultimate_voice
         self.memory = memory
 
         try:
@@ -177,10 +177,10 @@ class DerekDashboard:
     def _display_greeting(self):
         if self.derek:
             greeting = self.derek.generate_greeting()
-            logger.info(f"🗣️ Derek says: {greeting}")
-            if self.derek_ultimate_voice:
+            logger.info(f"🗣️ Sunny says: {greeting}")
+            if self.sunny_ultimate_voice:
                 try:
-                    self.derek_ultimate_voice.speak(greeting)
+                    self.sunny_ultimate_voice.speak(greeting)
                 except Exception as e:
                     logger.warning(f"Failed to speak greeting: {e}")
 
@@ -190,9 +190,9 @@ class DerekDashboard:
             return "System not ready."
         try:
             response = self.derek.think(message)
-            if self.derek_ultimate_voice:
+            if self.sunny_ultimate_voice:
                 try:
-                    self.derek_ultimate_voice.speak(response.get("response", "[No output]"))
+                    self.sunny_ultimate_voice.speak(response.get("response", "[No output]"))
                 except Exception as e:
                     logger.warning(f"Failed to speak response: {e}")
 
