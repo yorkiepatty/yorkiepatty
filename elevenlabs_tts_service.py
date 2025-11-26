@@ -37,7 +37,7 @@ class ElevenLabsTTSService:
         """Initialize the ElevenLabs TTS service."""
         self.api_key = os.getenv("ELEVENLABS_API_KEY")
         self.client = None
-        self.voice_name = "Derek"  # Default from manifest
+        self.voice_name = "Sunny"  # Default from manifest
         self.cache_dir = Path("static/audio")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 

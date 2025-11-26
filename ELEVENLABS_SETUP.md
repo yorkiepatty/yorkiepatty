@@ -52,10 +52,10 @@ The unified service automatically selects the provider based on `derek_manifest.
 from unified_tts_service import text_to_speech
 
 # Generate speech (uses ElevenLabs automatically)
-audio_path = text_to_speech("Hello, this is Derek speaking!")
+audio_path = text_to_speech("Hello, this is Sunny speaking!")
 
 # Use a specific voice
-audio_path = text_to_speech("Hello!", voice="Derek")
+audio_path = text_to_speech("Hello!", voice="Sunny")
 
 # Save to a specific path
 audio_path = text_to_speech("Hello!", output_path="my_audio.mp3")
@@ -75,7 +75,7 @@ if service.is_available():
     # Generate speech with custom parameters
     audio_path = service.text_to_speech(
         text="Hello, world!",
-        voice="Derek",
+        voice="Sunny",
         stability=0.5,
         similarity_boost=0.75,
         style=0.0
@@ -103,7 +103,7 @@ The TTS provider is configured in `derek_manifest.yaml`:
 ```yaml
 tts:
   provider: "elevenlabs"  # Can be: elevenlabs, gtts, polly
-  voice: "Derek"          # Default voice name
+  voice: "Sunny"          # Default voice name
   enable_auto_speech: true
 ```
 
@@ -144,7 +144,7 @@ audio = text_to_speech("Hello", voice_id="calming")
 **New:**
 ```python
 from unified_tts_service import text_to_speech
-audio = text_to_speech("Hello", voice="Derek")
+audio = text_to_speech("Hello", voice="Sunny")
 ```
 
 The unified service will automatically use ElevenLabs based on your manifest configuration!

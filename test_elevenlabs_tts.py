@@ -40,7 +40,7 @@ def test_unified_tts_service():
             return False
 
         # Test text-to-speech generation
-        test_text = "Hello! This is a test of the ElevenLabs text-to-speech integration for Derek."
+        test_text = "Hello! This is Sunny speaking. Testing the ElevenLabs text-to-speech integration."
         print(f"Generating speech: '{test_text}'")
         print()
 

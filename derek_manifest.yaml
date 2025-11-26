@@ -21,7 +21,7 @@ nlp:
 
 tts:
   provider: "elevenlabs"
-  voice: "Derek"
+  voice: "Sunny"
   enable_auto_speech: true
 
 analytics:
