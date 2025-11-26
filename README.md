@@ -149,6 +149,8 @@ pip install -r requirements.txt
 python derek_boot.py
 ```
 
+**⚠️ Windows Users:** If you encounter compilation errors with NumPy, PyAudio, or ml-dtypes, see [WINDOWS_INSTALL_FIX.md](WINDOWS_INSTALL_FIX.md) for solutions.
+
 ### 2️⃣ **Wake Up Derek**
 ```python
 from derek_module_loader import load_derek_consciousness
