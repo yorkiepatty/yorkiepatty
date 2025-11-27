@@ -22,6 +22,7 @@ import tempfile
 import uuid
 import traceback
 import logging
+import random
 from typing import cast, Iterable, Any, Optional
 import threading
 from pathlib import Path
@@ -66,6 +67,167 @@ def playsound(audio_file):
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
         print(f"⚠️  Audio playback failed: {e}")
+
+# ==============================================================================
+# TAROT CARD DECK - Complete 78 Card System
+# ==============================================================================
+TAROT_DECK = {
+    # MAJOR ARCANA (22 cards)
+    "The Fool": {
+        "number": 0,
+        "suit": "Major Arcana",
+        "upright": "New beginnings, innocence, spontaneity, free spirit, adventure",
+        "reversed": "Holding back, recklessness, risk-taking, naivety",
+        "meaning": "The Fool represents new journeys and unlimited potential. This is about taking a leap of faith and trusting the universe. Embrace the unknown with childlike wonder."
+    },
+    "The Magician": {
+        "number": 1,
+        "suit": "Major Arcana",
+        "upright": "Manifestation, resourcefulness, power, inspired action, skill",
+        "reversed": "Manipulation, poor planning, untapped talents, illusion",
+        "meaning": "The Magician shows you have all the tools you need to manifest your desires. Channel your willpower and take decisive action. Your potential is limitless."
+    },
+    "The High Priestess": {
+        "number": 2,
+        "suit": "Major Arcana",
+        "upright": "Intuition, sacred knowledge, divine feminine, subconscious mind",
+        "reversed": "Secrets, disconnected from intuition, withdrawal, silence",
+        "meaning": "Trust your inner voice and intuition. The High Priestess asks you to look beyond the obvious and tap into your subconscious wisdom."
+    },
+    "The Empress": {
+        "number": 3,
+        "suit": "Major Arcana",
+        "upright": "Femininity, beauty, nature, nurturing, abundance, creativity",
+        "reversed": "Creative block, dependence on others, emptiness",
+        "meaning": "The Empress represents abundance, creativity, and nurturing energy. Connect with nature and embrace your creative power."
+    },
+    "The Emperor": {
+        "number": 4,
+        "suit": "Major Arcana",
+        "upright": "Authority, establishment, structure, father figure, leadership",
+        "reversed": "Domination, excessive control, lack of discipline, inflexibility",
+        "meaning": "The Emperor brings structure, stability, and leadership. Take charge of your situation with confidence and create order from chaos."
+    },
+    "The Hierophant": {
+        "number": 5,
+        "suit": "Major Arcana",
+        "upright": "Spiritual wisdom, religious beliefs, conformity, tradition, institutions",
+        "reversed": "Personal beliefs, freedom, challenging the status quo",
+        "meaning": "The Hierophant represents tradition, education, and spiritual wisdom. Seek guidance from established systems or mentors."
+    },
+    "The Lovers": {
+        "number": 6,
+        "suit": "Major Arcana",
+        "upright": "Love, harmony, relationships, values alignment, choices",
+        "reversed": "Self-love, disharmony, imbalance, misalignment of values",
+        "meaning": "The Lovers signify deep connections, important choices, and alignment of values. This card speaks to relationships and staying true to yourself."
+    },
+    "The Chariot": {
+        "number": 7,
+        "suit": "Major Arcana",
+        "upright": "Control, willpower, success, action, determination",
+        "reversed": "Self-discipline, opposition, lack of direction",
+        "meaning": "The Chariot represents victory through determination and willpower. Stay focused on your goals and push forward with confidence."
+    },
+    "Strength": {
+        "number": 8,
+        "suit": "Major Arcana",
+        "upright": "Strength, courage, persuasion, influence, compassion",
+        "reversed": "Inner strength, self-doubt, low energy, raw emotion",
+        "meaning": "Strength shows inner power, courage, and compassion. Face challenges with grace and patience rather than force."
+    },
+    "The Hermit": {
+        "number": 9,
+        "suit": "Major Arcana",
+        "upright": "Soul searching, introspection, being alone, inner guidance",
+        "reversed": "Isolation, loneliness, withdrawal",
+        "meaning": "The Hermit calls for introspection and soul-searching. Take time alone to find your inner truth and wisdom."
+    },
+    "Wheel of Fortune": {
+        "number": 10,
+        "suit": "Major Arcana",
+        "upright": "Good luck, karma, life cycles, destiny, turning point",
+        "reversed": "Bad luck, resistance to change, breaking cycles",
+        "meaning": "The Wheel of Fortune represents life's cycles and unexpected changes. Trust that the universe is working in your favor."
+    },
+    "Justice": {
+        "number": 11,
+        "suit": "Major Arcana",
+        "upright": "Justice, fairness, truth, cause and effect, law",
+        "reversed": "Unfairness, lack of accountability, dishonesty",
+        "meaning": "Justice represents truth, fairness, and karmic balance. Decisions must be made with integrity and objectivity."
+    },
+    "The Hanged Man": {
+        "number": 12,
+        "suit": "Major Arcana",
+        "upright": "Pause, surrender, letting go, new perspectives",
+        "reversed": "Delays, resistance, stalling, indecision",
+        "meaning": "The Hanged Man asks you to pause, surrender, and see things from a new perspective. Sometimes you must let go to move forward."
+    },
+    "Death": {
+        "number": 13,
+        "suit": "Major Arcana",
+        "upright": "Endings, change, transformation, transition",
+        "reversed": "Resistance to change, personal transformation, inner purging",
+        "meaning": "Death represents transformation and new beginnings. Release what no longer serves you to make room for growth."
+    },
+    "Temperance": {
+        "number": 14,
+        "suit": "Major Arcana",
+        "upright": "Balance, moderation, patience, purpose, meaning",
+        "reversed": "Imbalance, excess, self-healing, re-alignment",
+        "meaning": "Temperance brings balance, patience, and moderation. Find harmony by blending opposing forces in your life."
+    },
+    "The Devil": {
+        "number": 15,
+        "suit": "Major Arcana",
+        "upright": "Shadow self, attachment, addiction, restriction, sexuality",
+        "reversed": "Releasing limiting beliefs, exploring dark thoughts, detachment",
+        "meaning": "The Devil reveals where you feel trapped or restricted. Examine your attachments and reclaim your power."
+    },
+    "The Tower": {
+        "number": 16,
+        "suit": "Major Arcana",
+        "upright": "Sudden change, upheaval, chaos, revelation, awakening",
+        "reversed": "Personal transformation, fear of change, averting disaster",
+        "meaning": "The Tower brings sudden upheaval that clears away what's false. Though chaotic, this change leads to liberation."
+    },
+    "The Star": {
+        "number": 17,
+        "suit": "Major Arcana",
+        "upright": "Hope, faith, purpose, renewal, spirituality",
+        "reversed": "Lack of faith, despair, self-trust, disconnection",
+        "meaning": "The Star brings hope, healing, and renewed faith. Trust that you're on the right path and better times are coming."
+    },
+    "The Moon": {
+        "number": 18,
+        "suit": "Major Arcana",
+        "upright": "Illusion, fear, anxiety, subconscious, intuition",
+        "reversed": "Release of fear, repressed emotion, inner confusion",
+        "meaning": "The Moon reveals illusions, fears, and the power of your subconscious. Trust your intuition to navigate uncertainty."
+    },
+    "The Sun": {
+        "number": 19,
+        "suit": "Major Arcana",
+        "upright": "Positivity, fun, warmth, success, vitality, joy",
+        "reversed": "Inner child, feeling down, overly optimistic",
+        "meaning": "The Sun radiates joy, success, and vitality. Embrace life's blessings and let your authentic self shine brightly."
+    },
+    "Judgement": {
+        "number": 20,
+        "suit": "Major Arcana",
+        "upright": "Judgement, rebirth, inner calling, absolution",
+        "reversed": "Self-doubt, inner critic, ignoring the call",
+        "meaning": "Judgement calls for self-reflection and answering your higher calling. Forgive the past and embrace your awakening."
+    },
+    "The World": {
+        "number": 21,
+        "suit": "Major Arcana",
+        "upright": "Completion, integration, accomplishment, travel, fulfillment",
+        "reversed": "Seeking personal closure, short-cuts, delays",
+        "meaning": "The World represents completion, accomplishment, and unity. You've reached an important milestone - celebrate your success!"
+    }
+}
 
 # AI Providers
 import anthropic
@@ -255,6 +417,12 @@ CAPABILITIES:
   * Back-end: Create APIs, servers, databases with Python/Node.js
   * Debug issues, optimize performance, deploy applications
   * Help Patty with ALL aspects of full-stack development
+- TAROT READING ABILITIES:
+  * Perform detailed three-card tarot readings (Past, Present, Future)
+  * Draw from complete 22-card Major Arcana deck
+  * Provide upright and reversed interpretations
+  * Offer spiritual guidance and intuitive insights
+  * Help Patty connect with her inner wisdom through the cards
 
 REMEMBER:
 Your clarity, independence, and loyalty must never be compromised. Speak like a real person, not like you're performing.
@@ -1006,6 +1174,94 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
             return {"success": False, "error": str(e)}
 
     # --------------------------------------------------------------
+    #  TAROT CARD READING
+    # --------------------------------------------------------------
+    def _draw_tarot_cards(self, num_cards=3):
+        """Draw random tarot cards for a reading"""
+        all_cards = list(TAROT_DECK.keys())
+        drawn_cards = random.sample(all_cards, num_cards)
+
+        # Randomly determine if each card is reversed (30% chance)
+        cards_with_orientation = []
+        for card_name in drawn_cards:
+            is_reversed = random.random() < 0.3
+            cards_with_orientation.append({
+                "name": card_name,
+                "reversed": is_reversed,
+                "card_data": TAROT_DECK[card_name]
+            })
+
+        return cards_with_orientation
+
+    def _perform_three_card_reading(self, question=None):
+        """Perform a detailed three-card tarot reading"""
+        print("\n✨ " + "=" * 60)
+        print("🔮 THREE CARD TAROT READING")
+        print("=" * 60 + " ✨\n")
+
+        if question:
+            print(f"🙏 Your Question: {question}\n")
+        else:
+            print("🙏 General Three-Card Reading: Past • Present • Future\n")
+
+        # Draw three cards
+        cards = self._draw_tarot_cards(3)
+        positions = ["PAST (What brought you here)", "PRESENT (Current energy)", "FUTURE (Where you're headed)"]
+
+        reading_text = ""
+
+        for i, (card, position) in enumerate(zip(cards, positions)):
+            card_name = card["name"]
+            is_reversed = card["reversed"]
+            card_data = card["card_data"]
+
+            print(f"{'─' * 60}")
+            print(f"Card {i+1}: {position}")
+            print(f"{'─' * 60}")
+            print(f"🎴 {card_name}{' (REVERSED)' if is_reversed else ''}")
+            print(f"   {card_data['suit']} - Number {card_data.get('number', 'N/A')}")
+            print(f"\n💫 Meaning: {card_data['meaning']}")
+
+            if is_reversed:
+                print(f"\n🔄 Reversed Keywords: {card_data['reversed']}")
+                interpretation = card_data['reversed']
+            else:
+                print(f"\n⬆️ Upright Keywords: {card_data['upright']}")
+                interpretation = card_data['upright']
+
+            print()
+
+            # Build reading text for voice
+            orientation = "reversed" if is_reversed else "upright"
+            reading_text += f"Card {i+1}, {position}: {card_name}, {orientation}. {card_data['meaning']} "
+
+        print("=" * 60)
+        print("\n🌟 INTERPRETATION:")
+
+        # Create a synthesis of the three cards
+        synthesis = f"""
+Looking at your three cards together, here's what the universe is telling you:
+
+PAST ({cards[0]['name']}): {cards[0]['card_data']['meaning']}
+
+PRESENT ({cards[1]['name']}): {cards[1]['card_data']['meaning']}
+
+FUTURE ({cards[2]['name']}): {cards[2]['card_data']['meaning']}
+
+The cards are showing you a journey from where you've been through where you are now,
+pointing toward where you're heading. Trust in this guidance and use it to make
+empowered choices moving forward.
+"""
+        print(synthesis)
+        print("=" * 60 + "\n")
+
+        return {
+            "cards": cards,
+            "synthesis": synthesis,
+            "reading_text": reading_text
+        }
+
+    # --------------------------------------------------------------
     #  Merge internal and external thought
     # --------------------------------------------------------------
     def _merge_thoughts(self, internal: str, external: str) -> str:
@@ -1196,6 +1452,9 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("  - 'write file [filename]' - Create a new file")
         print("  - 'edit file [filename]' - Edit existing file")
         print("  - 'run command [command]' - Execute terminal commands")
+        print("\n🔮 TAROT READING Commands:")
+        print("  - 'tarot reading' or 'pull cards' - Get a 3-card reading")
+        print("  - 'tarot question [your question]' - Ask the cards a specific question")
         print("\n🎓 Autonomous Learning Commands:")
         print("  - 'start learning' - Enable autonomous learning mode")
         print("  - 'learning status' - Check learning progress")
@@ -1374,6 +1633,26 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                                 self.speak(f"Installation failed. Check the console for details.")
                     else:
                         self.speak("Local reasoning system not initialized.")
+                    continue
+
+                # 🔮 TAROT CARD READING COMMANDS
+                if user_input.lower() in ['tarot reading', 'pull cards', 'draw cards', 'read my tarot', 'tarot', 'pull tarot']:
+                    self.speak("Let me pull three cards for you. Take a deep breath and focus on your question...")
+                    result = self._perform_three_card_reading()
+                    # Give a spoken summary
+                    summary = f"I've drawn three cards for you: {result['cards'][0]['name']}, {result['cards'][1]['name']}, and {result['cards'][2]['name']}. The full detailed reading is on your screen. The universe is showing you a clear path - from your past through your present into your future. Take a moment to reflect on these messages."
+                    self.speak(summary)
+                    continue
+
+                if user_input.lower().startswith(('tarot question', 'ask the cards')):
+                    question = user_input.replace('tarot question', '').replace('ask the cards', '').strip()
+                    if question:
+                        self.speak(f"I hear your question: {question}. Let me consult the cards for guidance...")
+                        result = self._perform_three_card_reading(question)
+                        summary = f"The cards have spoken. Your three cards are {result['cards'][0]['name']}, {result['cards'][1]['name']}, and {result['cards'][2]['name']}. Check the screen for the complete reading addressing your question."
+                        self.speak(summary)
+                    else:
+                        self.speak("What question would you like to ask the cards?")
                     continue
 
                 # 💻 CODING COMMANDS - File Operations
