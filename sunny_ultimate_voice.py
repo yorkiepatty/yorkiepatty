@@ -1046,11 +1046,18 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
     def _query_anthropic(self, system_prompt: str, user_prompt: str) -> str:
         """Query Anthropic Claude API"""
         try:
+            # Build messages - use conversation history if available, otherwise just current prompt
+            if self.conversation_history:
+                # Add current user prompt to temporary messages list
+                messages = self.conversation_history + [{"role": "user", "content": user_prompt}]
+            else:
+                messages = [{"role": "user", "content": user_prompt}]
+
             message = self.anthropic_client.messages.create(
                 model="claude-sonnet-4-5-20250929",
                 max_tokens=1024,
                 system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}]
+                messages=messages
             )
             # Extract text from response
             response_text = ""
@@ -1065,12 +1072,18 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
     def _query_openai(self, system_prompt: str, user_prompt: str) -> str:
         """Query OpenAI GPT API"""
         try:
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4",
-                messages=[
+            # Build messages - use conversation history if available
+            if self.conversation_history:
+                messages = [{"role": "system", "content": system_prompt}] + self.conversation_history + [{"role": "user", "content": user_prompt}]
+            else:
+                messages = [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
-                ],
+                ]
+
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=messages,
                 max_tokens=1024,
                 temperature=0.7
             )
