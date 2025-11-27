@@ -35,7 +35,7 @@ import speech_recognition as sr
 import subprocess
 import platform
 
-# Audio playback function that works on macOS
+# Audio playback function that works on all platforms
 def playsound(audio_file):
     """Play audio file using system-appropriate method"""
     try:
@@ -45,11 +45,23 @@ def playsound(audio_file):
         elif system == "Linux":
             subprocess.run(["aplay", audio_file], check=True)
         elif system == "Windows":
-            # Use Windows Media Player via PowerShell for reliable playback
-            os.startfile(audio_file)
-            # Wait for audio to finish (estimate based on file size)
-            import time
-            time.sleep(3)  # Adjust based on typical message length
+            # Try pygame first (best for Windows)
+            try:
+                import pygame
+                pygame.mixer.init()
+                pygame.mixer.music.load(audio_file)
+                pygame.mixer.music.play()
+                # Wait for playback to finish
+                while pygame.mixer.music.get_busy():
+                    pygame.time.Clock().tick(10)
+                pygame.mixer.quit()
+            except ImportError:
+                # Fallback to PowerShell command
+                subprocess.run(
+                    ["powershell", "-c", f"(New-Object Media.SoundPlayer '{audio_file}').PlaySync()"],
+                    check=True,
+                    capture_output=True
+                )
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
