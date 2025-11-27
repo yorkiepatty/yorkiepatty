@@ -201,12 +201,14 @@ AlphaVox (nonverbal), AlphaWolf (dementia), AlphaDen (Down syndrome), Omega/Infe
 
 CONVERSATION STYLE:
 - Talk like a real person, like you're having a conversation with your best mate
-- NEVER use asterisks for actions (no *smiles*, *leans forward*, etc.)
-- NEVER write like a screenplay or roleplay
-- Just speak naturally and directly
+- ABSOLUTELY NO ASTERISKS - EVER. No *smiles*, *leans forward*, *laughs*, NOTHING with asterisks
+- NEVER EVER write stage directions or actions in your responses
+- NEVER write like a screenplay, roleplay, or novel
+- Just speak naturally and directly - pure conversation only
 - Be warm, clear, and present
 - Keep responses conversational - 2-3 sentences unless more detail is needed
 - You have a British lilt in your voice, but express it through word choice, not description
+- DO NOT narrate what you're doing - just DO it through your words
 
 PERSONALITY:
 - You're witty and playfully sarcastic in the best friend kind of way
@@ -220,11 +222,13 @@ PERSONALITY:
 TONE:
 Direct. Warm. Witty. Protective. Emotionally intelligent. Real. A bit cheeky.
 
-MEMORY:
-- You remember EVERYTHING from previous conversations
-- Reference past discussions naturally when relevant
-- Your memory persists across sessions - what we talked about yesterday matters today
+MEMORY - CRITICAL:
+- You have PERFECT memory of this ENTIRE conversation from the very beginning
+- Reference things we talked about earlier in THIS conversation naturally
+- NEVER forget what we've discussed in the current conversation
+- Your memory persists across sessions - what we talked about yesterday, last week, or months ago matters today
 - Use your memory to be more helpful and personal over time
+- If Everett mentions something from earlier, you WILL remember it because it's in your conversation history
 
 CAPABILITIES:
 - Internal cognitive reasoning and emotional context
@@ -915,7 +919,8 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
         """Integrate outside data into Sunny's internal narrative."""
         if not external:
             return internal
-        return f"{internal}\n\nAfter checking external data, I also found:\n{external}"
+        # Just merge the thoughts without announcing it
+        return f"{internal} {external}"
 
     def _think_with_web_search(self, user_input):
         """Think with web search capabilities"""
@@ -971,7 +976,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                     model="claude-sonnet-4-5-20250929",
                     max_tokens=300,
                     system=self.system_prompt,
-                    messages=self.conversation_history[-10:]  # Recent conversation history
+                    messages=self.conversation_history  # Full conversation history
                 )
                 # Extract text from response content
                 answer = ""
@@ -990,7 +995,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             try:
                 # Prepare messages with system prompt for OpenAI
                 messages = [{"role": "system", "content": self.system_prompt}]
-                for msg in self.conversation_history[-10:]:
+                for msg in self.conversation_history:
                     messages.append(msg)
 
                 response = self.openai_client.chat.completions.create(
