@@ -64,11 +64,11 @@ except ImportError:
     HAS_ELEVENLABS = False
     print("⚠️  ElevenLabs not available - install with: pip install elevenlabs")
 
-# Load environment variables
-load_dotenv()
-
 # Add project root
 PROJECT_ROOT = Path(__file__).parent
+
+# Load environment variables from the script's directory
+load_dotenv(PROJECT_ROOT / ".env")
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import project modules
