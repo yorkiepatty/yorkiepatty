@@ -58,7 +58,7 @@ from openai import OpenAI
 
 # ElevenLabs
 try:
-    from elevenlabs import ElevenLabs, save
+    from elevenlabs import ElevenLabs
     HAS_ELEVENLABS = True
 except ImportError:
     HAS_ELEVENLABS = False
@@ -1005,19 +1005,21 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
     def _speak_elevenlabs(self, text):
         """Speak using ElevenLabs voice synthesis"""
         try:
-            # Generate audio from text
-            audio = self.elevenlabs_client.generate(
+            # Generate audio from text using the correct API for elevenlabs 1.19.3
+            audio_generator = self.elevenlabs_client.text_to_speech.convert(
+                voice_id=self.voice_id,
                 text=text,
-                voice=self.voice_id,
-                model="eleven_monolingual_v1"
+                model_id="eleven_monolingual_v1"
             )
 
             # Save to temporary file
             temp_dir = tempfile.gettempdir()
             audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
 
-            # Save the audio
-            save(audio, audio_file)
+            # Write audio to file
+            with open(audio_file, 'wb') as f:
+                for chunk in audio_generator:
+                    f.write(chunk)
 
             # Play the audio
             playsound(audio_file)
