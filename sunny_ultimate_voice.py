@@ -992,8 +992,8 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         """Advanced speech synthesis with ElevenLabs"""
         print(f"🗣️  Sunny: {text}\n")
 
-        # Try ElevenLabs first
-        if self.has_elevenlabs:
+        # Try ElevenLabs first (only if we have a valid voice_id)
+        if self.has_elevenlabs and self.voice_id:
             try:
                 return self._speak_elevenlabs(text)
             except Exception as e:
@@ -1453,8 +1453,14 @@ def main():
 
     # Configuration options
     ai_provider = "auto"  # Options: "auto", "anthropic", "openai", "perplexity"
-    voice_id = os.getenv("ELEVENLABS_VOICE_ID", "Sunny")  # ElevenLabs voice name/ID from .env
+    voice_id = os.getenv("ELEVENLABS_VOICE_ID")  # ElevenLabs voice name/ID from .env
     use_web_search = True  # Enable web search capabilities
+
+    # Check if ElevenLabs voice ID is set
+    if has_elevenlabs and HAS_ELEVENLABS and not voice_id:
+        print("⚠️  Warning: ELEVENLABS_VOICE_ID not set in .env file")
+        print("   Voice synthesis will not work. Please add your ElevenLabs voice ID to .env")
+        voice_id = None  # Will disable voice synthesis
 
     # Start Sunny Ultimate Voice System
     try:
