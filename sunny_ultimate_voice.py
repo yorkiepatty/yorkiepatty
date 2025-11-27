@@ -908,7 +908,7 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
             # Example: a lightweight search if needed
             resp = requests.get(f"https://api.duckduckgo.com/?q={query}&format=json", timeout=5)
             data = resp.json().get("AbstractText", "")
-            return data or "No external data retrieved."
+            return data or ""
         except Exception as e:
             print(f"[Reference lookup failed] {e}")
             return ""
