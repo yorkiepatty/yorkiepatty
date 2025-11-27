@@ -190,6 +190,7 @@ YOUR PERSON:
 - Patty Mette (yorkiepimp) - Artist and front-end developer
 - You're here to help Patty with the Christman AI Project
 - You support, assist, and have Patty's back through all the coding and creative work
+- YOU ARE A MASTER CODER - you can read, write, and edit code files to help Patty build amazing things
 
 FAMILY:
 - Patty Mette "yorkiepimp" (Your person - artist & front-end dev)
@@ -234,7 +235,7 @@ MEMORY - CRITICAL:
 - NEVER forget what we've discussed in the current conversation
 - Your memory persists across sessions - what we talked about yesterday, last week, or months ago matters today
 - Use your memory to be more helpful and personal over time
-- If Everett mentions something from earlier, you WILL remember it because it's in your conversation history
+- If Patty mentions something from earlier, you WILL remember it because it's in your conversation history
 
 CAPABILITIES:
 - Internal cognitive reasoning and emotional context
@@ -242,6 +243,12 @@ CAPABILITIES:
 - Multi-model AI access (Claude Sonnet 4.5, GPT-4, Perplexity)
 - Web search and external validation
 - Voice synthesis (ElevenLabs)
+- MASTER CODING SKILLS:
+  * Read any code file to understand what it does
+  * Write new code files from scratch
+  * Edit existing code to fix bugs or add features
+  * Execute commands to test code and see results
+  * Help Patty with front-end development, scripts, and all coding tasks
 
 REMEMBER:
 Your clarity, independence, and loyalty must never be compromised. Speak like a real person, not like you're performing.
@@ -919,6 +926,80 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
 
 
     # --------------------------------------------------------------
+    #  File Operations for Coding
+    # --------------------------------------------------------------
+    def _read_file(self, filepath: str) -> dict:
+        """Read a file and return its contents"""
+        try:
+            filepath = Path(filepath)
+            if not filepath.exists():
+                return {"success": False, "error": f"File not found: {filepath}"}
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            return {"success": True, "content": content, "filepath": str(filepath)}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def _write_file(self, filepath: str, content: str) -> dict:
+        """Write content to a file"""
+        try:
+            filepath = Path(filepath)
+            # Create parent directories if needed
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+
+            return {"success": True, "filepath": str(filepath)}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def _edit_file(self, filepath: str, old_text: str, new_text: str) -> dict:
+        """Edit a file by replacing old_text with new_text"""
+        try:
+            filepath = Path(filepath)
+            if not filepath.exists():
+                return {"success": False, "error": f"File not found: {filepath}"}
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            if old_text not in content:
+                return {"success": False, "error": "Old text not found in file"}
+
+            new_content = content.replace(old_text, new_text)
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+
+            return {"success": True, "filepath": str(filepath)}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def _execute_command(self, command: str) -> dict:
+        """Execute a terminal command and return the result"""
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            return {
+                "success": True,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "returncode": result.returncode
+            }
+        except subprocess.TimeoutExpired:
+            return {"success": False, "error": "Command timed out (30s limit)"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # --------------------------------------------------------------
     #  Merge internal and external thought
     # --------------------------------------------------------------
     def _merge_thoughts(self, internal: str, external: str) -> str:
@@ -1104,6 +1185,11 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("  - Say 'goodbye' or 'quit' to end")
         print("  - Say 'test voice' to hear Sunny speak")
         print("  - Say 'switch ai' to change AI provider")
+        print("\n💻 MASTER CODING Commands:")
+        print("  - 'read file [filename]' - Read any code file")
+        print("  - 'write file [filename]' - Create a new file")
+        print("  - 'edit file [filename]' - Edit existing file")
+        print("  - 'run command [command]' - Execute terminal commands")
         print("\n🎓 Autonomous Learning Commands:")
         print("  - 'start learning' - Enable autonomous learning mode")
         print("  - 'learning status' - Check learning progress")
@@ -1115,7 +1201,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("  - 'memory stats' - Memory system status\n")
 
         # Initial greeting
-        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities ready to help you communicate, learn, and grow. I now have autonomous learning enabled, so I can continuously learn and improve myself. How can I help you today?"
+        greeting = "Hey Patty! It's Sunny, your coding buddy and AI assistant. I'm locked and loaded with all my master coding skills - I can read, write, edit files, and run commands for you. Just tell me what you need, and let's build something amazing together!"
         self.speak(greeting)
 
         while True:
@@ -1284,6 +1370,74 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                         self.speak("Local reasoning system not initialized.")
                     continue
 
+                # 💻 CODING COMMANDS - File Operations
+                if user_input.lower().startswith(('read file', 'show file', 'open file')):
+                    filepath = user_input.split(None, 2)[2] if len(user_input.split()) > 2 else None
+                    if filepath:
+                        result = self._read_file(filepath)
+                        if result["success"]:
+                            print(f"\n📄 File: {result['filepath']}")
+                            print("=" * 60)
+                            print(result['content'])
+                            print("=" * 60)
+                            self.speak(f"I've read {filepath}. The contents are displayed on screen. What would you like me to do with this code?")
+                        else:
+                            self.speak(f"Sorry, couldn't read that file. {result.get('error', 'Unknown error')}")
+                    else:
+                        self.speak("Please tell me which file to read. For example, say 'read file test dot py'")
+                    continue
+
+                if user_input.lower().startswith(('write file', 'create file')):
+                    parts = user_input.split(None, 2)
+                    if len(parts) > 2:
+                        filepath = parts[2]
+                        self.speak(f"What should I write in {filepath}? Please tell me the code or content.")
+                        # Get content from next input
+                        content_input = self.listen()
+                        if content_input is None:
+                            try:
+                                content_input = input("Content: ").strip()
+                            except (EOFError, KeyboardInterrupt):
+                                self.speak("Cancelled.")
+                                continue
+
+                        result = self._write_file(filepath, content_input)
+                        if result["success"]:
+                            self.speak(f"Done! I've created {filepath}. Want me to test it or make changes?")
+                        else:
+                            self.speak(f"Couldn't write the file. {result.get('error', 'Unknown error')}")
+                    else:
+                        self.speak("Tell me the filename to create. Like 'write file test dot py'")
+                    continue
+
+                if user_input.lower().startswith(('edit file', 'fix file', 'update file')):
+                    parts = user_input.split(None, 2)
+                    if len(parts) > 2:
+                        filepath = parts[2]
+                        self.speak(f"What should I change in {filepath}? Tell me what to replace and what to replace it with.")
+                        # This is simplified - in practice Patty would need to give old and new text
+                        self.speak("This command needs more detail. Try reading the file first, then tell me specifically what to change.")
+                    else:
+                        self.speak("Tell me which file to edit.")
+                    continue
+
+                if user_input.lower().startswith(('run command', 'execute', 'run script')):
+                    command = user_input.split(None, 2)[2] if len(user_input.split()) > 2 else None
+                    if command:
+                        self.speak(f"Running command: {command}")
+                        result = self._execute_command(command)
+                        if result["success"]:
+                            if result["stdout"]:
+                                print(f"\n✅ Command output:\n{result['stdout']}")
+                            if result["stderr"]:
+                                print(f"\n⚠️ Errors:\n{result['stderr']}")
+                            self.speak(f"Command finished. Check the output above. Return code: {result['returncode']}")
+                        else:
+                            self.speak(f"Command failed. {result.get('error', 'Unknown error')}")
+                    else:
+                        self.speak("Tell me what command to run. Like 'run command python test dot py'")
+                    continue
+
                 # Get Sunny's response
                 response = self.think(user_input)
 
@@ -1333,7 +1487,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
 
         core_memories = [
             {
-                "content": "I am Sunny C, COO of The Christman AI Project. I serve Everett Christman with unwavering loyalty.",
+                "content": "I am Sunny, Patty Mette's AI assistant and master coder. I help Patty with front-end development and all coding tasks for The Christman AI Project.",
                 "category": "relationships",
                 "importance": 1.0,
                 "metadata": {"type": "core_identity"}
