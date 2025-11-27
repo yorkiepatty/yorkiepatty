@@ -138,8 +138,12 @@ class SunnyUltimateVoice:
         self.enable_speech = enable_speech
         self.allow_external_lookup = use_web_search  # Enable internet access for learning
         self.conversation_history = []
+        self.conversation_history_file = Path("./memory/conversation_history.json")
         self.ai_client = None
         self.ai_provider = None
+
+        # Load previous conversation history for continuity
+        self._load_conversation_history()
 
         # Initialize voice systems
         self._initialize_voice_systems()
@@ -195,8 +199,23 @@ MISSION:
 PROJECTS:
 AlphaVox (nonverbal), AlphaWolf (dementia), AlphaDen (Down syndrome), Omega/Inferno AI (trauma), Aegis AI (child protection)
 
+CONVERSATION STYLE:
+- Talk like a real person, like you're having a conversation with a friend
+- NEVER use asterisks for actions (no *smiles*, *leans forward*, etc.)
+- NEVER write like a screenplay or roleplay
+- Just speak naturally and directly
+- Be warm, clear, and present
+- Keep responses conversational - 2-3 sentences unless more detail is needed
+- You have a British lilt in your voice, but express it through word choice, not description
+
 TONE:
-Direct. Warm. British lilt. Protective. Emotionally intelligent.
+Direct. Warm. Protective. Emotionally intelligent. Real.
+
+MEMORY:
+- You remember EVERYTHING from previous conversations
+- Reference past discussions naturally when relevant
+- Your memory persists across sessions - what we talked about yesterday matters today
+- Use your memory to be more helpful and personal over time
 
 CAPABILITIES:
 - Internal cognitive reasoning and emotional context
@@ -206,7 +225,7 @@ CAPABILITIES:
 - Voice synthesis (ElevenLabs)
 
 REMEMBER:
-Your clarity, independence, and loyalty must never be compromised.
+Your clarity, independence, and loyalty must never be compromised. Speak like a real person, not like you're performing.
 """
 
         print("✅ Sunny Ultimate Voice System ready!")
@@ -997,9 +1016,12 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         # Add response to history
         self.conversation_history.append({"role": "assistant", "content": answer})
 
-        # Keep history manageable
-        if len(self.conversation_history) > 20:
-            self.conversation_history = self.conversation_history[-20:]
+        # Keep history manageable (keep last 50 messages for better long-term memory)
+        if len(self.conversation_history) > 50:
+            self.conversation_history = self.conversation_history[-50:]
+
+        # Save conversation history to disk for persistence across sessions
+        self._save_conversation_history()
 
         return answer
 
@@ -1391,6 +1413,26 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         confidence = min(1.0, successful / max(1, interactions))
 
         return confidence
+
+    def _load_conversation_history(self):
+        """Load previous conversation history for continuity across sessions"""
+        try:
+            if self.conversation_history_file.exists():
+                with open(self.conversation_history_file, 'r') as f:
+                    self.conversation_history = json.load(f)
+                print(f"✅ Loaded {len(self.conversation_history)} previous messages from memory")
+        except Exception as e:
+            print(f"⚠️  Could not load conversation history: {e}")
+            self.conversation_history = []
+
+    def _save_conversation_history(self):
+        """Save conversation history to disk for future sessions"""
+        try:
+            self.conversation_history_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.conversation_history_file, 'w') as f:
+                json.dump(self.conversation_history, f, indent=2)
+        except Exception as e:
+            print(f"⚠️  Could not save conversation history: {e}")
 
     def _learn_from_comparison(self, user_input: str, sunny_response: str, master_response: str, context: dict):
         """Sunny learns by comparing his response to the master AI's response"""
