@@ -1453,7 +1453,7 @@ def main():
 
     # Configuration options
     ai_provider = "auto"  # Options: "auto", "anthropic", "openai", "perplexity"
-    voice_id = "Sunny"  # ElevenLabs voice name/ID
+    voice_id = os.getenv("ELEVENLABS_VOICE_ID", "Sunny")  # ElevenLabs voice name/ID from .env
     use_web_search = True  # Enable web search capabilities
 
     # Start Sunny Ultimate Voice System
