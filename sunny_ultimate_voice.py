@@ -45,8 +45,11 @@ def playsound(audio_file):
         elif system == "Linux":
             subprocess.run(["aplay", audio_file], check=True)
         elif system == "Windows":
-            import winsound
-            winsound.PlaySound(audio_file, winsound.SND_FILENAME)
+            # Use Windows Media Player via PowerShell for reliable playback
+            os.startfile(audio_file)
+            # Wait for audio to finish (estimate based on file size)
+            import time
+            time.sleep(3)  # Adjust based on typical message length
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
