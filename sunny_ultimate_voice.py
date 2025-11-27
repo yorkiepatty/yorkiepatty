@@ -826,6 +826,17 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
                 except Exception as e:
                     logger.debug(f"Learning from interaction failed: {e}")
 
+            # 6️⃣  Save conversation to conversation_history.json for memory persistence
+            self.conversation_history.append({"role": "user", "content": user_input})
+            self.conversation_history.append({"role": "assistant", "content": final_thought})
+
+            # Keep history manageable (keep last 50 messages)
+            if len(self.conversation_history) > 50:
+                self.conversation_history = self.conversation_history[-50:]
+
+            # Save to disk for persistence across sessions
+            self._save_conversation_history()
+
             return final_thought
 
         except Exception as e:
