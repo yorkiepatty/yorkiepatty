@@ -846,9 +846,17 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
                 except Exception as e:
                     logger.debug(f"Proactive analysis skipped: {e}")
 
-            # 3️⃣  Add user input to conversation history BEFORE reasoning
-            # This is CRITICAL so the AI can see the full conversation context
-            self.conversation_history.append({"role": "user", "content": user_input})
+            # 3️⃣  Add user input WITH MEMORY CONTEXT to conversation history BEFORE reasoning
+            # This is CRITICAL so the AI can see the full conversation context AND memory
+
+            # Build the full user message with memory context
+            user_message_with_context = user_input
+            if mem_context:
+                user_message_with_context = f"""[MEMORY CONTEXT: {mem_context}]
+
+{user_input}"""
+
+            self.conversation_history.append({"role": "user", "content": user_message_with_context})
 
             # 4️⃣  Run local reasoning with AI (now it can see the conversation history)
             internal_reflection = self._internal_reasoning(
