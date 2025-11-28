@@ -29,16 +29,21 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # For keyboard interrupt detection
+# Initialize both to False, then set to True if available
+HAS_MSVCRT = False
+HAS_SELECT = False
+
 try:
     import msvcrt  # Windows
     HAS_MSVCRT = True
 except ImportError:
-    HAS_MSVCRT = False
-    try:
-        import select  # Unix/Linux/Mac
-        HAS_SELECT = True
-    except ImportError:
-        HAS_SELECT = False
+    pass
+
+try:
+    import select  # Unix/Linux/Mac
+    HAS_SELECT = True
+except ImportError:
+    pass
 
 # Setup logging
 logger = logging.getLogger(__name__)
