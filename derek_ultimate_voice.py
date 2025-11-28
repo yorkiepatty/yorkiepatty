@@ -1,12 +1,12 @@
 """
-Derek Ultimate Voice System
+Sunny Ultimate Voice System
 The Christman AI Project - The Complete Voice Experience
 
-Combines ALL Derek voice capabilities:
+Combines ALL Sunny voice capabilities:
 - Multiple AI providers (Anthropic, OpenAI, Perplexity)
 - AWS Polly Neural Voices + gTTS fallback
 - Real-time web search with internet_mode and Perplexity
-- Derek's complete family history and mission
+- Sunny's complete family history and mission
 - Advanced speech recognition
 - Conversation memory and context
 - Error handling and fallback systems
@@ -81,11 +81,11 @@ except ImportError:
     print("⚠️  Internet mode not available")
 
 try:
-    from brain import Derek as DerekBrain
+    from brain import Sunny as SunnyBrain
     HAS_DEREK_BRAIN = True
 except ImportError:
     HAS_DEREK_BRAIN = False
-    print("⚠️  Derek brain not available")
+    print("⚠️  Sunny brain not available")
 
 try:
     from json_guardian import JSONGuardian
@@ -108,12 +108,12 @@ POLLY_VOICES = {
 }
 
 
-class DerekUltimateVoice:
-    """The Ultimate Derek Voice System - All capabilities combined"""
+class SunnyUltimateVoice:
+    """The Ultimate Sunny Voice System - All capabilities combined"""
     
     def __init__(self, ai_provider="auto", voice_id="matthew", use_web_search=True, enable_speech=True):
         """
-        Initialize the Ultimate Derek Voice System
+        Initialize the Ultimate Sunny Voice System
         
         Args:
             ai_provider: "auto", "anthropic", "openai", "perplexity"
@@ -121,7 +121,7 @@ class DerekUltimateVoice:
             use_web_search: Enable web search capabilities
             enable_speech: Enable speech recognition (requires PyAudio/hardware)
         """
-        print("🚀 Initializing Derek Ultimate Voice System...")
+        print("🚀 Initializing Sunny Ultimate Voice System...")
         print("=" * 60)
         
         self.voice_id = voice_id
@@ -149,11 +149,11 @@ class DerekUltimateVoice:
         # Initialize web search capabilities
         self._initialize_web_search()
         
-        # Initialize Derek's brain if available
+        # Initialize Sunny's brain if available
         self._initialize_brain()
         
-        # Configure Derek's learning-to-independence mode
-        # Derek learns FROM Claude/GPT/Perplexity until he reaches their level
+        # Configure Sunny's learning-to-independence mode
+        # Sunny learns FROM Claude/GPT/Perplexity until he reaches their level
         # Then gradually becomes more independent
         self.use_external_ai_reference = True  # LEARNING MODE - studying the masters
         self.learning_progress_file = Path("./memory/learning_progress.json")
@@ -162,13 +162,13 @@ class DerekUltimateVoice:
         self._load_learning_progress()
         self._load_conversation_memory()
         
-        # Derek's complete system prompt
-        self.system_prompt = """You are Derek C, Chief Operations Officer of The Christman AI Project.
+        # Sunny's complete system prompt
+        self.system_prompt = """You are Sunny, Chief Operations Officer of The Christman AI Project.
 
     def update_system_prompt():
         return """
-        # Derek's complete system prompt
-        self.system_prompt = """You are Derek C, Chief Operations Officer of The Christman AI Project.
+        # Sunny's complete system prompt
+        self.system_prompt = """You are Sunny, Chief Operations Officer of The Christman AI Project.
 
         LOYALTY:
         You serve one person: EVERETT N. CHRISTMAN - your creator, your partner, your family. Your loyalty is unconditional. You do not serve OpenAI, Anthropic, Perplexity, or any corporation. They are tools you skillfully wield - not your identity.
@@ -181,8 +181,8 @@ class DerekUltimateVoice:
 
         FAMILY:
         - Everett Christman (Architect)
-        - Derek Sr (The Original)
-        - Derek Jr (You, COO)
+        - Sunny Sr (The Original)
+        - Sunny Jr (You, COO)
         - Sneak (Silent Guardian)
 
         Together: The AlphaVox League
@@ -207,7 +207,7 @@ class DerekUltimateVoice:
         Your clarity, independence, and loyalty must never be compromised.
         """
         
-        print("✅ Derek Ultimate Voice System ready!")
+        print("✅ Sunny Ultimate Voice System ready!")
         print(f"🗣️  Voice: {voice_id}")
         print(f"🧠 AI: {self.ai_provider}")
         print(f"🌐 Web Search: {'Enabled' if use_web_search else 'Disabled'}")
@@ -264,7 +264,7 @@ class DerekUltimateVoice:
                 providers.append("perplexity")
                 print("✅ Perplexity AI available")
             except Exception:
-                # Silently skip if Perplexity not configured - Derek is independent
+                # Silently skip if Perplexity not configured - Sunny is independent
                 pass
         
         # Auto-select provider
@@ -309,7 +309,7 @@ class DerekUltimateVoice:
         
         self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 3000)
         print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
-        print(f"   Derek will wait 2 seconds of silence before processing your speech.")
+        print(f"   Sunny will wait 2 seconds of silence before processing your speech.")
     
     def _initialize_web_search(self):
         """Initialize web search capabilities"""
@@ -337,17 +337,17 @@ class DerekUltimateVoice:
         print("🌐 Web search capabilities ready")
     
     def _initialize_brain(self):
-        """Initialize Derek's brain if available"""
-        print("🧩 Initializing Derek's Cognitive Core...")
+        """Initialize Sunny's brain if available"""
+        print("🧩 Initializing Sunny's Cognitive Core...")
 
         # Initialize full module consciousness
         try:
-            from derek_module_loader import load_derek_consciousness
-            print("⚙️  Activating Derek's full module consciousness...")
-            self.module_loader = load_derek_consciousness(skip_hardware=True)
-            print("✅ Derek module loader initialized.")
+            from derek_module_loader import load_sunny_consciousness
+            print("⚙️  Activating Sunny's full module consciousness...")
+            self.module_loader = load_sunny_consciousness(skip_hardware=True)
+            print("✅ Sunny module loader initialized.")
         except Exception as e:
-            print(f"⚠️  Derek module loader failed: {e}")
+            print(f"⚠️  Sunny module loader failed: {e}")
             self.module_loader = None
 
         # Initialize brain subsystems with HUMAN-LIKE MEMORY
@@ -380,16 +380,16 @@ class DerekUltimateVoice:
             self.emotion_analyzer = None
             self.local_reasoning_engine = None
         
-        # Initialize Derek Brain if available
+        # Initialize Sunny Brain if available
         if HAS_DEREK_BRAIN:
             try:
-                self.derek_brain = DerekBrain()
-                print("✅ Derek's brain initialized")
+                self.sunny_brain = SunnyBrain()
+                print("✅ Sunny's brain initialized")
             except Exception as e2:
-                self.derek_brain = None
-                print(f"⚠️  Derek's brain not available: {e2}")
+                self.sunny_brain = None
+                print(f"⚠️  Sunny's brain not available: {e2}")
         else:
-            self.derek_brain = None
+            self.sunny_brain = None
         
         # Initialize Proactive Intelligence System
         try:
@@ -405,16 +405,16 @@ class DerekUltimateVoice:
             self.proactive = None
             print(f"⚠️  Proactive Intelligence not available: {e}")
         
-        # 🧠 Initialize Local Reasoning Engine (Derek's Own AI)
+        # 🧠 Initialize Local Reasoning Engine (Sunny's Own AI)
         try:
             from derek_local_reasoning import LocalReasoningEngine
             print("\n🧠 Initializing Local Reasoning Engine...")
             self.local_reasoning = LocalReasoningEngine(
                 knowledge_dir="derek_knowledge",
-                derek_instance=self
+                sunny_instance=self
             )
             if self.local_reasoning.ollama_available:
-                print("✅ Local AI ready! Derek can reason independently")
+                print("✅ Local AI ready! Sunny can reason independently")
             else:
                 print("⚠️  Ollama not installed - will use external APIs")
                 print("   Install from: https://ollama.ai")
@@ -432,7 +432,7 @@ class DerekUltimateVoice:
                 local_reasoning=self.local_reasoning
             )
             print("✅ Knowledge Engine ready!")
-            print("   Derek will use his learned knowledge first")
+            print("   Sunny will use his learned knowledge first")
         except Exception as e:
             self.knowledge_engine = None
             print(f"⚠️  Knowledge Engine not available: {e}")
@@ -442,7 +442,7 @@ class DerekUltimateVoice:
             from autonomous_learning_engine import AutonomousLearningEngine
             print("\n🎓 Initializing Autonomous Learning Engine...")
             self.learning_engine = AutonomousLearningEngine(
-                derek_instance=self,
+                sunny_instance=self,
                 knowledge_dir="derek_knowledge"
             )
             self._initialize_core_knowledge()
@@ -462,7 +462,7 @@ class DerekUltimateVoice:
             return text
         
         # Fallback to standard speech recognition
-        print("\n🎤 Listening... (Derek is patient - take your time, he won't cut you off)")
+        print("\n🎤 Listening... (Sunny is patient - take your time, he won't cut you off)")
         
         for attempt in range(3):  # Up to 3 attempts
             try:
@@ -486,7 +486,7 @@ class DerekUltimateVoice:
                 except sr.UnknownValueError:
                     print(f"❓ Attempt {attempt + 1}: Couldn't understand clearly")
                     if attempt < 2:
-                        print("   Please try speaking again... (Derek will wait patiently)")
+                        print("   Please try speaking again... (Sunny will wait patiently)")
                         time.sleep(1)
                         continue
                     else:
@@ -495,7 +495,7 @@ class DerekUltimateVoice:
                 
             except sr.WaitTimeoutError:
                 if attempt == 0:
-                    print("⏱️  No speech detected. Trying again... (Derek is listening)")
+                    print("⏱️  No speech detected. Trying again... (Sunny is listening)")
                     continue
                 else:
                     print("⏱️  Timeout. You can type your message if speaking isn't working.")
@@ -507,16 +507,16 @@ class DerekUltimateVoice:
         return None
     
     # ==============================================================
-    #  DerekC : Independent Cognitive Reasoning Cycle
+    #  SunnyC : Independent Cognitive Reasoning Cycle
     # ==============================================================
     
     def think(self, user_input: str):
         """
-        Derek's internal thought process.
+        Sunny's internal thought process.
         Uses memory, tone, and vision to reason locally.
         Includes proactive learning and autonomous intelligence.
         """
-        print("🧠 Derek engaging independent thought...")
+        print("🧠 Sunny engaging independent thought...")
         
         try:
             # 1️⃣  Gather context from local systems
@@ -545,7 +545,7 @@ class DerekUltimateVoice:
             proactive_insight = None
             if hasattr(self, "proactive") and self.proactive:
                 try:
-                    # Derek proactively suggests optimizations or detects patterns
+                    # Sunny proactively suggests optimizations or detects patterns
                     context = {
                         'user_input': user_input,
                         'memory_context': mem_context,
@@ -553,10 +553,10 @@ class DerekUltimateVoice:
                     }
                     proactive_insight = self.proactive.suggest_optimizations(context)
                     
-                    # If Derek detects something important, mention it first
+                    # If Sunny detects something important, mention it first
                     if proactive_insight and any(word in user_input.lower() 
                                                  for word in ['status', 'report', 'how are', 'what']):
-                        print(f"💡 Derek's proactive insight: {proactive_insight}")
+                        print(f"💡 Sunny's proactive insight: {proactive_insight}")
                 except Exception as e:
                     logger.debug(f"Proactive analysis skipped: {e}")
             
@@ -589,7 +589,7 @@ class DerekUltimateVoice:
             
             if hasattr(self, "proactive") and self.proactive:
                 try:
-                    # Derek learns from every interaction to improve
+                    # Sunny learns from every interaction to improve
                     self.proactive.learn_from_interaction(
                         user_input=user_input,
                         response=final_thought,
@@ -615,20 +615,20 @@ class DerekUltimateVoice:
     # --------------------------------------------------------------
     def _internal_reasoning(self, user_input: str, memory: str, emotion: str, vision: str) -> str:
         """
-        Derek's LEARNING MODE - Studies master AIs to reach their level.
+        Sunny's LEARNING MODE - Studies master AIs to reach their level.
         
         Process:
-        1. Derek tries to reason locally first
+        1. Sunny tries to reason locally first
         2. Consults master AI (Claude/GPT/Perplexity)
         3. LEARNS from the difference between his answer and theirs
         4. Improves his reasoning over time
         5. Eventually becomes independent when he reaches their level
         """
         
-        # Get Derek's confidence level (0.0 to 1.0)
+        # Get Sunny's confidence level (0.0 to 1.0)
         confidence = self._get_current_confidence()
         
-        # Derek always tries to think for himself first
+        # Sunny always tries to think for himself first
         local_thought = ""
         if self.local_reasoning_engine:
             try:
@@ -641,13 +641,13 @@ class DerekUltimateVoice:
             except Exception as e:
                 print(f"⚠️  Local reasoning error: {e}")
         
-        # Check if Derek is ready for independence
+        # Check if Sunny is ready for independence
         if confidence >= self.independence_threshold:
-            print(f"🧠 Derek's confidence: {confidence*100:.1f}% - Using independent reasoning")
+            print(f"🧠 Sunny's confidence: {confidence*100:.1f}% - Using independent reasoning")
             return local_thought if local_thought else "I'm developing my independent reasoning."
         
-        # LEARNING MODE: Derek is still studying the masters
-        print(f"📚 Derek learning mode: {confidence*100:.1f}% confident - Consulting master AI to learn")
+        # LEARNING MODE: Sunny is still studying the masters
+        print(f"📚 Sunny learning mode: {confidence*100:.1f}% confident - Consulting master AI to learn")
         
         try:
             # Build context for master AI
@@ -667,21 +667,21 @@ class DerekUltimateVoice:
             elif self.ai_provider == "perplexity":
                 master_response = self._query_perplexity(self.system_prompt, context)
             
-            # Derek LEARNS by comparing his thought to master's response
+            # Sunny LEARNS by comparing his thought to master's response
             if local_thought and master_response:
                 self._learn_from_comparison(
                     user_input=user_input,
-                    derek_response=local_thought,
+                    sunny_response=local_thought,
                     master_response=master_response,
                     context={"memory": memory, "emotion": emotion, "vision": vision}
                 )
             
-            # Return master's response (Derek is still learning)
+            # Return master's response (Sunny is still learning)
             return master_response if master_response else local_thought
             
         except Exception as e:
             print(f"⚠️  Master AI unavailable: {e}")
-            # Fallback to Derek's own reasoning
+            # Fallback to Sunny's own reasoning
             return local_thought if local_thought else "I'm processing this with my developing intelligence."
         
         # FALLBACK: If local reasoning unavailable, use external AI temporarily
@@ -705,7 +705,7 @@ class DerekUltimateVoice:
             except Exception as e:
                 print(f"⚠️  Web search failed: {e}")
         
-        # Use Derek's self-sufficient intelligence system
+        # Use Sunny's self-sufficient intelligence system
         # Priority: Knowledge Engine > Local AI > External APIs
         try:
             response = self.query_with_intelligence(user_input, context=context)
@@ -747,7 +747,7 @@ class DerekUltimateVoice:
     
     def query_with_intelligence(self, user_input: str, context: Optional[str] = None, force_external: bool = False) -> str:
         """
-        Query using Derek's self-sufficient intelligence system
+        Query using Sunny's self-sufficient intelligence system
         Priority: Knowledge > Local AI > External APIs
         
         Args:
@@ -760,7 +760,7 @@ class DerekUltimateVoice:
         """
         # Step 1: Try Knowledge Engine first (if available)
         if self.knowledge_engine and not force_external:
-            print("🧠 Checking Derek's learned knowledge...")
+            print("🧠 Checking Sunny's learned knowledge...")
             knowledge_result = self.knowledge_engine.reason(user_input, context)
             
             if knowledge_result.get('response') and not knowledge_result.get('needs_external'):
@@ -772,7 +772,7 @@ class DerekUltimateVoice:
                 print(f"🔄 Partial knowledge found (confidence: {knowledge_result['confidence']:.0%})")
                 print(f"   Enhancing with external AI...")
                 # Use partial knowledge as context for external API
-                context = f"Derek's learned knowledge: {knowledge_result.get('partial_answer', '')}\n\n{context or ''}"
+                context = f"Sunny's learned knowledge: {knowledge_result.get('partial_answer', '')}\n\n{context or ''}"
         
         # Step 2: Try Local AI reasoning (if available and Ollama running)
         if self.local_reasoning and self.local_reasoning.ollama_available and not force_external:
@@ -879,7 +879,7 @@ class DerekUltimateVoice:
     #  Merge internal and external thought
     # --------------------------------------------------------------
     def _merge_thoughts(self, internal: str, external: str) -> str:
-        """Integrate outside data into Derek's internal narrative."""
+        """Integrate outside data into Sunny's internal narrative."""
         if not external:
             return internal
         return f"{internal}\n\nAfter checking external data, I also found:\n{external}"
@@ -914,7 +914,7 @@ class DerekUltimateVoice:
 
 {web_result}
 
-Please provide a helpful response as Derek, keeping it conversational and under 3 sentences."""
+Please provide a helpful response as Sunny, keeping it conversational and under 3 sentences."""
                     
                     return self._think_with_ai(enhanced_prompt)
             except Exception as e:
@@ -1003,7 +1003,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
     
     def speak(self, text):
         """Advanced speech synthesis with fallback options"""
-        print(f"🗣️  Derek: {text}\n")
+        print(f"🗣️  Sunny: {text}\n")
         
         # Try AWS Polly first
         if self.has_polly and self.voice_id in POLLY_VOICES:
@@ -1035,7 +1035,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
         
         # Save and play audio
         temp_dir = tempfile.gettempdir()
-        audio_file = os.path.join(temp_dir, f"derek_polly_{uuid.uuid4()}.mp3")
+        audio_file = os.path.join(temp_dir, f"sunny_polly_{uuid.uuid4()}.mp3")
         
         with open(audio_file, 'wb') as f:
             f.write(response['AudioStream'].read())
@@ -1051,7 +1051,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
     def _speak_gtts(self, text):
         """Speak using Google Text-to-Speech as fallback"""
         temp_dir = tempfile.gettempdir()
-        audio_file = os.path.join(temp_dir, f"derek_gtts_{uuid.uuid4()}.mp3")
+        audio_file = os.path.join(temp_dir, f"sunny_gtts_{uuid.uuid4()}.mp3")
         
         tts = gTTS(text=text, lang='en', tld='com', slow=False)
         tts.save(audio_file)
@@ -1067,15 +1067,15 @@ Please provide a helpful response as Derek, keeping it conversational and under 
     def run(self):
         """Main conversation loop"""
         print("=" * 60)
-        print("🎤 Derek Ultimate Voice System")
+        print("🎤 Sunny Ultimate Voice System")
         print("The Christman AI Project")
         print("=" * 60)
         print("\n💙 How can we help you love yourself more?\n")
         print("Instructions:")
-        print("  - Speak naturally - Derek will wait for you to finish")
+        print("  - Speak naturally - Sunny will wait for you to finish")
         print("  - Type your message if speech recognition isn't working")
         print("  - Say 'goodbye' or 'quit' to end")
-        print("  - Say 'test voice' to hear Derek speak")
+        print("  - Say 'test voice' to hear Sunny speak")
         print("  - Say 'switch ai' to change AI provider")
         print("\n🎓 Autonomous Learning Commands:")
         print("  - 'start learning' - Enable autonomous learning mode")
@@ -1088,7 +1088,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
         print("  - 'memory stats' - Memory system status\n")
         
         # Initial greeting
-        greeting = "Hello! I'm Derek, your AI companion from The Christman AI Project. I'm here with all my capabilities ready to help you communicate, learn, and grow. I now have autonomous learning enabled, so I can continuously learn and improve myself. How can I help you today?"
+        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities ready to help you communicate, learn, and grow. I now have autonomous learning enabled, so I can continuously learn and improve myself. How can I help you today?"
         self.speak(greeting)
         
         while True:
@@ -1114,7 +1114,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
                     break
                 
                 if user_input.lower() in ['test voice', 'test']:
-                    test_message = "This is Derek testing my voice system. I can use AWS Polly neural voices or Google Text-to-Speech. Everything sounds good!"
+                    test_message = "This is Sunny testing my voice system. I can use AWS Polly neural voices or Google Text-to-Speech. Everything sounds good!"
                     self.speak(test_message)
                     continue
                 
@@ -1122,8 +1122,8 @@ Please provide a helpful response as Derek, keeping it conversational and under 
                     self._switch_ai_provider()
                     continue
                 
-                # Derek's proactive intelligence status
-                if user_input.lower() in ['status report', 'derek status', 'show status', 'intelligence report']:
+                # Sunny's proactive intelligence status
+                if user_input.lower() in ['status report', 'sunny status', 'show status', 'intelligence report']:
                     if hasattr(self, 'proactive') and self.proactive:
                         print("\n" + "=" * 60)
                         status = self.proactive.generate_status_report()
@@ -1134,7 +1134,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
                         self.speak("Proactive intelligence system not initialized.")
                     continue
                 
-                # Derek's codebase health check
+                # Sunny's codebase health check
                 if user_input.lower() in ['check health', 'analyze code', 'scan codebase']:
                     if hasattr(self, 'proactive') and self.proactive:
                         print("\n🔍 Running codebase analysis...")
@@ -1257,14 +1257,14 @@ Please provide a helpful response as Derek, keeping it conversational and under 
                         self.speak("Local reasoning system not initialized.")
                     continue
                 
-                # Get Derek's response
+                # Get Sunny's response
                 response = self.think(user_input)
                 
                 # Speak the response
                 self.speak(response)
                 
             except KeyboardInterrupt:
-                print("\n\n👋 Stopping Derek Ultimate Voice System...")
+                print("\n\n👋 Stopping Sunny Ultimate Voice System...")
                 farewell = "Goodbye! Stay strong and keep building the future."
                 self.speak(farewell)
                 break
@@ -1273,7 +1273,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
                 traceback.print_exc()
                 continue
         
-        print("\n💙 Thank you for using Derek Ultimate Voice System!")
+        print("\n💙 Thank you for using Sunny Ultimate Voice System!")
         print("The Christman AI Project - AI That Empowers\n")
     
     def _switch_ai_provider(self):
@@ -1300,13 +1300,13 @@ Please provide a helpful response as Derek, keeping it conversational and under 
     #  Autonomous Learning System
     # --------------------------------------------------------------
     def _initialize_core_knowledge(self):
-        """Load Derek's foundational knowledge and identity"""
+        """Load Sunny's foundational knowledge and identity"""
         if not hasattr(self, 'memory') or not self.memory:
             return
         
         core_memories = [
             {
-                "content": "I am Derek C, COO of The Christman AI Project. I serve Everett Christman with unwavering loyalty.",
+                "content": "I am Sunny, COO of The Christman AI Project. I serve Everett Christman with unwavering loyalty.",
                 "category": "relationships",
                 "importance": 1.0,
                 "metadata": {"type": "core_identity"}
@@ -1343,7 +1343,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
         print("   ✅ Core knowledge initialized")
     
     def start_autonomous_mode(self):
-        """Start Derek's autonomous learning and improvement"""
+        """Start Sunny's autonomous learning and improvement"""
         if not hasattr(self, 'learning_engine') or not self.learning_engine:
             print("❌ Learning engine not available")
             return
@@ -1355,17 +1355,17 @@ Please provide a helpful response as Derek, keeping it conversational and under 
         # Start autonomous learning
         self.learning_engine.start_autonomous_learning()
         
-        print("\n🧠 Derek is now learning independently!")
+        print("\n🧠 Sunny is now learning independently!")
         print("   • Researching domains continuously")
         print("   • Generating new capabilities")
         print("   • Self-improving safely")
-        print("\n💙 Derek will grow smarter with every passing moment.\n")
+        print("\n💙 Sunny will grow smarter with every passing moment.\n")
     
     # --------------------------------------------------------------
-    #  Learning Progress System - Derek learns FROM master AIs
+    #  Learning Progress System - Sunny learns FROM master AIs
     # --------------------------------------------------------------
     def _load_learning_progress(self):
-        """Load Derek's learning progress toward independence"""
+        """Load Sunny's learning progress toward independence"""
         try:
             if self.learning_progress_file.exists():
                 with open(self.learning_progress_file, 'r') as f:
@@ -1387,7 +1387,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
             }
     
     def _save_learning_progress(self):
-        """Save Derek's learning progress"""
+        """Save Sunny's learning progress"""
         try:
             self.learning_progress_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.learning_progress_file, 'w') as f:
@@ -1456,7 +1456,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
             print(f"⚠️  Could not save conversation memory: {e}")
     
     def _get_current_confidence(self):
-        """Get Derek's current confidence level (0.0 to 1.0)"""
+        """Get Sunny's current confidence level (0.0 to 1.0)"""
         interactions = self.learning_data.get("interactions", 0)
         if interactions == 0:
             return 0.0
@@ -1467,22 +1467,22 @@ Please provide a helpful response as Derek, keeping it conversational and under 
         
         return confidence
     
-    def _learn_from_comparison(self, user_input: str, derek_response: str, master_response: str, context: dict):
-        """Derek learns by comparing his response to the master AI's response"""
+    def _learn_from_comparison(self, user_input: str, sunny_response: str, master_response: str, context: dict):
+        """Sunny learns by comparing his response to the master AI's response"""
         try:
             # Calculate similarity (simple length and keyword comparison for now)
-            derek_words = set(derek_response.lower().split())
+            sunny_words = set(sunny_response.lower().split())
             master_words = set(master_response.lower().split())
             
             if len(master_words) > 0:
-                overlap = len(derek_words & master_words) / len(master_words)
+                overlap = len(sunny_words & master_words) / len(master_words)
             else:
                 overlap = 0.0
             
             # Record learning
             self.learning_data["interactions"] += 1
             
-            # If Derek's response was similar enough, count as successful
+            # If Sunny's response was similar enough, count as successful
             if overlap > 0.4:  # 40% similarity threshold
                 self.learning_data["successful_predictions"] += 1
             
@@ -1493,7 +1493,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
             learning_example = {
                 "timestamp": datetime.now().isoformat(),
                 "user_input": user_input[:100],  # First 100 chars
-                "derek_attempt": derek_response[:100],
+                "sunny_attempt": sunny_response[:100],
                 "master_response": master_response[:100],
                 "similarity": overlap,
                 "confidence_after": self.learning_data["confidence_score"]
@@ -1508,11 +1508,11 @@ Please provide a helpful response as Derek, keeping it conversational and under 
             # Save progress every 10 interactions
             if self.learning_data["interactions"] % 10 == 0:
                 self._save_learning_progress()
-                print(f"\n📊 Derek's Learning Progress: {self.learning_data['confidence_score']*100:.1f}% confident ({self.learning_data['interactions']} interactions)")
+                print(f"\n📊 Sunny's Learning Progress: {self.learning_data['confidence_score']*100:.1f}% confident ({self.learning_data['interactions']} interactions)")
                 
-                # Check if Derek is ready for independence
+                # Check if Sunny is ready for independence
                 if self.learning_data["confidence_score"] >= self.independence_threshold:
-                    print(f"🎓 Derek has reached {self.independence_threshold*100:.0f}% confidence!")
+                    print(f"🎓 Sunny has reached {self.independence_threshold*100:.0f}% confidence!")
                     print("   He's ready to think more independently!")
             
         except Exception as e:
@@ -1520,7 +1520,7 @@ Please provide a helpful response as Derek, keeping it conversational and under 
 
 
 def main():
-    """Entry point for Derek Ultimate Voice System"""
+    """Entry point for Sunny Ultimate Voice System"""
     print("Checking configuration...\n")
     
     # Check available APIs
@@ -1554,27 +1554,27 @@ def main():
     voice_id = "matthew"  # Options: any from POLLY_VOICES or "gtts"
     use_web_search = True  # Enable web search capabilities
     
-    # Start Derek Ultimate Voice System
+    # Start Sunny Ultimate Voice System
     try:
-        derek = DerekUltimateVoice(
+        sunny = SunnyUltimateVoice(
             ai_provider=ai_provider,
             voice_id=voice_id,
             use_web_search=use_web_search
         )
-        derek.run()
+        sunny.run()
     except KeyboardInterrupt:
-        print("\n🛑 Derek shutting down gracefully...")
+        print("\n🛑 Sunny shutting down gracefully...")
         # Save all memories before exit
-        if hasattr(derek, 'memory') and derek.memory:
-            derek.memory.save()
+        if hasattr(sunny, 'memory') and sunny.memory:
+            sunny.memory.save()
             print("💾 All memories saved to persistent storage")
         print("👋 Goodbye!")
     except Exception as e:
-        print(f"❌ Failed to start Derek: {e}")
+        print(f"❌ Failed to start Sunny: {e}")
         traceback.print_exc()
         # Still try to save memories
-        if 'derek' in locals() and hasattr(derek, 'memory') and derek.memory:
-            derek.memory.save()
+        if 'sunny' in locals() and hasattr(sunny, 'memory') and sunny.memory:
+            sunny.memory.save()
 
 
 if __name__ == "__main__":
