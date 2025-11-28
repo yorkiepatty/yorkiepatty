@@ -1482,8 +1482,40 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         # Final fallback - text only
         print("📝 (Voice synthesis unavailable - text only)")
 
+    def _listen_for_voice_interrupt(self, interrupt_event):
+        """Listen for voice interrupt commands in a background thread"""
+        interrupt_keywords = ['stop', 'wait', 'sunny stop', 'hold on', 'pause']
+
+        recognizer = sr.Recognizer()
+        try:
+            with sr.Microphone() as source:
+                print("🎤 Say 'stop' or 'wait' to interrupt Sunny")
+                recognizer.adjust_for_ambient_noise(source, duration=0.2)
+
+                while not interrupt_event.is_set():
+                    try:
+                        # Short timeout so we can check if playback ended
+                        audio = recognizer.listen(source, timeout=0.5, phrase_time_limit=2)
+                        text = recognizer.recognize_google(audio).lower()
+
+                        # Check if user said an interrupt keyword
+                        if any(keyword in text for keyword in interrupt_keywords):
+                            print(f"\n🛑 Voice interrupt detected: '{text}'")
+                            interrupt_event.set()
+                            break
+
+                    except sr.WaitTimeoutError:
+                        continue
+                    except sr.UnknownValueError:
+                        continue
+                    except Exception:
+                        continue
+        except Exception as e:
+            # Microphone issues - fail silently and use keyboard fallback
+            pass
+
     def _speak_elevenlabs(self, text):
-        """Speak using ElevenLabs voice synthesis"""
+        """Speak using ElevenLabs voice synthesis with voice interrupt"""
         try:
             # Generate audio from text using the correct API for elevenlabs 1.19.3
             audio_generator = self.elevenlabs_client.text_to_speech.convert(
@@ -1501,8 +1533,45 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 for chunk in audio_generator:
                     f.write(chunk)
 
-            # Play the audio with keyboard interrupt support
-            interrupted = playsound(audio_file)
+            # Start voice interrupt listener if speech is enabled
+            interrupt_event = threading.Event()
+            voice_listener = None
+
+            if self.enable_speech:
+                voice_listener = threading.Thread(
+                    target=self._listen_for_voice_interrupt,
+                    args=(interrupt_event,),
+                    daemon=True
+                )
+                voice_listener.start()
+
+            # Play audio with both keyboard and voice interrupt support
+            import pygame
+            pygame.mixer.init()
+            pygame.mixer.music.load(audio_file)
+            pygame.mixer.music.play()
+
+            print("💡 Press SPACE/ESC or say 'stop' to interrupt")
+
+            # Wait for playback, checking for interrupts
+            while pygame.mixer.music.get_busy():
+                # Check keyboard interrupt
+                if check_keyboard_interrupt():
+                    interrupt_event.set()
+                    pygame.mixer.music.stop()
+                    break
+
+                # Check voice interrupt
+                if interrupt_event.is_set():
+                    pygame.mixer.music.stop()
+                    break
+
+                pygame.time.Clock().tick(10)
+
+            pygame.mixer.quit()
+
+            # Signal listener thread to stop
+            interrupt_event.set()
 
             # Clean up
             try:
@@ -1510,7 +1579,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             except:
                 pass
 
-            return interrupted
+            return interrupt_event.is_set()  # Return True if interrupted
 
         except Exception as e:
             print(f"⚠️  ElevenLabs synthesis error: {e}")
