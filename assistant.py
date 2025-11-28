@@ -869,6 +869,7 @@ class ConversationManager:
         """Save conversation history to file in old format for compatibility"""
         try:
             # Convert from Claude format {role, content} to old format {input, output, intent, timestamp}
+            # PRESERVE ORIGINAL TIMESTAMPS!
             stored_memory = []
             i = 0
             while i < len(conversation_history):
@@ -877,11 +878,14 @@ class ConversationManager:
                     assistant_msg = conversation_history[i + 1]
 
                     if user_msg.get('role') == 'user' and assistant_msg.get('role') == 'assistant':
+                        # Use existing timestamp if available, otherwise create new one
+                        timestamp = user_msg.get('timestamp') or assistant_msg.get('timestamp') or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
                         stored_memory.append({
                             "input": user_msg['content'],
                             "output": assistant_msg['content'],
                             "intent": "general",  # Default intent
-                            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                            "timestamp": timestamp  # Preserve original or create new
                         })
                         i += 2
                         continue
@@ -912,18 +916,22 @@ class ConversationManager:
                     stored_memory = json.load(f)
 
                 # Convert old format {input, output} to Claude format {role, content}
+                # PRESERVE TIMESTAMPS!
                 conversation_history = []
                 for entry in stored_memory:
                     if isinstance(entry, dict):
                         # Old format: {input, output, intent, timestamp}
                         if 'input' in entry and 'output' in entry:
+                            timestamp = entry.get('timestamp', time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
                             conversation_history.append({
                                 "role": "user",
-                                "content": entry['input']
+                                "content": entry['input'],
+                                "timestamp": timestamp  # Preserve original timestamp
                             })
                             conversation_history.append({
                                 "role": "assistant",
-                                "content": entry['output']
+                                "content": entry['output'],
+                                "timestamp": timestamp  # Same timestamp for the pair
                             })
                         # New format: {role, content} - already correct
                         elif 'role' in entry and 'content' in entry:
@@ -1177,9 +1185,18 @@ CODING CAPABILITIES:
             if '```' in assistant_response:
                 self._save_code_from_response(assistant_response)
             
-            # Update history (without image data to save space)
-            conversation_history.append({"role": "user", "content": user_message})
-            conversation_history.append({"role": "assistant", "content": assistant_response})
+            # Update history (without image data to save space) with timestamp
+            current_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            conversation_history.append({
+                "role": "user",
+                "content": user_message,
+                "timestamp": current_timestamp
+            })
+            conversation_history.append({
+                "role": "assistant",
+                "content": assistant_response,
+                "timestamp": current_timestamp
+            })
             
             ConversationManager.trim_history()
             ConversationManager.save_memory()

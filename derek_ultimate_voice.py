@@ -926,8 +926,13 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
     
     def _think_with_ai(self, user_input):
         """Think using selected AI provider"""
-        # Add to conversation history
-        self.conversation_history.append({"role": "user", "content": user_input})
+        # Add to conversation history with timestamp
+        current_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        self.conversation_history.append({
+            "role": "user",
+            "content": user_input,
+            "timestamp": current_timestamp
+        })
         
         answer = ""
         
@@ -988,9 +993,13 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         
         else:
             answer = "I don't have any AI providers configured right now."
-        
-        # Add response to history
-        self.conversation_history.append({"role": "assistant", "content": answer})
+
+        # Add response to history with same timestamp as user message
+        self.conversation_history.append({
+            "role": "assistant",
+            "content": answer,
+            "timestamp": current_timestamp
+        })
 
         # Keep history manageable
         if len(self.conversation_history) > 20:
@@ -1403,18 +1412,22 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                     stored_memory = json.load(f)
 
                 # Convert old format {input, output} to Claude format {role, content}
+                # PRESERVE TIMESTAMPS!
                 self.conversation_history = []
                 for entry in stored_memory:
                     if isinstance(entry, dict):
                         # Old format: {input, output, intent, timestamp}
                         if 'input' in entry and 'output' in entry:
+                            timestamp = entry.get('timestamp', time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
                             self.conversation_history.append({
                                 "role": "user",
-                                "content": entry['input']
+                                "content": entry['input'],
+                                "timestamp": timestamp  # Preserve original timestamp
                             })
                             self.conversation_history.append({
                                 "role": "assistant",
-                                "content": entry['output']
+                                "content": entry['output'],
+                                "timestamp": timestamp  # Same timestamp for the pair
                             })
                         # New format: {role, content} - already correct
                         elif 'role' in entry and 'content' in entry:
@@ -1431,6 +1444,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         """Save conversation history to memory_store.json in old format for compatibility"""
         try:
             # Convert from Claude format {role, content} to old format {input, output, intent, timestamp}
+            # PRESERVE ORIGINAL TIMESTAMPS!
             stored_memory = []
             i = 0
             while i < len(self.conversation_history):
@@ -1439,11 +1453,14 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                     assistant_msg = self.conversation_history[i + 1]
 
                     if user_msg.get('role') == 'user' and assistant_msg.get('role') == 'assistant':
+                        # Use existing timestamp if available, otherwise create new one
+                        timestamp = user_msg.get('timestamp') or assistant_msg.get('timestamp') or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
                         stored_memory.append({
                             "input": user_msg['content'],
                             "output": assistant_msg['content'],
                             "intent": "general",  # Default intent
-                            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                            "timestamp": timestamp  # Preserve original or create new
                         })
                         i += 2
                         continue
