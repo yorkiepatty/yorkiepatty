@@ -37,8 +37,8 @@ import subprocess
 import platform
 
 # Audio playback function that works on all platforms
-def playsound(audio_file):
-    """Play audio file using system-appropriate method"""
+def playsound(audio_file, interrupt_flag=None):
+    """Play audio file using system-appropriate method with interrupt support"""
     try:
         system = platform.system()
         if system == "Darwin":  # macOS
@@ -52,10 +52,15 @@ def playsound(audio_file):
                 pygame.mixer.init()
                 pygame.mixer.music.load(audio_file)
                 pygame.mixer.music.play()
-                # Wait for playback to finish
+                # Wait for playback to finish, checking for interrupts
                 while pygame.mixer.music.get_busy():
+                    if interrupt_flag and interrupt_flag.is_set():
+                        pygame.mixer.music.stop()
+                        pygame.mixer.quit()
+                        return True  # Return True if interrupted
                     pygame.time.Clock().tick(10)
                 pygame.mixer.quit()
+                return False  # Return False if completed normally
             except ImportError:
                 # Fallback to PowerShell command
                 subprocess.run(
@@ -63,10 +68,13 @@ def playsound(audio_file):
                     check=True,
                     capture_output=True
                 )
+                return False
         else:
             print(f"⚠️  Audio playback not supported on {system}")
+            return False
     except Exception as e:
         print(f"⚠️  Audio playback failed: {e}")
+        return False
 
 # ==============================================================================
 # TAROT CARD DECK - Complete 78 Card System
@@ -303,6 +311,10 @@ class SunnyUltimateVoice:
         self.conversation_history_file = Path("./memory/conversation_history.json")
         self.ai_client = None
         self.ai_provider = None
+
+        # Interrupt handling for stopping Sunny mid-speech
+        self.interrupt_flag = threading.Event()
+        self.interrupt_listener_active = False
 
         # Load previous conversation history for continuity
         self._load_conversation_history()
@@ -1412,16 +1424,60 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
 
         return answer
 
+    def _listen_for_interrupt(self):
+        """Background thread that listens for interrupt commands while Sunny is speaking"""
+        interrupt_keywords = ['stop', 'wait', 'hold on', 'pause', 'quiet', 'shut up', 'sunny stop']
+
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            recognizer.adjust_for_ambient_noise(source, duration=0.3)
+
+            while self.interrupt_listener_active:
+                try:
+                    audio = recognizer.listen(source, timeout=0.5, phrase_time_limit=2)
+                    text = recognizer.recognize_google(audio).lower()
+
+                    # Check if user said an interrupt keyword
+                    if any(keyword in text for keyword in interrupt_keywords):
+                        print(f"\n🛑 Interrupt detected: '{text}'")
+                        self.interrupt_flag.set()
+                        self.interrupt_listener_active = False
+                        break
+
+                except sr.WaitTimeoutError:
+                    continue
+                except sr.UnknownValueError:
+                    continue
+                except Exception:
+                    continue
+
     def speak(self, text):
         """Advanced speech synthesis with ElevenLabs"""
         print(f"🗣️  Sunny: {text}\n")
 
+        # Reset interrupt flag
+        self.interrupt_flag.clear()
+
+        # Start interrupt listener in background if speech is enabled
+        if self.enable_speech:
+            self.interrupt_listener_active = True
+            interrupt_thread = threading.Thread(target=self._listen_for_interrupt, daemon=True)
+            interrupt_thread.start()
+
         # Try ElevenLabs first (only if we have a valid voice_id)
         if self.has_elevenlabs and self.voice_id:
             try:
-                return self._speak_elevenlabs(text)
+                interrupted = self._speak_elevenlabs(text)
+                # Stop interrupt listener
+                self.interrupt_listener_active = False
+                if interrupted:
+                    print("⏸️  Sunny was interrupted. What would you like to say?")
+                return
             except Exception as e:
                 print(f"⚠️  ElevenLabs failed: {e}")
+
+        # Stop interrupt listener
+        self.interrupt_listener_active = False
 
         # Final fallback - text only
         print("📝 (Voice synthesis unavailable - text only)")
@@ -1445,14 +1501,16 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 for chunk in audio_generator:
                     f.write(chunk)
 
-            # Play the audio
-            playsound(audio_file)
+            # Play the audio with interrupt support
+            interrupted = playsound(audio_file, self.interrupt_flag)
 
             # Clean up
             try:
                 os.remove(audio_file)
             except:
                 pass
+
+            return interrupted
 
         except Exception as e:
             print(f"⚠️  ElevenLabs synthesis error: {e}")
