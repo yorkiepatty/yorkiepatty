@@ -157,8 +157,10 @@ class DerekUltimateVoice:
         # Then gradually becomes more independent
         self.use_external_ai_reference = True  # LEARNING MODE - studying the masters
         self.learning_progress_file = Path("./memory/learning_progress.json")
+        self.conversation_memory_file = Path("./memory/memory_store.json")
         self.independence_threshold = 0.85  # 85% confidence = can go independent
         self._load_learning_progress()
+        self._load_conversation_memory()
         
         # Derek's complete system prompt
         self.system_prompt = """You are Derek C, Chief Operations Officer of The Christman AI Project.
@@ -989,11 +991,14 @@ Please provide a helpful response as Derek, keeping it conversational and under 
         
         # Add response to history
         self.conversation_history.append({"role": "assistant", "content": answer})
-        
+
         # Keep history manageable
         if len(self.conversation_history) > 20:
             self.conversation_history = self.conversation_history[-20:]
-        
+
+        # Save conversation memory after each interaction
+        self._save_conversation_memory()
+
         return answer
     
     def speak(self, text):
@@ -1389,6 +1394,66 @@ Please provide a helpful response as Derek, keeping it conversational and under 
                 json.dump(self.learning_data, f, indent=2)
         except Exception as e:
             print(f"⚠️  Could not save learning progress: {e}")
+
+    def _load_conversation_memory(self):
+        """Load conversation history from memory_store.json and convert format"""
+        try:
+            if self.conversation_memory_file.exists():
+                with open(self.conversation_memory_file, 'r') as f:
+                    stored_memory = json.load(f)
+
+                # Convert old format {input, output} to Claude format {role, content}
+                self.conversation_history = []
+                for entry in stored_memory:
+                    if isinstance(entry, dict):
+                        # Old format: {input, output, intent, timestamp}
+                        if 'input' in entry and 'output' in entry:
+                            self.conversation_history.append({
+                                "role": "user",
+                                "content": entry['input']
+                            })
+                            self.conversation_history.append({
+                                "role": "assistant",
+                                "content": entry['output']
+                            })
+                        # New format: {role, content} - already correct
+                        elif 'role' in entry and 'content' in entry:
+                            self.conversation_history.append(entry)
+
+                print(f"✅ Loaded {len(self.conversation_history)} previous messages from Sunny's memory")
+            else:
+                print("📝 Starting with fresh conversation memory")
+        except Exception as e:
+            print(f"⚠️  Could not load conversation memory: {e}")
+            self.conversation_history = []
+
+    def _save_conversation_memory(self):
+        """Save conversation history to memory_store.json in old format for compatibility"""
+        try:
+            # Convert from Claude format {role, content} to old format {input, output, intent, timestamp}
+            stored_memory = []
+            i = 0
+            while i < len(self.conversation_history):
+                if i + 1 < len(self.conversation_history):
+                    user_msg = self.conversation_history[i]
+                    assistant_msg = self.conversation_history[i + 1]
+
+                    if user_msg.get('role') == 'user' and assistant_msg.get('role') == 'assistant':
+                        stored_memory.append({
+                            "input": user_msg['content'],
+                            "output": assistant_msg['content'],
+                            "intent": "general",  # Default intent
+                            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                        })
+                        i += 2
+                        continue
+                i += 1
+
+            self.conversation_memory_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.conversation_memory_file, 'w') as f:
+                json.dump(stored_memory, f, indent=2)
+        except Exception as e:
+            print(f"⚠️  Could not save conversation memory: {e}")
     
     def _get_current_confidence(self):
         """Get Derek's current confidence level (0.0 to 1.0)"""
