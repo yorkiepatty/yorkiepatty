@@ -729,7 +729,6 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
             from autonomous_learning_engine import AutonomousLearningEngine
             print("\n🎓 Initializing Autonomous Learning Engine...")
             self.learning_engine = AutonomousLearningEngine(
-                derek_instance=self,
                 knowledge_dir="sunny_knowledge"
             )
             self._initialize_core_knowledge()
