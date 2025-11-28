@@ -59,8 +59,8 @@ class Config:
     EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
     SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
     SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
-    
-    MEMORY_FILE = 'conversation_memory.json'
+
+    MEMORY_FILE = 'memory/memory_store.json'
     PROJECTS_FILE = 'projects_memory.json'
     MAX_HISTORY_MESSAGES = 100
     MAX_TOKENS = 2000
@@ -866,10 +866,29 @@ class ConversationManager:
     
     @staticmethod
     def save_memory():
-        """Save conversation history to file"""
+        """Save conversation history to file in old format for compatibility"""
         try:
+            # Convert from Claude format {role, content} to old format {input, output, intent, timestamp}
+            stored_memory = []
+            i = 0
+            while i < len(conversation_history):
+                if i + 1 < len(conversation_history):
+                    user_msg = conversation_history[i]
+                    assistant_msg = conversation_history[i + 1]
+
+                    if user_msg.get('role') == 'user' and assistant_msg.get('role') == 'assistant':
+                        stored_memory.append({
+                            "input": user_msg['content'],
+                            "output": assistant_msg['content'],
+                            "intent": "general",  # Default intent
+                            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                        })
+                        i += 2
+                        continue
+                i += 1
+
             with open(Config.MEMORY_FILE, 'w') as f:
-                json.dump(conversation_history, f, indent=2)
+                json.dump(stored_memory, f, indent=2)
         except Exception as e:
             print(f"Error saving memory: {e}")
     
@@ -885,13 +904,32 @@ class ConversationManager:
 
     @staticmethod
     def load_memory():
-        """Load conversation history from file"""
+        """Load conversation history from file and convert format if needed"""
         global conversation_history
         try:
             if Path(Config.MEMORY_FILE).exists():
                 with open(Config.MEMORY_FILE, 'r') as f:
-                    conversation_history = json.load(f)
-                print(f"✅ Loaded {len(conversation_history)} previous messages")
+                    stored_memory = json.load(f)
+
+                # Convert old format {input, output} to Claude format {role, content}
+                conversation_history = []
+                for entry in stored_memory:
+                    if isinstance(entry, dict):
+                        # Old format: {input, output, intent, timestamp}
+                        if 'input' in entry and 'output' in entry:
+                            conversation_history.append({
+                                "role": "user",
+                                "content": entry['input']
+                            })
+                            conversation_history.append({
+                                "role": "assistant",
+                                "content": entry['output']
+                            })
+                        # New format: {role, content} - already correct
+                        elif 'role' in entry and 'content' in entry:
+                            conversation_history.append(entry)
+
+                print(f"✅ Loaded {len(conversation_history)} previous messages from Sunny's memory")
             else:
                 conversation_history = []
                 print("Starting fresh conversation")
