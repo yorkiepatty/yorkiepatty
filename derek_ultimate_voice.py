@@ -54,6 +54,31 @@ def playsound(audio_file):
     except Exception as e:
         print(f"⚠️  Audio playback failed: {e}")
 
+def capture_screen():
+    """Capture the current screen and return as base64 encoded image"""
+    if not HAS_SCREEN_CAPTURE:
+        return None, "Screen capture not available. Please install pillow: pip install pillow"
+
+    try:
+        # Capture the entire screen
+        screenshot = ImageGrab.grab()
+
+        # Convert to base64 for sending to Claude
+        buffered = BytesIO()
+        screenshot.save(buffered, format="PNG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+        # Also save to temp file for reference
+        temp_path = Path(tempfile.gettempdir()) / f"sunny_screen_{int(time.time())}.png"
+        screenshot.save(temp_path)
+
+        print(f"📸 Screen captured and saved to {temp_path}")
+        return img_base64, str(temp_path)
+
+    except Exception as e:
+        print(f"⚠️  Screen capture failed: {e}")
+        return None, f"Screen capture error: {e}"
+
 # AI Providers
 import anthropic
 from openai import OpenAI
@@ -94,6 +119,16 @@ try:
 except ImportError:
     HAS_GUARDIAN = False
     print("⚠️  JSON Guardian not available")
+
+# Screen capture capability
+try:
+    from PIL import ImageGrab
+    import base64
+    from io import BytesIO
+    HAS_SCREEN_CAPTURE = True
+except ImportError:
+    HAS_SCREEN_CAPTURE = False
+    print("⚠️  Screen capture not available. Install with: pip install pillow")
 
 
 # AWS Polly Neural Voices
@@ -1009,7 +1044,71 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         self._save_conversation_memory()
 
         return answer
-    
+
+    def _analyze_image_with_ai(self, image_base64: str, prompt: str) -> str:
+        """Analyze an image using Claude's vision capabilities"""
+        try:
+            if self.ai_provider == "anthropic" and hasattr(self, 'anthropic_client'):
+                # Use Claude's vision API
+                response = self.anthropic_client.messages.create(
+                    model="claude-sonnet-4-5-20250929",
+                    max_tokens=500,
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/png",
+                                    "data": image_base64
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }]
+                )
+
+                # Extract text from response
+                answer = ""
+                for content_block in response.content:
+                    if hasattr(content_block, 'text'):
+                        answer += content_block.text
+                return answer if answer else "I can see your screen but I'm having trouble describing it."
+
+            elif self.ai_provider == "openai" and hasattr(self, 'openai_client'):
+                # Use OpenAI's vision API
+                response = self.openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    max_tokens=500,
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{image_base64}"
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }]
+                )
+                return response.choices[0].message.content or "I can see your screen but I'm having trouble describing it."
+
+            else:
+                return "I need Claude or GPT-4 with vision capabilities to analyze your screen. Please configure an AI provider with vision support."
+
+        except Exception as e:
+            print(f"⚠️  Vision analysis error: {e}")
+            return f"I had trouble analyzing your screen: {str(e)}"
+
     def speak(self, text):
         """Advanced speech synthesis with fallback options"""
         print(f"🗣️  Sunny: {text}\n")
@@ -1086,6 +1185,9 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("  - Say 'goodbye' or 'quit' to end")
         print("  - Say 'test voice' to hear Sunny speak")
         print("  - Say 'switch ai' to change AI provider")
+        print("\n📸 Vision Commands:")
+        print("  - 'look at my screen' - Sunny will see and analyze what's on your screen")
+        print("  - 'what am I looking at' - Same as above")
         print("\n🎓 Autonomous Learning Commands:")
         print("  - 'start learning' - Enable autonomous learning mode")
         print("  - 'learning status' - Check learning progress")
@@ -1130,7 +1232,27 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 if user_input.lower() in ['switch ai', 'change ai']:
                     self._switch_ai_provider()
                     continue
-                
+
+                # 📸 Screen capture commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'look at my screen', 'what am i looking at', 'see my screen',
+                    'view my screen', 'check my screen', 'analyze my screen',
+                    'whats on my screen', "what's on my screen"
+                ]):
+                    img_base64, result = capture_screen()
+                    if img_base64:
+                        # Analyze the screenshot with Sunny's vision
+                        print("🔍 Sunny is analyzing your screen...")
+                        prompt = user_input if len(user_input) > 20 else "What do you see on my screen? Describe what's displayed and help me understand it."
+                        response = self._analyze_image_with_ai(img_base64, prompt)
+                        print(f"\n🌞 Sunny: {response}\n")
+                        self.speak(response)
+                    else:
+                        error_msg = result if result else "Sorry, I couldn't capture your screen."
+                        print(f"\n⚠️  {error_msg}\n")
+                        self.speak(error_msg)
+                    continue
+
                 # Sunny's proactive intelligence status
                 if user_input.lower() in ['status report', 'sunny status', 'show status', 'intelligence report']:
                     if hasattr(self, 'proactive') and self.proactive:
