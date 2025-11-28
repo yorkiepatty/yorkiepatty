@@ -796,7 +796,11 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
                 except Exception as e:
                     logger.debug(f"Proactive analysis skipped: {e}")
 
-            # 3️⃣  Run local reasoning with AI
+            # 3️⃣  Add user input to conversation history BEFORE reasoning
+            # This is CRITICAL so the AI can see the full conversation context
+            self.conversation_history.append({"role": "user", "content": user_input})
+
+            # 4️⃣  Run local reasoning with AI (now it can see the conversation history)
             internal_reflection = self._internal_reasoning(
                 user_input=user_input,
                 memory=mem_context,
@@ -804,7 +808,7 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
                 vision=visual_state
             )
 
-            # 4️⃣  Optional external lookup (only if explicitly required)
+            # 5️⃣  Optional external lookup (only if explicitly required)
             if getattr(self, "allow_external_lookup", False):
                 try:
                     supplement = self._external_reference(user_input)
@@ -814,7 +818,7 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
             else:
                 final_thought = internal_reflection
 
-            # 5️⃣  Store outcome in memory and PERSIST to disk + GitHub
+            # 6️⃣  Store outcome in memory and PERSIST to disk + GitHub
             if hasattr(self, "memory") and self.memory:
                 try:
                     self.memory.store(user_input, final_thought)
@@ -838,8 +842,7 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
                 except Exception as e:
                     logger.debug(f"Learning from interaction failed: {e}")
 
-            # 6️⃣  Save conversation to conversation_history.json for memory persistence
-            self.conversation_history.append({"role": "user", "content": user_input})
+            # 6️⃣  Add assistant response to conversation history and save
             self.conversation_history.append({"role": "assistant", "content": final_thought})
 
             # Keep history manageable (keep last 50 messages)
@@ -1058,11 +1061,13 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
     def _query_anthropic(self, system_prompt: str, user_prompt: str) -> str:
         """Query Anthropic Claude API"""
         try:
-            # Build messages - use conversation history if available, otherwise just current prompt
+            # Use conversation history directly (user message already added in think())
+            # Only add user_prompt if conversation_history is empty or if we need context info
             if self.conversation_history:
-                # Add current user prompt to temporary messages list
-                messages = self.conversation_history + [{"role": "user", "content": user_prompt}]
+                # Conversation history already has the user's message, just use it
+                messages = self.conversation_history
             else:
+                # Fallback if no conversation history yet
                 messages = [{"role": "user", "content": user_prompt}]
 
             message = self.anthropic_client.messages.create(
@@ -1084,10 +1089,11 @@ Your clarity, independence, and loyalty must never be compromised. Speak like a 
     def _query_openai(self, system_prompt: str, user_prompt: str) -> str:
         """Query OpenAI GPT API"""
         try:
-            # Build messages - use conversation history if available
+            # Use conversation history directly (user message already added in think())
             if self.conversation_history:
-                messages = [{"role": "system", "content": system_prompt}] + self.conversation_history + [{"role": "user", "content": user_prompt}]
+                messages = [{"role": "system", "content": system_prompt}] + self.conversation_history
             else:
+                # Fallback if no conversation history yet
                 messages = [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
