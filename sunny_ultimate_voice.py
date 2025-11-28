@@ -49,19 +49,35 @@ import subprocess
 import platform
 
 # Keyboard interrupt detection
+_interrupt_debug_shown = False
+
 def check_keyboard_interrupt():
     """Check if user pressed a key to interrupt (SPACE or ESC)"""
+    global _interrupt_debug_shown
+    if not _interrupt_debug_shown:
+        print(f"[DEBUG] Interrupt system: HAS_MSVCRT={HAS_MSVCRT}, HAS_SELECT={HAS_SELECT}")
+        _interrupt_debug_shown = True
+
     if HAS_MSVCRT:  # Windows
         if msvcrt.kbhit():
             key = msvcrt.getch()
+            print(f"[DEBUG] Key pressed: {key} (repr: {repr(key)})")
             # Check for SPACE (32) or ESC (27)
             if key in [b' ', b'\x1b']:
+                print(f"[DEBUG] ✅ Interrupt key detected!")
                 return True
+            else:
+                print(f"[DEBUG] ❌ Not an interrupt key")
     elif HAS_SELECT:  # Unix/Linux/Mac
         if select.select([sys.stdin], [], [], 0)[0]:
             key = sys.stdin.read(1)
+            print(f"[DEBUG] Key pressed: {key}")
             if key in [' ', '\x1b']:
+                print(f"[DEBUG] ✅ Interrupt key detected!")
                 return True
+    else:
+        # No keyboard interrupt available on this platform
+        pass
     return False
 
 # Audio playback function that works on all platforms
@@ -1515,8 +1531,9 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             pass
 
     def _speak_elevenlabs(self, text):
-        """Speak using ElevenLabs voice synthesis with voice interrupt"""
+        """Speak using ElevenLabs voice synthesis with keyboard interrupt (voice interrupt disabled due to mic conflict)"""
         try:
+            print("🔊 [DEBUG] Generating audio with ElevenLabs...")
             # Generate audio from text using the correct API for elevenlabs 1.19.3
             audio_generator = self.elevenlabs_client.text_to_speech.convert(
                 voice_id=self.voice_id,
@@ -1533,45 +1550,49 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 for chunk in audio_generator:
                     f.write(chunk)
 
-            # Start voice interrupt listener if speech is enabled
-            interrupt_event = threading.Event()
-            voice_listener = None
+            print(f"🔊 [DEBUG] Audio saved to {audio_file}")
 
-            if self.enable_speech:
-                voice_listener = threading.Thread(
-                    target=self._listen_for_voice_interrupt,
-                    args=(interrupt_event,),
-                    daemon=True
-                )
-                voice_listener.start()
-
-            # Play audio with both keyboard and voice interrupt support
+            # Play audio with keyboard interrupt support (no voice - mic conflict)
             import pygame
             pygame.mixer.init()
             pygame.mixer.music.load(audio_file)
             pygame.mixer.music.play()
 
-            print("💡 Press SPACE/ESC or say 'stop' to interrupt")
+            print("💡 Press SPACE or ESC key to interrupt Sunny")
 
-            # Wait for playback, checking for interrupts
+            # Give pygame a moment to start playing
+            import time
+            time.sleep(0.1)
+
+            is_playing = pygame.mixer.music.get_busy()
+            print(f"🔊 [DEBUG] Pygame is playing: {is_playing}")
+
+            if not is_playing:
+                print("⚠️  [DEBUG] WARNING: pygame.mixer.music.get_busy() returned False immediately!")
+                print("⚠️  [DEBUG] Audio may not be playing. Check if pygame.mixer is initialized correctly.")
+
+            print("🔊 [DEBUG] Starting playback loop...")
+
+            was_interrupted = False
+            loop_count = 0
+
+            # Wait for playback, checking for keyboard interrupts
             while pygame.mixer.music.get_busy():
+                loop_count += 1
+
                 # Check keyboard interrupt
                 if check_keyboard_interrupt():
-                    interrupt_event.set()
+                    print("\n🛑 [DEBUG] Keyboard interrupt detected!")
+                    was_interrupted = True
                     pygame.mixer.music.stop()
                     break
 
-                # Check voice interrupt
-                if interrupt_event.is_set():
-                    pygame.mixer.music.stop()
-                    break
+                # Small delay to prevent CPU spinning
+                pygame.time.Clock().tick(10)  # Check 10 times per second
 
-                pygame.time.Clock().tick(10)
+            print(f"🔊 [DEBUG] Playback ended. Loops: {loop_count}, Interrupted: {was_interrupted}")
 
             pygame.mixer.quit()
-
-            # Signal listener thread to stop
-            interrupt_event.set()
 
             # Clean up
             try:
@@ -1579,10 +1600,11 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             except:
                 pass
 
-            return interrupt_event.is_set()  # Return True if interrupted
+            return was_interrupted  # Return True if interrupted
 
         except Exception as e:
             print(f"⚠️  ElevenLabs synthesis error: {e}")
+            print(f"⚠️  [DEBUG] Error details: {type(e).__name__}")
             raise
 
     def run(self):
