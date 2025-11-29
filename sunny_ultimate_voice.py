@@ -1365,9 +1365,16 @@ Remember: The cards reflect possibilities, not certainties. You always have free
 
     def _speak_elevenlabs(self, text):
         """Speak using ElevenLabs TTS"""
-        # Use a natural, friendly voice (Rachel is warm and conversational)
-        # Other options: "Rachel", "Domi", "Bella", "Antoni", "Elli", "Josh", "Arnold", "Adam", "Sam"
-        voice_id = "pNInz6obpgDQGcFmaJgB"  # Adam - deep, friendly voice
+        # Get voice ID from environment or use default
+        # To find your voice ID: go to ElevenLabs > Voice Library > click your voice > copy the ID
+        voice_id = os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")  # Default: Adam
+
+        # Popular voice IDs:
+        # Rachel: "21m00Tcm4TlvDq8ikWAM" - warm, friendly female
+        # Drew: "29vD33N1CtxCmqQRPOHJ" - deep male
+        # Clyde: "2EiwWnXFnvU5JabPnv8n" - strong male
+        # Paul: "5Q0t7uMcjvnagumLfvZi" - calm male
+        # Adam: "pNInz6obpgDQGcFmaJgB" - deep, friendly male
 
         # Generate speech with ElevenLabs
         audio_generator = self.elevenlabs_client.text_to_speech.convert(
