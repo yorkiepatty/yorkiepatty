@@ -1377,28 +1377,60 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         except:
             pass
 
+    def _clean_text_for_speech(self, text):
+        """Clean text for natural speech - remove special characters and markdown"""
+        import re
+
+        # Remove markdown formatting
+        text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)  # Remove **bold**
+        text = re.sub(r'\*(.+?)\*', r'\1', text)      # Remove *italic*
+        text = re.sub(r'__(.+?)__', r'\1', text)      # Remove __bold__
+        text = re.sub(r'_(.+?)_', r'\1', text)        # Remove _italic_
+        text = re.sub(r'`(.+?)`', r'\1', text)        # Remove `code`
+        text = re.sub(r'```.*?```', '', text, flags=re.DOTALL)  # Remove code blocks
+
+        # Remove special symbols and emojis that sound weird when spoken
+        text = re.sub(r'[#\|•→✓✗❌✅🎯🔥💡🚀⚠️📝💻🔮📁📖💾✏️🐍💬🗣️📸🎓🧠🌐🌞⏰]', '', text)
+
+        # Remove multiple spaces
+        text = re.sub(r'\s+', ' ', text).strip()
+
+        return text
+
     def speak(self, text):
         """Advanced speech synthesis with fallback options"""
         print(f"🗣️  Sunny: {text}\n")
 
+        # Clean text for natural speech
+        clean_text = self._clean_text_for_speech(text)
+
+        # If no voice systems available, show warning
+        if not (self.has_elevenlabs or self.has_polly or self.has_gtts):
+            print("⚠️  No voice system available!")
+            print("   To enable voice:")
+            print("   - ElevenLabs: Set ELEVENLABS_API_KEY in .env and run: pip install elevenlabs")
+            print("   - AWS Polly: Configure AWS credentials")
+            print("   - gTTS: Should work by default")
+            return
+
         # Try ElevenLabs first (best quality)
         if self.has_elevenlabs:
             try:
-                return self._speak_elevenlabs(text)
+                return self._speak_elevenlabs(clean_text)
             except Exception as e:
                 print(f"⚠️  ElevenLabs failed: {e}")
 
         # Fallback to AWS Polly
         if self.has_polly and self.voice_id in POLLY_VOICES:
             try:
-                return self._speak_polly(text)
+                return self._speak_polly(clean_text)
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
 
         # Final fallback to gTTS
         if self.has_gtts:
             try:
-                return self._speak_gtts(text)
+                return self._speak_gtts(clean_text)
             except Exception as e:
                 print(f"⚠️  gTTS failed: {e}")
 
