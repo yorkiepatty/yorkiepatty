@@ -46,7 +46,7 @@ try:
 except ImportError:
     HAS_ELEVENLABS = False
 
-# Audio playback function that works on macOS
+# Audio playback function that works cross-platform
 def playsound(audio_file):
     """Play audio file using system-appropriate method"""
     try:
@@ -56,12 +56,21 @@ def playsound(audio_file):
         elif system == "Linux":
             subprocess.run(["aplay", audio_file], check=True)
         elif system == "Windows":
-            import winsound
-            winsound.PlaySound(audio_file, winsound.SND_FILENAME)
+            # Use pygame for Windows (supports MP3)
+            import pygame
+            pygame.mixer.init()
+            pygame.mixer.music.load(audio_file)
+            pygame.mixer.music.play()
+            # Wait for playback to finish
+            while pygame.mixer.music.get_busy():
+                pygame.time.Clock().tick(10)
+            pygame.mixer.quit()
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
         print(f"⚠️  Audio playback failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 def capture_screen():
     """Capture the current screen and return as base64 encoded image"""
