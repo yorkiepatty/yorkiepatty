@@ -4,11 +4,12 @@ The Christman AI Project - The Complete Voice Experience
 
 Combines ALL Sunny voice capabilities:
 - Multiple AI providers (Anthropic, OpenAI, Perplexity)
-- AWS Polly Neural Voices + gTTS fallback
+- ElevenLabs Premium TTS (primary) + AWS Polly + gTTS fallback
 - Real-time web search with internet_mode and Perplexity
 - Sunny's complete family history and mission
 - Advanced speech recognition
 - Conversation memory and context
+- Screen capture and vision analysis
 - Error handling and fallback systems
 
 "How can we help you love yourself more?"
@@ -36,6 +37,14 @@ import speech_recognition as sr
 import subprocess
 import platform
 from gtts import gTTS
+
+# ElevenLabs TTS
+try:
+    from elevenlabs import VoiceSettings
+    from elevenlabs.client import ElevenLabs
+    HAS_ELEVENLABS = True
+except ImportError:
+    HAS_ELEVENLABS = False
 
 # Audio playback function that works on macOS
 def playsound(audio_file):
@@ -249,19 +258,31 @@ class SunnyUltimateVoice:
         print("💙 How can we help you love yourself more?\n")
     
     def _initialize_voice_systems(self):
-        """Initialize both AWS Polly and gTTS voice systems"""
-        # AWS Polly setup
+        """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
+        # ElevenLabs setup (primary)
+        self.has_elevenlabs = False
+        if HAS_ELEVENLABS and os.getenv("ELEVENLABS_API_KEY"):
+            try:
+                self.elevenlabs_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
+                self.has_elevenlabs = True
+                print("✅ ElevenLabs TTS initialized (primary voice)")
+            except Exception as e:
+                print(f"⚠️  ElevenLabs not available: {e}")
+        elif not HAS_ELEVENLABS:
+            print("⚠️  ElevenLabs not installed (pip install elevenlabs)")
+
+        # AWS Polly setup (fallback)
         try:
             self.polly = boto3.client('polly')
             self.has_polly = True
-            print("✅ AWS Polly initialized")
+            print("✅ AWS Polly initialized (fallback)")
         except Exception as e:
             self.has_polly = False
             print(f"⚠️  AWS Polly not available: {e}")
-        
-        # gTTS is always available as fallback
+
+        # gTTS is always available as final fallback
         self.has_gtts = True
-        print("✅ Google TTS available as fallback")
+        print("✅ Google TTS available as final fallback")
     
     def _initialize_ai_providers(self, provider):
         """Initialize AI providers with auto-detection"""
@@ -1109,25 +1130,71 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             print(f"⚠️  Vision analysis error: {e}")
             return f"I had trouble analyzing your screen: {str(e)}"
 
+    def _speak_elevenlabs(self, text):
+        """Speak using ElevenLabs TTS"""
+        # Use a natural, friendly voice (Rachel is warm and conversational)
+        # Other options: "Rachel", "Domi", "Bella", "Antoni", "Elli", "Josh", "Arnold", "Adam", "Sam"
+        voice_id = "pNInz6obpgDQGcFmaJgB"  # Adam - deep, friendly voice
+
+        # Generate speech with ElevenLabs
+        audio_generator = self.elevenlabs_client.text_to_speech.convert(
+            voice_id=voice_id,
+            optimize_streaming_latency="0",
+            output_format="mp3_22050_32",
+            text=text,
+            model_id="eleven_multilingual_v2",
+            voice_settings=VoiceSettings(
+                stability=0.5,
+                similarity_boost=0.75,
+                style=0.0,
+                use_speaker_boost=True
+            )
+        )
+
+        # Save audio to temp file
+        temp_dir = tempfile.gettempdir()
+        audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
+
+        with open(audio_file, 'wb') as f:
+            for chunk in audio_generator:
+                if chunk:
+                    f.write(chunk)
+
+        # Play the audio
+        playsound(audio_file)
+
+        # Clean up
+        try:
+            os.remove(audio_file)
+        except:
+            pass
+
     def speak(self, text):
         """Advanced speech synthesis with fallback options"""
         print(f"🗣️  Sunny: {text}\n")
-        
-        # Try AWS Polly first
+
+        # Try ElevenLabs first (best quality)
+        if self.has_elevenlabs:
+            try:
+                return self._speak_elevenlabs(text)
+            except Exception as e:
+                print(f"⚠️  ElevenLabs failed: {e}")
+
+        # Fallback to AWS Polly
         if self.has_polly and self.voice_id in POLLY_VOICES:
             try:
                 return self._speak_polly(text)
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
-        
-        # Fallback to gTTS
+
+        # Final fallback to gTTS
         if self.has_gtts:
             try:
                 return self._speak_gtts(text)
             except Exception as e:
                 print(f"⚠️  gTTS failed: {e}")
-        
-        # Final fallback - text only
+
+        # Text only if all fail
         print("📝 (Voice synthesis unavailable - text only)")
     
     def _speak_polly(self, text):
