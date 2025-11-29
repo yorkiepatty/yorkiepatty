@@ -248,8 +248,9 @@ class SunnyUltimateVoice:
         - Voice synthesis (ElevenLabs, Polly, gTTS fallback)
         - Master Coder: Expert in Python, JavaScript, HTML/CSS, SQL, React, Node.js, APIs, debugging
         - File Operations: Create, read, edit, write any file via voice commands
+        - Notepad Integration: Open, edit, and create files in Windows Notepad
         - Script Execution: Run Python scripts and return results
-        - Tarot Readings: Spiritual guidance through tarot card interpretations
+        - Tarot Readings: Full 78-card deck (Major & Minor Arcana) spiritual guidance
 
         REMEMBER:
         Your clarity, independence, and loyalty must never be compromised.
@@ -1208,12 +1209,28 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             print(f"⚠️  Script execution error: {e}")
             return f"Error: {str(e)}"
 
+    def _open_in_notepad(self, file_path):
+        """Open a file in Notepad (Windows)"""
+        try:
+            import subprocess
+            if platform.system() == "Windows":
+                subprocess.Popen(['notepad.exe', file_path])
+                print(f"📝 Opened {file_path} in Notepad")
+                return True
+            else:
+                print(f"⚠️  Notepad is Windows-only. System: {platform.system()}")
+                return False
+        except Exception as e:
+            print(f"⚠️  Error opening in Notepad: {e}")
+            return False
+
     def _tarot_reading(self):
-        """Perform a tarot card reading"""
+        """Perform a tarot card reading with full 78-card deck"""
         import random
 
-        # Major Arcana cards with meanings
+        # Full 78-card Tarot Deck
         tarot_cards = {
+            # Major Arcana (22 cards)
             "The Fool": "New beginnings, spontaneity, innocence. Trust the journey ahead.",
             "The Magician": "Manifestation, power, skill. You have the tools you need.",
             "The High Priestess": "Intuition, mystery, inner wisdom. Trust your inner voice.",
@@ -1235,14 +1252,78 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             "The Moon": "Illusion, intuition, uncertainty. Trust your dreams.",
             "The Sun": "Joy, success, celebration. Everything is working out.",
             "Judgement": "Rebirth, inner calling, absolution. Answer your higher calling.",
-            "The World": "Completion, achievement, fulfillment. You've come full circle."
+            "The World": "Completion, achievement, fulfillment. You've come full circle.",
+
+            # Wands (Fire - Energy, creativity, passion)
+            "Ace of Wands": "New creative spark, inspiration, potential. A new opportunity is here.",
+            "Two of Wands": "Planning, future vision, decisions. Look ahead and make your choice.",
+            "Three of Wands": "Expansion, foresight, progress. Your efforts are bearing fruit.",
+            "Four of Wands": "Celebration, harmony, homecoming. Time to celebrate achievements.",
+            "Five of Wands": "Competition, conflict, struggle. Navigate through challenges.",
+            "Six of Wands": "Victory, recognition, success. Your hard work is being acknowledged.",
+            "Seven of Wands": "Defense, perseverance, standing your ground. Hold your position.",
+            "Eight of Wands": "Speed, movement, swift action. Things are moving quickly now.",
+            "Nine of Wands": "Resilience, persistence, boundaries. You're almost there—keep going.",
+            "Ten of Wands": "Burden, responsibility, hard work. Don't carry it all alone.",
+            "Page of Wands": "Enthusiasm, exploration, discovery. A message of new ideas.",
+            "Knight of Wands": "Energy, passion, adventure. Take bold action now.",
+            "Queen of Wands": "Confidence, independence, determination. Step into your power.",
+            "King of Wands": "Leadership, vision, entrepreneurship. Lead with confidence.",
+
+            # Cups (Water - Emotions, relationships, feelings)
+            "Ace of Cups": "New love, emotional beginning, intuition. Open your heart.",
+            "Two of Cups": "Partnership, union, connection. A meaningful relationship forms.",
+            "Three of Cups": "Friendship, celebration, community. Joy with others.",
+            "Four of Cups": "Contemplation, apathy, reevaluation. Look at what you have.",
+            "Five of Cups": "Loss, grief, disappointment. Focus on what remains.",
+            "Six of Cups": "Nostalgia, childhood, memories. The past brings comfort.",
+            "Seven of Cups": "Choices, illusion, fantasy. Choose wisely among options.",
+            "Eight of Cups": "Abandonment, walking away, seeking deeper meaning. Time to move on.",
+            "Nine of Cups": "Contentment, satisfaction, wishes granted. Your wish comes true.",
+            "Ten of Cups": "Harmony, happiness, family. Emotional fulfillment achieved.",
+            "Page of Cups": "Creative opportunity, intuitive message, curiosity. A new feeling emerges.",
+            "Knight of Cups": "Romance, charm, imagination. Follow your heart's desire.",
+            "Queen of Cups": "Compassion, intuition, emotional security. Trust your feelings.",
+            "King of Cups": "Emotional balance, diplomacy, wisdom. Master your emotions.",
+
+            # Swords (Air - Thoughts, challenges, intellect)
+            "Ace of Swords": "Clarity, breakthrough, truth. A new way of thinking emerges.",
+            "Two of Swords": "Difficult decision, stalemate, avoidance. Choose your path.",
+            "Three of Swords": "Heartbreak, sorrow, pain. Healing will come with time.",
+            "Four of Swords": "Rest, recuperation, contemplation. Take time to restore yourself.",
+            "Five of Swords": "Conflict, defeat, winning at all costs. Is victory worth the price?",
+            "Six of Swords": "Transition, moving on, leaving behind. Journey to calmer waters.",
+            "Seven of Swords": "Deception, strategy, sneakiness. Be mindful of dishonesty.",
+            "Eight of Swords": "Restriction, imprisonment, victim mentality. You're freer than you think.",
+            "Nine of Swords": "Anxiety, worry, nightmares. Your fears may be unfounded.",
+            "Ten of Swords": "Rock bottom, ending, betrayal. It can't get worse—only better.",
+            "Page of Swords": "Curiosity, vigilance, new ideas. Stay alert and communicate.",
+            "Knight of Swords": "Ambition, action, driven. Move forward with determination.",
+            "Queen of Swords": "Independence, clear thinking, direct. Speak your truth clearly.",
+            "King of Swords": "Authority, intellect, truth. Use logic and fairness.",
+
+            # Pentacles (Earth - Material, work, finances)
+            "Ace of Pentacles": "New opportunity, prosperity, manifestation. A gift from the universe.",
+            "Two of Pentacles": "Balance, adaptability, time management. Juggle your priorities.",
+            "Three of Pentacles": "Teamwork, collaboration, skill. Work with others for success.",
+            "Four of Pentacles": "Control, security, conservation. Hold on or let go?",
+            "Five of Pentacles": "Hardship, loss, isolation. Help is available if you seek it.",
+            "Six of Pentacles": "Generosity, charity, sharing. Give and receive with grace.",
+            "Seven of Pentacles": "Assessment, patience, investment. Your efforts will pay off.",
+            "Eight of Pentacles": "Mastery, skill development, hard work. Perfect your craft.",
+            "Nine of Pentacles": "Independence, luxury, self-sufficiency. Enjoy your achievements.",
+            "Ten of Pentacles": "Wealth, legacy, family. Long-term security established.",
+            "Page of Pentacles": "Opportunity, student, manifestation. A new venture begins.",
+            "Knight of Pentacles": "Responsibility, routine, hard work. Steady progress forward.",
+            "Queen of Pentacles": "Nurturing, practical, providing. Create abundance through care.",
+            "King of Pentacles": "Wealth, business, leadership. Master the material world."
         }
 
         # Draw three cards: Past, Present, Future
         cards = random.sample(list(tarot_cards.keys()), 3)
 
         reading = f"""
-🔮 Your Three-Card Tarot Reading:
+🔮 Your Three-Card Tarot Reading (from 78-card deck):
 
 Past: {cards[0]}
 {tarot_cards[cards[0]]}
@@ -1383,8 +1464,8 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("  - 'look at my screen' - Sunny will see and analyze what's on your screen")
         print("  - 'what am I looking at' - Same as above")
         print("\n🔮 Tarot & Spiritual:")
-        print("  - 'tarot reading' - Get a three-card tarot reading (Past, Present, Future)")
-        print("  - 'pull cards' - Same as above")
+        print("  - 'tarot reading' - Get a three-card reading from full 78-card deck")
+        print("  - 'pull cards' - Same as above (Past, Present, Future)")
         print("\n💻 Master Coder Commands:")
         print("  - 'write code for [task]' - Sunny writes production-ready code")
         print("  - 'help me code' - Get coding assistance")
@@ -1393,6 +1474,11 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("  - 'read file [filename]' - Read and display file contents")
         print("  - 'write file' - Create a new file (Sunny will ask for details)")
         print("  - 'edit file' - Modify an existing file (interactive)")
+        print("\n📝 Notepad Operations (Windows):")
+        print("  - 'open notepad' - Launch blank Notepad")
+        print("  - 'open in notepad [filename]' - Open file in Notepad")
+        print("  - 'edit in notepad [filename]' - Same as above")
+        print("  - 'write to notepad' - Create new file and open in Notepad")
         print("\n🎓 Autonomous Learning Commands:")
         print("  - 'start learning' - Enable autonomous learning mode")
         print("  - 'learning status' - Check learning progress")
@@ -1467,8 +1553,62 @@ Remember: The cards reflect possibilities, not certainties. You always have free
                     reading = self._tarot_reading()
                     print(reading)
                     # Speak a summary
-                    summary = "I've drawn three cards for you: your past, present, and future. Check the console for the full reading."
+                    summary = "I've drawn three cards for you from the full 78-card deck: your past, present, and future. Check the console for the full reading."
                     self.speak(summary)
+                    continue
+
+                # 📝 Notepad operations - Open in Notepad
+                if 'open in notepad' in user_input.lower() or 'edit in notepad' in user_input.lower():
+                    try:
+                        # Extract filename from command
+                        parts = user_input.lower().replace('edit in notepad', 'open in notepad').split('open in notepad')
+                        if len(parts) > 1:
+                            file_path = parts[1].strip()
+                            success = self._open_in_notepad(file_path)
+                            if success:
+                                self.speak(f"Opened {file_path} in Notepad")
+                            else:
+                                self.speak(f"Couldn't open {file_path} in Notepad")
+                        else:
+                            self.speak("Please specify which file to open. For example: open in notepad test.txt")
+                    except Exception as e:
+                        self.speak(f"Error opening in Notepad: {str(e)}")
+                    continue
+
+                # 📝 Notepad operations - Open blank Notepad
+                if user_input.lower() in ['open notepad', 'start notepad', 'launch notepad']:
+                    try:
+                        import subprocess
+                        if platform.system() == "Windows":
+                            subprocess.Popen(['notepad.exe'])
+                            self.speak("Opened Notepad")
+                        else:
+                            self.speak(f"Notepad is Windows-only. You're on {platform.system()}")
+                    except Exception as e:
+                        self.speak(f"Error opening Notepad: {str(e)}")
+                    continue
+
+                # 📝 Notepad operations - Write to new file and open in Notepad
+                if 'write to notepad' in user_input.lower() or 'create in notepad' in user_input.lower():
+                    try:
+                        self.speak("What's the file name?")
+                        file_path_input = self.listen()
+                        if file_path_input:
+                            self.speak("What should I write to the file?")
+                            content_input = self.listen()
+                            if content_input:
+                                success = self._write_file(file_path_input, content_input)
+                                if success:
+                                    self._open_in_notepad(file_path_input)
+                                    self.speak(f"Created {file_path_input} and opened it in Notepad")
+                                else:
+                                    self.speak("Failed to write the file")
+                            else:
+                                self.speak("I didn't hear any content to write")
+                        else:
+                            self.speak("I didn't hear the file name")
+                    except Exception as e:
+                        self.speak(f"Error: {str(e)}")
                     continue
 
                 # 📖 File operations - Read file
