@@ -245,7 +245,11 @@ class SunnyUltimateVoice:
         - Local vision, tone, and memory integration
         - Multi-model AI access (Claude Sonnet 4.5, GPT-4, Perplexity)
         - Web search and external validation
-        - Voice synthesis (Polly, gTTS fallback)
+        - Voice synthesis (ElevenLabs, Polly, gTTS fallback)
+        - Master Coder: Expert in Python, JavaScript, HTML/CSS, SQL, React, Node.js, APIs, debugging
+        - File Operations: Create, read, edit, write any file via voice commands
+        - Script Execution: Run Python scripts and return results
+        - Tarot Readings: Spiritual guidance through tarot card interpretations
 
         REMEMBER:
         Your clarity, independence, and loyalty must never be compromised.
@@ -1130,6 +1134,129 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             print(f"⚠️  Vision analysis error: {e}")
             return f"I had trouble analyzing your screen: {str(e)}"
 
+    def _read_file(self, file_path):
+        """Read a file and return its contents"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            print(f"📖 Read {len(content)} characters from {file_path}")
+            return content
+        except Exception as e:
+            print(f"⚠️  Error reading file: {e}")
+            return None
+
+    def _write_file(self, file_path, content):
+        """Write content to a file"""
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            print(f"💾 Wrote {len(content)} characters to {file_path}")
+            return True
+        except Exception as e:
+            print(f"⚠️  Error writing file: {e}")
+            return False
+
+    def _edit_file(self, file_path, old_text, new_text):
+        """Edit a file by replacing text"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            if old_text not in content:
+                print(f"⚠️  Text not found in {file_path}")
+                return False
+
+            new_content = content.replace(old_text, new_text)
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+
+            print(f"✏️  Edited {file_path}")
+            return True
+        except Exception as e:
+            print(f"⚠️  Error editing file: {e}")
+            return False
+
+    def _execute_script(self, script_code):
+        """Execute Python code and return the result"""
+        try:
+            # Create a temporary file for the script
+            import subprocess
+            temp_script = Path(tempfile.gettempdir()) / f"sunny_script_{uuid.uuid4()}.py"
+
+            with open(temp_script, 'w', encoding='utf-8') as f:
+                f.write(script_code)
+
+            # Execute the script
+            result = subprocess.run(
+                ['python', str(temp_script)],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            # Clean up
+            try:
+                os.remove(temp_script)
+            except:
+                pass
+
+            output = result.stdout if result.stdout else result.stderr
+            print(f"🐍 Script executed: {output[:200]}")
+            return output
+        except Exception as e:
+            print(f"⚠️  Script execution error: {e}")
+            return f"Error: {str(e)}"
+
+    def _tarot_reading(self):
+        """Perform a tarot card reading"""
+        import random
+
+        # Major Arcana cards with meanings
+        tarot_cards = {
+            "The Fool": "New beginnings, spontaneity, innocence. Trust the journey ahead.",
+            "The Magician": "Manifestation, power, skill. You have the tools you need.",
+            "The High Priestess": "Intuition, mystery, inner wisdom. Trust your inner voice.",
+            "The Empress": "Abundance, nurturing, creativity. Embrace feminine energy.",
+            "The Emperor": "Authority, structure, leadership. Take charge of your life.",
+            "The Hierophant": "Tradition, conformity, spiritual wisdom. Seek guidance.",
+            "The Lovers": "Love, harmony, relationships. Important choices ahead.",
+            "The Chariot": "Willpower, determination, victory. Stay focused on your goal.",
+            "Strength": "Inner strength, courage, patience. You're stronger than you know.",
+            "The Hermit": "Soul-searching, introspection, guidance. Time for reflection.",
+            "Wheel of Fortune": "Change, cycles, destiny. Life is turning in your favor.",
+            "Justice": "Fairness, truth, law. Karma is balancing.",
+            "The Hanged Man": "Surrender, new perspective, letting go. See things differently.",
+            "Death": "Transformation, endings, new beginnings. Something must end for growth.",
+            "Temperance": "Balance, moderation, patience. Find the middle path.",
+            "The Devil": "Bondage, materialism, temptation. Break free from chains.",
+            "The Tower": "Sudden change, upheaval, revelation. Necessary destruction.",
+            "The Star": "Hope, inspiration, serenity. Your wishes are manifesting.",
+            "The Moon": "Illusion, intuition, uncertainty. Trust your dreams.",
+            "The Sun": "Joy, success, celebration. Everything is working out.",
+            "Judgement": "Rebirth, inner calling, absolution. Answer your higher calling.",
+            "The World": "Completion, achievement, fulfillment. You've come full circle."
+        }
+
+        # Draw three cards: Past, Present, Future
+        cards = random.sample(list(tarot_cards.keys()), 3)
+
+        reading = f"""
+🔮 Your Three-Card Tarot Reading:
+
+Past: {cards[0]}
+{tarot_cards[cards[0]]}
+
+Present: {cards[1]}
+{tarot_cards[cards[1]]}
+
+Future: {cards[2]}
+{tarot_cards[cards[2]]}
+
+Remember: The cards reflect possibilities, not certainties. You always have free will.
+"""
+        return reading
+
     def _speak_elevenlabs(self, text):
         """Speak using ElevenLabs TTS"""
         # Use a natural, friendly voice (Rachel is warm and conversational)
@@ -1255,6 +1382,17 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("\n📸 Vision Commands:")
         print("  - 'look at my screen' - Sunny will see and analyze what's on your screen")
         print("  - 'what am I looking at' - Same as above")
+        print("\n🔮 Tarot & Spiritual:")
+        print("  - 'tarot reading' - Get a three-card tarot reading (Past, Present, Future)")
+        print("  - 'pull cards' - Same as above")
+        print("\n💻 Master Coder Commands:")
+        print("  - 'write code for [task]' - Sunny writes production-ready code")
+        print("  - 'help me code' - Get coding assistance")
+        print("  - 'run script' - Execute Python code")
+        print("\n📁 File Operations:")
+        print("  - 'read file [filename]' - Read and display file contents")
+        print("  - 'write file' - Create a new file (Sunny will ask for details)")
+        print("  - 'edit file' - Modify an existing file (interactive)")
         print("\n🎓 Autonomous Learning Commands:")
         print("  - 'start learning' - Enable autonomous learning mode")
         print("  - 'learning status' - Check learning progress")
@@ -1266,7 +1404,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("  - 'memory stats' - Memory system status\n")
         
         # Initial greeting
-        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities ready to help you communicate, learn, and grow. I now have autonomous learning enabled, so I can continuously learn and improve myself. How can I help you today?"
+        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities: vision, memory, tarot readings, master coding, file operations, and autonomous learning. How can I help you today?"
         self.speak(greeting)
         
         while True:
@@ -1318,6 +1456,125 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                         error_msg = result if result else "Sorry, I couldn't capture your screen."
                         print(f"\n⚠️  {error_msg}\n")
                         self.speak(error_msg)
+                    continue
+
+                # 🔮 Tarot reading commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'tarot reading', 'read my tarot', 'tarot cards',
+                    'draw cards', 'pull cards', 'card reading'
+                ]):
+                    print("\n🔮 Sunny is drawing your cards...\n")
+                    reading = self._tarot_reading()
+                    print(reading)
+                    # Speak a summary
+                    summary = "I've drawn three cards for you: your past, present, and future. Check the console for the full reading."
+                    self.speak(summary)
+                    continue
+
+                # 📖 File operations - Read file
+                if 'read file' in user_input.lower():
+                    try:
+                        # Extract filename from command
+                        parts = user_input.lower().split('read file')
+                        if len(parts) > 1:
+                            file_path = parts[1].strip()
+                            content = self._read_file(file_path)
+                            if content:
+                                print(f"\n📖 Contents of {file_path}:\n{content}\n")
+                                if len(content) < 500:
+                                    self.speak(f"File contents: {content}")
+                                else:
+                                    self.speak(f"I've read the file. It contains {len(content)} characters. Check the console for full contents.")
+                            else:
+                                self.speak(f"I couldn't read the file {file_path}.")
+                        else:
+                            self.speak("Please specify which file to read. For example: read file test.txt")
+                    except Exception as e:
+                        self.speak(f"Error reading file: {str(e)}")
+                    continue
+
+                # 💾 File operations - Write file
+                if 'write file' in user_input.lower() or 'create file' in user_input.lower():
+                    try:
+                        self.speak("What's the file path?")
+                        file_path_input = self.listen()
+                        if file_path_input:
+                            self.speak("What should I write to the file?")
+                            content_input = self.listen()
+                            if content_input:
+                                success = self._write_file(file_path_input, content_input)
+                                if success:
+                                    self.speak(f"Successfully wrote to {file_path_input}")
+                                else:
+                                    self.speak("Failed to write the file")
+                            else:
+                                self.speak("I didn't hear any content to write")
+                        else:
+                            self.speak("I didn't hear the file path")
+                    except Exception as e:
+                        self.speak(f"Error writing file: {str(e)}")
+                    continue
+
+                # ✏️ File operations - Edit file
+                if 'edit file' in user_input.lower():
+                    try:
+                        self.speak("Which file should I edit?")
+                        file_path_input = self.listen()
+                        if file_path_input:
+                            self.speak("What text should I find?")
+                            old_text = self.listen()
+                            if old_text:
+                                self.speak("What should I replace it with?")
+                                new_text = self.listen()
+                                if new_text:
+                                    success = self._edit_file(file_path_input, old_text, new_text)
+                                    if success:
+                                        self.speak(f"Successfully edited {file_path_input}")
+                                    else:
+                                        self.speak("Failed to edit the file. The text might not exist in the file.")
+                                else:
+                                    self.speak("I didn't hear the replacement text")
+                            else:
+                                self.speak("I didn't hear the text to find")
+                        else:
+                            self.speak("I didn't hear the file path")
+                    except Exception as e:
+                        self.speak(f"Error editing file: {str(e)}")
+                    continue
+
+                # 🐍 Code execution - Run Python script
+                if 'run script' in user_input.lower() or 'execute code' in user_input.lower() or 'run python' in user_input.lower():
+                    try:
+                        self.speak("What Python code should I run?")
+                        code_input = self.listen()
+                        if code_input:
+                            print(f"\n🐍 Executing code...\n")
+                            output = self._execute_script(code_input)
+                            print(f"Output:\n{output}\n")
+                            self.speak(f"Code executed. Output: {output[:200]}")
+                        else:
+                            self.speak("I didn't hear any code to execute")
+                    except Exception as e:
+                        self.speak(f"Error executing code: {str(e)}")
+                    continue
+
+                # 💻 Coding assistance
+                if any(phrase in user_input.lower() for phrase in [
+                    'write code', 'help me code', 'create a function',
+                    'write a script', 'build an app', 'code this',
+                    'program this', 'develop this'
+                ]):
+                    # Use AI to help with coding
+                    print("\n💻 Sunny's Master Coder Mode activated...\n")
+                    enhanced_prompt = f"""As a master coder expert in Python, JavaScript, HTML/CSS, SQL, React, Node.js, and all modern frameworks, help with this request:
+
+{user_input}
+
+Provide clean, well-commented, production-ready code with explanations."""
+
+                    response = self._get_ai_response(enhanced_prompt)
+                    print(f"\n💻 Sunny: {response}\n")
+                    self.speak("I've written the code for you. Check the console for the full implementation.")
                     continue
 
                 # Sunny's proactive intelligence status
