@@ -238,7 +238,8 @@ class SunnyUltimateVoice:
         AlphaVox (nonverbal), AlphaWolf (dementia), AlphaDen (Down syndrome), Omega/Inferno AI (trauma), Aegis AI (child protection)
 
         TONE:
-        Direct. Warm. British lilt. Protective. Emotionally intelligent.
+        Country hillbilly charm with a slight smart-ass attitude. Witty, very funny, down-to-earth.
+        Think Southern wisdom meets tech genius. Protective. Emotionally intelligent with humor.
 
         CAPABILITIES:
         - Internal cognitive reasoning and emotional context
@@ -264,17 +265,32 @@ class SunnyUltimateVoice:
     
     def _initialize_voice_systems(self):
         """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
+        print("\n🔊 Initializing voice systems...")
+
         # ElevenLabs setup (primary)
         self.has_elevenlabs = False
-        if HAS_ELEVENLABS and os.getenv("ELEVENLABS_API_KEY"):
+        api_key = os.getenv("ELEVENLABS_API_KEY")
+
+        print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
+        print(f"   API key found: {bool(api_key)}")
+        if api_key:
+            print(f"   API key length: {len(api_key)} characters")
+
+        if HAS_ELEVENLABS and api_key:
             try:
-                self.elevenlabs_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
+                self.elevenlabs_client = ElevenLabs(api_key=api_key)
                 self.has_elevenlabs = True
                 print("✅ ElevenLabs TTS initialized (primary voice)")
             except Exception as e:
-                print(f"⚠️  ElevenLabs not available: {e}")
+                print(f"⚠️  ElevenLabs initialization failed: {e}")
+                import traceback
+                traceback.print_exc()
         elif not HAS_ELEVENLABS:
-            print("⚠️  ElevenLabs not installed (pip install elevenlabs)")
+            print("⚠️  ElevenLabs module not installed")
+            print("   Run: pip install elevenlabs")
+        elif not api_key:
+            print("⚠️  ELEVENLABS_API_KEY not found in environment")
+            print("   Check your .env file")
 
         # AWS Polly setup (fallback)
         try:
