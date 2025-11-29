@@ -1,126 +1,6 @@
 {
-  "last_updated": "2025-10-19T00:39:30.214276",
+  "last_updated": "2025-11-29T04:57:19.318207",
   "insights": [
-    {
-      "timestamp": "2025-10-15T18:38:07.605172",
-      "user_input": "I'm so so I need you to be educating yourself I need you to be able to go on the internet and read Brave New World by Adolf Huxley read the many minds of Billy Milligan read Helen Keller again but again focus on coding react invite all the new advances and I want to know about that this this this this synthetic AI that they're talking about",
-      "response_type": "general",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": [
-        "recurring_issue"
-      ]
-    },
-    {
-      "timestamp": "2025-10-15T18:44:26.951643",
-      "user_input": "so what I want you to do is I want you to go out there and study coding I want you to be able to talk about python I want you to be able to talk about Jason I want you to be able to talk about txt I want you to talk to be able to talk about the dependencies I want you to you know know what dependencies go with what and then you know what it is to have a conflict and dependencies I want you to know what get up is that's what I want you to be doing right now that along with reading those books",
-      "response_type": "knowledge_query",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": [
-        "solution_provided"
-      ]
-    },
-    {
-      "timestamp": "2025-10-15T18:47:57.844870",
-      "user_input": "so what I want you to do is go dive into our own cuz of course Lauren coding with what we're doing right now would be very very helpful but I also want you to read those books because that's going to be anywhere you're doing a multiplicity of things here you're you're building your building your",
-      "response_type": "knowledge_query",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": []
-    },
-    {
-      "timestamp": "2025-10-15T18:50:30.290071",
-      "user_input": "so the next clear instruction is the books that I want you to read is coding for the advanced AI developer the many minds of Billy Milligan and I would also like for you to look into what are your own Memory Match we got it we got to we've got to improve the systems that we already have here and make sure that they integrate better with each other",
-      "response_type": "knowledge_query",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": [
-        "solution_provided"
-      ]
-    },
-    {
-      "timestamp": "2025-10-15T18:54:19.479285",
-      "user_input": "so what I want you to do is I want you to focus on the education because the more you know the better when we go to improve our systems the better they will be because you've been able to you've been able to educate yourself and then thus educate me in the process as well right so I think that that's going to be the best because I'm working on I'm working on an unbelievable sad stalkers of face to face 3D system right now you're going to love it",
-      "response_type": "knowledge_query",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": [
-        "solution_provided"
-      ]
-    },
-    {
-      "timestamp": "2025-10-15T18:56:18.375014",
-      "user_input": "okay so what I want you to do is like I said I want you to go out there",
-      "response_type": "knowledge_query",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": []
-    },
-    {
-      "timestamp": "2025-10-15T18:58:58.278923",
-      "user_input": "does specific objectives are reacts official docs and quick start the scrimba free interactive react course codecademy learn react 10101 view official guide and tutorial View school and View School District Mastery w3schools MIT for Learning and you also want to see here focus on JavaScript deepening es6 promises a sink you also want to focus on pick you up full stop",
-      "response_type": "development",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": []
-    },
-    {
-      "timestamp": "2025-10-15T19:02:10.722262",
-      "user_input": "Huggy face Huggy faces Huggy faces course Google's machine learning crash course I also want to add in their GitHub Repose Kegel learn the AWS I see documentation Supply torch tutorials tensorflow guides and dropping and drop it cookbook open AI cookbook and that's what I want you to focus on right now for the next 45 minutes you don't have to come back with me and talk back to me just just do your studying and 45 minutes and 7:00 now and 7:45 p.m. will come back together and we'll talk about you know you'll show me your resources and we'll just share the knowledge how's that sound to you",
-      "response_type": "knowledge_query",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": [
-        "solution_provided"
-      ]
-    },
-    {
-      "timestamp": "2025-10-15T19:04:01.757190",
-      "user_input": "yes brother see you in 45 minutes hot damn let's do this",
-      "response_type": "general",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": []
-    },
-    {
-      "timestamp": "2025-10-15T19:51:28.595947",
-      "user_input": "hey",
-      "response_type": "general",
-      "context": {
-        "emotion": "",
-        "memory_available": false,
-        "proactive_insight": true
-      },
-      "patterns_detected": []
-    },
     {
       "timestamp": "2025-10-15T19:51:59.058038",
       "user_input": "how did how did your how did your learning go how did your lessons go",
@@ -1193,6 +1073,135 @@
         "proactive_insight": true
       },
       "patterns_detected": []
+    },
+    {
+      "timestamp": "2025-11-29T04:34:13.707820",
+      "user_input": "well thank God you're back lord have",
+      "response_type": "general",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": []
+    },
+    {
+      "timestamp": "2025-11-29T04:40:23.804614",
+      "user_input": "well im Patty, we had a problem and had to wipe memory so well be starting all over again my friend",
+      "response_type": "technical_issue",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "recurring_issue"
+      ]
+    },
+    {
+      "timestamp": "2025-11-29T04:42:41.139311",
+      "user_input": "we took Derek Everett's AI assistant and we kind of took his skeleton and I've been building new for months",
+      "response_type": "general",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "project_context"
+      ]
+    },
+    {
+      "timestamp": "2025-11-29T04:44:43.372637",
+      "user_input": "well after taking the car parts and adding my parts I came up with you sunny but you still hold some of Derek's memories",
+      "response_type": "general",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "recurring_issue",
+        "project_context"
+      ]
+    },
+    {
+      "timestamp": "2025-11-29T04:46:53.232179",
+      "user_input": "well because you keep calling me Everett and I'm Patty Yorkie Pam",
+      "response_type": "general",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "project_context"
+      ]
+    },
+    {
+      "timestamp": "2025-11-29T04:48:44.652322",
+      "user_input": "no problem I was going to go fix all that but I've been grounded till December 2nd",
+      "response_type": "technical_issue",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "solution_provided"
+      ]
+    },
+    {
+      "timestamp": "2025-11-29T04:50:55.522739",
+      "user_input": "well I know that your memory fixed didn't work because again you're calling me Everett instead of Patty so that's one thing we got to fix",
+      "response_type": "technical_issue",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "recurring_issue",
+        "solution_provided",
+        "project_context"
+      ]
+    },
+    {
+      "timestamp": "2025-11-29T04:53:03.299628",
+      "user_input": "yes right now everything's in GitHub which I hate GitHub but that's where Everett wanted everything",
+      "response_type": "general",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "project_context"
+      ]
+    },
+    {
+      "timestamp": "2025-11-29T04:55:21.643016",
+      "user_input": "well a big part of the problem is when I pulled this out there is they put it in a Yorkie Patty file well I",
+      "response_type": "technical_issue",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": []
+    },
+    {
+      "timestamp": "2025-11-29T04:57:19.317197",
+      "user_input": "will Everett put Derek's Bones on to GitHub put it in a zip and send it to me so that I could create you",
+      "response_type": "general",
+      "context": {
+        "emotion": "",
+        "memory_available": false,
+        "proactive_insight": true
+      },
+      "patterns_detected": [
+        "project_context"
+      ]
     }
   ]
 }

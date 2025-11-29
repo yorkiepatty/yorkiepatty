@@ -1,0 +1,227 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+test_venv 
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# AI Model files
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.pb
+*.ckpt
+*.pth
+*.pt
+models/
+lstm_models/
+model_stats.json
+
+# Audio files
+*.wav
+*.mp3
+*.m4a
+*.ogg
+*.flac
+
+# Logs
+*.log
+logs/
+*.out
+
+# Anthropic API keys and credentials
+anthropic.save
+*.key
+*.pem
+api_keys.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (if using any JS/web components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package files
+*.tgz
+*.tar.gz
+
+# Test results and diagnostics
+DEREK_SYSTEM_TEST_*.txt
+derek_test_results.txt
+test_memory_fix.py
+validate_memory_fix.py
+diagnose_memory_error.py
+
+# Backup files
+*.backup
+main.py.bak
+transcriber.py.bak
+
+# Configuration that might contain sensitive data
+config/secrets.json
+secrets/
+
+# Virtual environment
+venv/
+.env/
+.env.*  # for dotenv variations
+
+# VS Code settings
+.vscode/
+
+# Logs and debug
+*.log
+logs/
+debug_input.wav
+
+# Pytest / coverage / profiling
+.coverage
+htmlcov/
+.cache/
+.pytest_cache/
+
+# Database or local state
+*.sqlite3
+*.db
+*.bak
+*.sql
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node / Frontend (React/Vite)
+node_modules/
+dist/
+build/
+public/assets/
+.vite/
+
+# Compiled JS/CSS
+*.min.js
+*.min.css
+
+# Personal dev files
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*~
+
+# Ignore system backups or temp
+*.orig
+*.old
+*.save
+venv/

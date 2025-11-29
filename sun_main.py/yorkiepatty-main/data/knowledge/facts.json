@@ -1,0 +1,232 @@
+[
+  {
+    "text": "Speech recognition (automatic speech recognition (ASR), computer speech recognition, or speech-to-text (STT)) is a sub-field of computational linguistics concerned with methods and technologies that translate spoken language into text or other interpretable forms.[1]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:26.789081"
+  },
+  {
+    "text": "Speech recognition applications include voice user interfaces, where the user speaks to a device, which \"listens\" and processes the audio. Common voice applications include interpreting commands for calling, call routing, home automation, and aircraft control. This is called direct voice input. Productivity applications including searching audio recordings, creating transcripts, and dictation.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:26.789618"
+  },
+  {
+    "text": "Speech recognition can be used to analyse speaker characteristics, such as identifying native language using pronunciation assessment.[2]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:26.789980"
+  },
+  {
+    "text": "Voice recognition[3][4][5] (speaker identification)[6][7][8] refers to identifying the speaker, rather than speech contents. Recognizing the speaker can simplify the task of translating speech in systems trained on a specific person's voice. It can also be used to authenticate the speaker as part of a security process.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:26.790376"
+  },
+  {
+    "text": "Artificial intelligence (AI) is the capability of computational systems to perform tasks typically associated with human intelligence, such as learning, reasoning, problem-solving, perception, and decision-making. It is a field of research in computer science that develops and studies methods and software that enable machines to perceive their environment and use learning and intelligence to take actions that maximize their chances of achieving defined goals.[1]",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:31.561359"
+  },
+  {
+    "text": "High-profile applications of AI include advanced web search engines (e.g., Google Search); recommendation systems (used by YouTube, Amazon, and Netflix); virtual assistants (e.g., Google Assistant, Siri, and Alexa); autonomous vehicles (e.g., Waymo); generative and creative tools (e.g., language models and AI art); and superhuman play and analysis in strategy games (e.g., chess and Go). However, many AI applications are not perceived as AI: \"A lot of cutting edge AI has filtered into general applications, often without being called AI because once something becomes useful enough and common enough it's not labeled AI anymore.\"[2][3]",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:31.561981"
+  },
+  {
+    "text": "Various subfields of AI research are centered around particular goals and the use of particular tools. The traditional goals of AI research include learning, reasoning, knowledge representation, planning, natural language processing, perception, and support for robotics.[a] To reach these goals, AI researchers have adapted and integrated a wide range of techniques, including search and mathematical optimization, formal logic, artificial neural networks, and methods based on statistics, operations research, and economics.[b] AI also draws upon psychology, linguistics, philosophy, neuroscience, and other fields.[4] Some companies, such as OpenAI, Google DeepMind and Meta,[5] aim to create artificial general intelligence (AGI)\u2014AI that can complete virtually any cognitive task at least as well as a human.",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:31.562432"
+  },
+  {
+    "text": "Artificial intelligence was founded as an academic discipline in 1956,[6] and the field went through multiple cycles of optimism throughout its history,[7][8] followed by periods of disappointment and loss of funding, known as AI winters.[9][10] Funding and interest vastly increased after 2012 when graphics processing units started being used to accelerate neural networks and deep learning outperformed previous AI techniques.[11] This growth accelerated further after 2017 with the transformer architecture.[12] In the 2020s, an ongoing period of rapid progress in advanced generative AI became known as the AI boom. Generative AI's ability to create and modify content has led to several unintended consequences and harms, which has raised ethical concerns about AI's long-term effects and potential existential risks, prompting discussions about regulatory policies to ensure the safety and benefits of the technology.",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:31.562906"
+  },
+  {
+    "text": "A weekly newsletter that helps demystify artificial intelligence.",
+    "source": "https://www.technologyreview.com/topic/artificial-intelligence/",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:31.616013"
+  },
+  {
+    "text": "Artificial intelligence (AI) is the capability of computational systems to perform tasks typically associated with human intelligence, such as learning, reasoning, problem-solving, perception, and decision-making. It is a field of research in computer science that develops and studies methods and software that enable machines to perceive their environment and use learning and intelligence to take actions that maximize their chances of achieving defined goals.[1]",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:35.207772"
+  },
+  {
+    "text": "High-profile applications of AI include advanced web search engines (e.g., Google Search); recommendation systems (used by YouTube, Amazon, and Netflix); virtual assistants (e.g., Google Assistant, Siri, and Alexa); autonomous vehicles (e.g., Waymo); generative and creative tools (e.g., language models and AI art); and superhuman play and analysis in strategy games (e.g., chess and Go). However, many AI applications are not perceived as AI: \"A lot of cutting edge AI has filtered into general applications, often without being called AI because once something becomes useful enough and common enough it's not labeled AI anymore.\"[2][3]",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:35.209062"
+  },
+  {
+    "text": "Various subfields of AI research are centered around particular goals and the use of particular tools. The traditional goals of AI research include learning, reasoning, knowledge representation, planning, natural language processing, perception, and support for robotics.[a] To reach these goals, AI researchers have adapted and integrated a wide range of techniques, including search and mathematical optimization, formal logic, artificial neural networks, and methods based on statistics, operations research, and economics.[b] AI also draws upon psychology, linguistics, philosophy, neuroscience, and other fields.[4] Some companies, such as OpenAI, Google DeepMind and Meta,[5] aim to create artificial general intelligence (AGI)\u2014AI that can complete virtually any cognitive task at least as well as a human.",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:35.210079"
+  },
+  {
+    "text": "Artificial intelligence was founded as an academic discipline in 1956,[6] and the field went through multiple cycles of optimism throughout its history,[7][8] followed by periods of disappointment and loss of funding, known as AI winters.[9][10] Funding and interest vastly increased after 2012 when graphics processing units started being used to accelerate neural networks and deep learning outperformed previous AI techniques.[11] This growth accelerated further after 2017 with the transformer architecture.[12] In the 2020s, an ongoing period of rapid progress in advanced generative AI became known as the AI boom. Generative AI's ability to create and modify content has led to several unintended consequences and harms, which has raised ethical concerns about AI's long-term effects and potential existential risks, prompting discussions about regulatory policies to ensure the safety and benefits of the technology.",
+    "source": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:35.211367"
+  },
+  {
+    "text": "A weekly newsletter that helps demystify artificial intelligence.",
+    "source": "https://www.technologyreview.com/topic/artificial-intelligence/",
+    "topics": [
+      "ai advancement"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:35.247268"
+  },
+  {
+    "text": "Speech recognition (automatic speech recognition (ASR), computer speech recognition, or speech-to-text (STT)) is a sub-field of computational linguistics concerned with methods and technologies that translate spoken language into text or other interpretable forms.[1]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:38.443592"
+  },
+  {
+    "text": "Speech recognition applications include voice user interfaces, where the user speaks to a device, which \"listens\" and processes the audio. Common voice applications include interpreting commands for calling, call routing, home automation, and aircraft control. This is called direct voice input. Productivity applications including searching audio recordings, creating transcripts, and dictation.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:38.444953"
+  },
+  {
+    "text": "Speech recognition can be used to analyse speaker characteristics, such as identifying native language using pronunciation assessment.[2]",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:38.446066"
+  },
+  {
+    "text": "Voice recognition[3][4][5] (speaker identification)[6][7][8] refers to identifying the speaker, rather than speech contents. Recognizing the speaker can simplify the task of translating speech in systems trained on a specific person's voice. It can also be used to authenticate the speaker as part of a security process.",
+    "source": "https://en.wikipedia.org/wiki/Speech_recognition",
+    "topics": [
+      "speech recognition"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:38.447149"
+  },
+  {
+    "text": "Become a subscribing member today. Help us continue to bring \u201cthe science of a meaningful life\u201d to you and to millions around the globe.",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:43.535446"
+  },
+  {
+    "text": "Greater Good\nScience Center \u2022\nMagazine \u2022\nIn Action \u2022\nIn Education",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:43.536198"
+  },
+  {
+    "text": "The more we\u2019ve invested in past decisions, the more reluctant we are to bail out. But we can correct this bias by counting the costs of staying on course.",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:43.536837"
+  },
+  {
+    "text": "A free online resource for educators.",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:43.537450"
+  },
+  {
+    "text": "How compassionate are you? How generous, grateful, or forgiving? Find out!",
+    "source": "https://greatergood.berkeley.edu/",
+    "topics": [
+      "family and humanity"
+    ],
+    "confidence": 0.85,
+    "metadata": {},
+    "learned_at": "2025-10-12T14:39:43.538094"
+  }
+]

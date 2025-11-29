@@ -1,0 +1,9 @@
+#!usrbinenv bash
+# install pipreqs (user install)
+python -m pip install --user pipreqs
+
+# generate requirements.txt from imports in the repo root
+pipreqs --force --encoding=utf8 .
+
+# show the generated file
+sed -n '1,200p' requirements.txt

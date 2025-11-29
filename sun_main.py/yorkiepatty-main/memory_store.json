@@ -1,0 +1,11 @@
+[
+  {
+    "type": "biometric_baseline",
+    "content": {
+      "heart_rate_baseline": 72,
+      "perspiration_threshold": 0.3,
+      "prediction_accuracy": 0.94
+    },
+    "timestamp": "2025-10-11T02:55:10.467428Z"
+  }
+]

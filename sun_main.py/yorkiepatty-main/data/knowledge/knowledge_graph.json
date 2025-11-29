@@ -1,0 +1,221 @@
+{
+  "concepts": {
+    "speech recognition_1760279966_4881": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:26.789388",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Speech recognition (automatic speech recognition (ASR), computer speech recognition, or speech-to-text (STT)) is a sub-field of computational linguistics concerned with methods and technologies that translate spoken language into text or other interpretable forms.[1]"
+      }
+    },
+    "speech recognition_1760279966_2413": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:26.789811",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Speech recognition applications include voice user interfaces, where the user speaks to a device, which \"listens\" and processes the audio. Common voice applications include interpreting commands for calling, call routing, home automation, and aircraft control. This is called direct voice input. Productivity applications including searching audio recordings, creating transcripts, and dictation."
+      }
+    },
+    "speech recognition_1760279966_4611": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:26.790200",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Speech recognition can be used to analyse speaker characteristics, such as identifying native language using pronunciation assessment.[2]"
+      }
+    },
+    "speech recognition_1760279966_9318": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:26.790619",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Voice recognition[3][4][5] (speaker identification)[6][7][8] refers to identifying the speaker, rather than speech contents. Recognizing the speaker can simplify the task of translating speech in systems trained on a specific person's voice. It can also be used to authenticate the speaker as part of a security process."
+      }
+    },
+    "ai advancement_1760279971_6573": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:31.561753",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Artificial intelligence (AI) is the capability of computational systems to perform tasks typically associated with human intelligence, such as learning, reasoning, problem-solving, perception, and decision-making. It is a field of research in computer science that develops and studies methods and software that enable machines to perceive their environment and use learning and intelligence to take actions that maximize their chances of achieving defined goals.[1]"
+      }
+    },
+    "ai advancement_1760279971_3632": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:31.562228",
+      "confidence": 0.7,
+      "data": {
+        "fact": "High-profile applications of AI include advanced web search engines (e.g., Google Search); recommendation systems (used by YouTube, Amazon, and Netflix); virtual assistants (e.g., Google Assistant, Siri, and Alexa); autonomous vehicles (e.g., Waymo); generative and creative tools (e.g., language models and AI art); and superhuman play and analysis in strategy games (e.g., chess and Go). However, many AI applications are not perceived as AI: \"A lot of cutting edge AI has filtered into general applications, often without being called AI because once something becomes useful enough and common enough it's not labeled AI anymore.\"[2][3]"
+      }
+    },
+    "ai advancement_1760279971_5566": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:31.562718",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Various subfields of AI research are centered around particular goals and the use of particular tools. The traditional goals of AI research include learning, reasoning, knowledge representation, planning, natural language processing, perception, and support for robotics.[a] To reach these goals, AI researchers have adapted and integrated a wide range of techniques, including search and mathematical optimization, formal logic, artificial neural networks, and methods based on statistics, operations research, and economics.[b] AI also draws upon psychology, linguistics, philosophy, neuroscience, and other fields.[4] Some companies, such as OpenAI, Google DeepMind and Meta,[5] aim to create artificial general intelligence (AGI)\u2014AI that can complete virtually any cognitive task at least as well as a human."
+      }
+    },
+    "ai advancement_1760279971_9575": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:31.563182",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Artificial intelligence was founded as an academic discipline in 1956,[6] and the field went through multiple cycles of optimism throughout its history,[7][8] followed by periods of disappointment and loss of funding, known as AI winters.[9][10] Funding and interest vastly increased after 2012 when graphics processing units started being used to accelerate neural networks and deep learning outperformed previous AI techniques.[11] This growth accelerated further after 2017 with the transformer architecture.[12] In the 2020s, an ongoing period of rapid progress in advanced generative AI became known as the AI boom. Generative AI's ability to create and modify content has led to several unintended consequences and harms, which has raised ethical concerns about AI's long-term effects and potential existential risks, prompting discussions about regulatory policies to ensure the safety and benefits of the technology."
+      }
+    },
+    "ai advancement_1760279971_3988": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:31.616324",
+      "confidence": 0.7,
+      "data": {
+        "fact": "A weekly newsletter that helps demystify artificial intelligence."
+      }
+    },
+    "ai advancement_1760279975_4143": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:35.208596",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Artificial intelligence (AI) is the capability of computational systems to perform tasks typically associated with human intelligence, such as learning, reasoning, problem-solving, perception, and decision-making. It is a field of research in computer science that develops and studies methods and software that enable machines to perceive their environment and use learning and intelligence to take actions that maximize their chances of achieving defined goals.[1]"
+      }
+    },
+    "ai advancement_1760279975_2252": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:35.209708",
+      "confidence": 0.7,
+      "data": {
+        "fact": "High-profile applications of AI include advanced web search engines (e.g., Google Search); recommendation systems (used by YouTube, Amazon, and Netflix); virtual assistants (e.g., Google Assistant, Siri, and Alexa); autonomous vehicles (e.g., Waymo); generative and creative tools (e.g., language models and AI art); and superhuman play and analysis in strategy games (e.g., chess and Go). However, many AI applications are not perceived as AI: \"A lot of cutting edge AI has filtered into general applications, often without being called AI because once something becomes useful enough and common enough it's not labeled AI anymore.\"[2][3]"
+      }
+    },
+    "ai advancement_1760279975_3324": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:35.210919",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Various subfields of AI research are centered around particular goals and the use of particular tools. The traditional goals of AI research include learning, reasoning, knowledge representation, planning, natural language processing, perception, and support for robotics.[a] To reach these goals, AI researchers have adapted and integrated a wide range of techniques, including search and mathematical optimization, formal logic, artificial neural networks, and methods based on statistics, operations research, and economics.[b] AI also draws upon psychology, linguistics, philosophy, neuroscience, and other fields.[4] Some companies, such as OpenAI, Google DeepMind and Meta,[5] aim to create artificial general intelligence (AGI)\u2014AI that can complete virtually any cognitive task at least as well as a human."
+      }
+    },
+    "ai advancement_1760279975_6300": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:35.212137",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Artificial intelligence was founded as an academic discipline in 1956,[6] and the field went through multiple cycles of optimism throughout its history,[7][8] followed by periods of disappointment and loss of funding, known as AI winters.[9][10] Funding and interest vastly increased after 2012 when graphics processing units started being used to accelerate neural networks and deep learning outperformed previous AI techniques.[11] This growth accelerated further after 2017 with the transformer architecture.[12] In the 2020s, an ongoing period of rapid progress in advanced generative AI became known as the AI boom. Generative AI's ability to create and modify content has led to several unintended consequences and harms, which has raised ethical concerns about AI's long-term effects and potential existential risks, prompting discussions about regulatory policies to ensure the safety and benefits of the technology."
+      }
+    },
+    "ai advancement_1760279975_1568": {
+      "name": "Ai Advancement",
+      "last_updated": "2025-10-12T14:39:35.247898",
+      "confidence": 0.7,
+      "data": {
+        "fact": "A weekly newsletter that helps demystify artificial intelligence."
+      }
+    },
+    "speech recognition_1760279978_9199": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:38.444493",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Speech recognition (automatic speech recognition (ASR), computer speech recognition, or speech-to-text (STT)) is a sub-field of computational linguistics concerned with methods and technologies that translate spoken language into text or other interpretable forms.[1]"
+      }
+    },
+    "speech recognition_1760279978_8666": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:38.445667",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Speech recognition applications include voice user interfaces, where the user speaks to a device, which \"listens\" and processes the audio. Common voice applications include interpreting commands for calling, call routing, home automation, and aircraft control. This is called direct voice input. Productivity applications including searching audio recordings, creating transcripts, and dictation."
+      }
+    },
+    "speech recognition_1760279978_2511": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:38.446786",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Speech recognition can be used to analyse speaker characteristics, such as identifying native language using pronunciation assessment.[2]"
+      }
+    },
+    "speech recognition_1760279978_9078": {
+      "name": "Speech Recognition",
+      "last_updated": "2025-10-12T14:39:38.447830",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Voice recognition[3][4][5] (speaker identification)[6][7][8] refers to identifying the speaker, rather than speech contents. Recognizing the speaker can simplify the task of translating speech in systems trained on a specific person's voice. It can also be used to authenticate the speaker as part of a security process."
+      }
+    },
+    "family and humanity_1760279983_6878": {
+      "name": "Family And Humanity",
+      "last_updated": "2025-10-12T14:39:43.536027",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Become a subscribing member today. Help us continue to bring \u201cthe science of a meaningful life\u201d to you and to millions around the globe."
+      }
+    },
+    "family and humanity_1760279983_2112": {
+      "name": "Family And Humanity",
+      "last_updated": "2025-10-12T14:39:43.536687",
+      "confidence": 0.7,
+      "data": {
+        "fact": "Greater Good\nScience Center \u2022\nMagazine \u2022\nIn Action \u2022\nIn Education"
+      }
+    },
+    "family and humanity_1760279983_2109": {
+      "name": "Family And Humanity",
+      "last_updated": "2025-10-12T14:39:43.537297",
+      "confidence": 0.7,
+      "data": {
+        "fact": "The more we\u2019ve invested in past decisions, the more reluctant we are to bail out. But we can correct this bias by counting the costs of staying on course."
+      }
+    },
+    "family and humanity_1760279983_4601": {
+      "name": "Family And Humanity",
+      "last_updated": "2025-10-12T14:39:43.537946",
+      "confidence": 0.7,
+      "data": {
+        "fact": "A free online resource for educators."
+      }
+    },
+    "family and humanity_1760279983_1593": {
+      "name": "Family And Humanity",
+      "last_updated": "2025-10-12T14:39:43.538587",
+      "confidence": 0.7,
+      "data": {
+        "fact": "How compassionate are you? How generous, grateful, or forgiving? Find out!"
+      }
+    }
+  },
+  "relationships": [],
+  "topic_concepts": {
+    "speech recognition": [
+      "speech recognition_1760279966_4611",
+      "speech recognition_1760279966_4881",
+      "speech recognition_1760279978_2511",
+      "speech recognition_1760279966_9318",
+      "speech recognition_1760279978_9078",
+      "speech recognition_1760279978_9199",
+      "speech recognition_1760279966_2413",
+      "speech recognition_1760279978_8666"
+    ],
+    "ai advancement": [
+      "ai advancement_1760279971_3988",
+      "ai advancement_1760279975_6300",
+      "ai advancement_1760279975_3324",
+      "ai advancement_1760279971_6573",
+      "ai advancement_1760279975_4143",
+      "ai advancement_1760279975_2252",
+      "ai advancement_1760279975_1568",
+      "ai advancement_1760279971_3632",
+      "ai advancement_1760279971_5566",
+      "ai advancement_1760279971_9575"
+    ],
+    "family and humanity": [
+      "family and humanity_1760279983_4601",
+      "family and humanity_1760279983_6878",
+      "family and humanity_1760279983_2112",
+      "family and humanity_1760279983_1593",
+      "family and humanity_1760279983_2109"
+    ]
+  },
+  "last_updated": "2025-10-12T14:39:43.538730"
+}

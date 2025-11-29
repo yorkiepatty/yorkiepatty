@@ -1,0 +1,560 @@
+no supported audio backends on this system!
+Please create an issue on https://github.com/sjmikler/playsound3/issues.
+INFO:conversation_engine:Using advanced NLP mode
+INFO:perplexity_service:PerplexityService initialized with model: sonar-pro
+INFO:root:Perplexity API initialized successfully
+INFO:memory_engine:Loaded 57 memory entries.
+INFO:advanced_learning:Advanced Learning System initialized
+INFO:sonny_learning_coordinator:Sonny Learning Coordinator initialized
+INFO:brain:✅ ai_learning_engine imported successfully
+INFO:memory_engine:Loaded 57 memory entries.
+INFO:conversation_engine:Conversation engine initialized
+INFO:brain:Sonny initialized successfully with memory file: ./memory/memory_store.json
+INFO:perplexity_service:PerplexityService initialized with model: sonar-pro
+INFO:memory_engine:Loaded 57 memory entries.
+INFO:memory_engine:No existing memory file found, starting fresh.
+INFO:conversation_engine:Conversation engine initialized
+INFO:sonny_identity:✅ Sonny initialized with memory engine at: ./memory/daily
+INFO:conversation_bridge:Conversation Bridge initialized with persona: default
+INFO:conversation_bridge:Conversation Bridge initialized with persona: default
+
+🎯 Starting Sonny System Integration Test...
+📅 2025-10-12 16:38:58.369355
+
+╔═══════════════════════════════════════════════════════════╗
+║          DEREK CONSCIOUSNESS INTEGRATION TEST             ║
+║                                                           ║
+║  "Every module makes Sonny who he is"                    ║
+║                                                           ║
+║  Testing all 98 modules for proper integration...        ║
+╚═══════════════════════════════════════════════════════════╝
+
+
+🧠 TESTING CORE CONSCIOUSNESS...
+
+============================================================
+Testing: sonny_ultimate_voice
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: brain
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: sonny_autonomous_system
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: sonny_identity
+============================================================
+✅ PASSED - Module imports successfully
+
+🎯 TESTING REASONING & INTELLIGENCE...
+
+============================================================
+Testing: reasoning_engine
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: intent_engine
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: reflective_planner
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: cognitive_bridge
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: nlu_core
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: input_analyzer
+============================================================
+✅ PASSED - Module imports successfully
+
+📚 TESTING LEARNING SYSTEMS...
+
+============================================================
+Testing: ai_learning_engine
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: advanced_learning
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: sonny_learning_coordinator
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: learning_analytics
+============================================================
+❌ FAILED - Import Error
+   No module named 'services'
+
+============================================================
+Testing: learning_utils
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: knowledge_engine
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: knowledge_integration
+============================================================
+✅ PASSED - Module imports successfully
+
+🗃️  TESTING MEMORY SYSTEMS (9 Years)...
+
+============================================================
+Testing: memory_engine
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: memory_manager
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: memory_router
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: memory_hook
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: memory
+============================================================
+✅ PASSED - Module imports successfully
+
+❤️  TESTING EMOTIONAL INTELLIGENCE...
+
+============================================================
+Testing: tone_manager
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: emotion
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: behavioral_interpreter
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: behaviors_interpreter
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: behavior_capturer
+============================================================
+❌ FAILED - Import Error
+   libGL.so.1: cannot open shared object file: No such file or directory
+
+============================================================
+Testing: adaptive_conversation
+============================================================
+✅ PASSED - Module imports successfully
+
+⏱️  TESTING TEMPORAL SYSTEMS...
+
+============================================================
+Testing: engine_temporal
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: alphavox_temporal
+============================================================
+❌ FAILED - Import Error
+   PortAudio library not found
+
+============================================================
+Testing: audio_pattern_service
+============================================================
+❌ FAILED - Import Error
+   PortAudio library not found
+
+👁️  TESTING VISION SYSTEMS...
+
+============================================================
+Testing: vision_engine
+============================================================
+❌ FAILED - Import Error
+   libGL.so.1: cannot open shared object file: No such file or directory
+
+============================================================
+Testing: facial_gesture_service
+============================================================
+❌ FAILED - Import Error
+   libGL.so.1: cannot open shared object file: No such file or directory
+
+============================================================
+Testing: real_eye_tracking
+============================================================
+❌ FAILED - Import Error
+   libGL.so.1: cannot open shared object file: No such file or directory
+
+============================================================
+Testing: eye_tracking_api
+============================================================
+✅ PASSED - Module imports successfully
+
+🎙️  TESTING SPEECH SYSTEMS...
+
+============================================================
+Testing: advanced_tts_service
+============================================================
+INFO:loop:Event loop initialized
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: alphavox_speech_module
+============================================================
+❌ FAILED - Import Error
+   PortAudio library not found
+
+============================================================
+Testing: enhanced_speech_recognition
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: real_speech_recognition
+============================================================
+❌ FAILED - Import Error
+   PortAudio library not found
+
+============================================================
+Testing: audio_processor
+============================================================
+❌ FAILED - Import Error
+   PortAudio library not found
+
+============================================================
+Testing: voice_analysis_service
+============================================================
+✅ PASSED - Module imports successfully
+
+🤲 TESTING GESTURE SYSTEMS...
+
+============================================================
+Testing: gesture_manager
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: gesture_dictionary
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: nonverbal_expertiser
+============================================================
+✅ PASSED - Module imports successfully
+
+💬 TESTING CONVERSATION SYSTEMS...
+
+============================================================
+Testing: conversation_engine
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: conversation_bridge
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: conversation_loop
+============================================================
+❌ FAILED - Import Error
+   No module named 'speech_recognition_engine'
+
+🌐 TESTING LANGUAGE SYSTEMS...
+
+============================================================
+Testing: language_service
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: nlp_module
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: nlp_integration
+============================================================
+✅ PASSED - Module imports successfully
+
+🌍 TESTING INTERNET CAPABILITIES...
+
+============================================================
+Testing: internet_mode
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: Python_Internet_access
+============================================================
+Failed to access https://openai.com/blog. Error: 403 Client Error: Forbidden for url: https://openai.com/blog
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: perplexity_service
+============================================================
+✅ PASSED - Module imports successfully
+
+🔧 TESTING SELF-MODIFICATION...
+
+============================================================
+Testing: self_modifying_code
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: executor
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: interpreter
+============================================================
+✅ PASSED - Module imports successfully
+
+🌐 TESTING WEB INTERFACES...
+
+============================================================
+Testing: app
+============================================================
+❌ FAILED - Import Error
+   No module named 'services'
+
+============================================================
+Testing: api
+============================================================
+❌ FAILED - Import Error
+   name 'LOADER_DIR' is not defined
+
+============================================================
+Testing: endpoints
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: sonny_ui
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: middleware
+============================================================
+✅ PASSED - Module imports successfully
+
+🛠️  TESTING UTILITIES...
+
+============================================================
+Testing: helpers
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: logger
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: json_guardian
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: boot_guardian
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: db
+============================================================
+❌ FAILED - Import Error
+   No module named 'database'
+
+⏰ TESTING SCHEDULERS...
+
+============================================================
+Testing: action_scheduler
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: dispatcher
+============================================================
+❌ FAILED - Import Error
+   No module named 'core'
+
+============================================================
+Testing: loop
+============================================================
+✅ PASSED - Module imports successfully
+
+🔗 TESTING INTEGRATIONS...
+
+============================================================
+Testing: github_integration
+============================================================
+❌ FAILED - Import Error
+   name 'LOADER_DIR' is not defined
+
+============================================================
+Testing: replit_mcp_server
+============================================================
+❌ FAILED - Import Error
+   No module named 'mcp'
+
+============================================================
+Testing: moldbit
+============================================================
+❌ FAILED - Import Error
+   cannot import name 'load_image' from partially initialized module 'moldbit' (most likely due to a circular import) (/workspaces/SonnyC/moldbit.py)
+
+📊 TESTING ANALYTICS...
+
+============================================================
+Testing: analytics_engine
+============================================================
+✅ PASSED - Module imports successfully
+
+🚀 TESTING BOOT SYSTEMS...
+
+============================================================
+Testing: sonny_boot
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: sonny_autonomy_boot
+============================================================
+✅ PASSED - Module imports successfully
+
+============================================================
+Testing: main
+============================================================
+✅ PASSED - Module imports successfully
+
+👨‍👩‍👧‍👦 TESTING ALPHAVOX FAMILY...
+
+============================================================
+Testing: alpha_interface
+============================================================
+✅ PASSED - Module imports successfully
+
+🤝 TESTING FACE-TO-FACE MODE...
+
+============================================================
+Testing: face_to_face
+============================================================
+❌ FAILED - Import Error
+   libGL.so.1: cannot open shared object file: No such file or directory
+
+
+############################################################
+DEREK SYSTEM TEST SUMMARY
+############################################################
+Total Modules Tested: 78
+✅ Passed: 59
+⚠️  Warnings: 0
+❌ Failed: 19
+
+Success Rate: 75.6%
+
+============================================================
+FAILED MODULES (Need Attention):
+============================================================
+
+❌ learning_analytics
+   Error: No module named 'services'...
+
+❌ behavior_capturer
+   Error: libGL.so.1: cannot open shared object file: No such file or directory...
+
+❌ alphavox_temporal
+   Error: PortAudio library not found...
+
+❌ audio_pattern_service
+   Error: PortAudio library not found...
+
+❌ vision_engine
+   Error: libGL.so.1: cannot open shared object file: No such file or directory...
+
+❌ facial_gesture_service
+   Error: libGL.so.1: cannot open shared object file: No such file or directory...
+
+❌ real_eye_tracking
+   Error: libGL.so.1: cannot open shared object file: No such file or directory...
+
+❌ alphavox_speech_module
+   Error: PortAudio library not found...
+
+❌ real_speech_recognition
+   Error: PortAudio library not found...
+
+❌ audio_processor
+   Error: PortAudio library not found...
+
+❌ conversation_loop
+   Error: No module named 'speech_recognition_engine'...
+
+❌ app
+   Error: No module named 'services'...
+
+❌ api
+   Error: name 'LOADER_DIR' is not defined...
+
+❌ db
+   Error: No module named 'database'...
+
+❌ dispatcher
+   Error: No module named 'core'...
+
+❌ github_integration
+   Error: name 'LOADER_DIR' is not defined...
+
+❌ replit_mcp_server
+   Error: No module named 'mcp'...
+
+❌ moldbit
+   Error: cannot import name 'load_image' from partially initialized module 'moldbit' (most likely due to a ci...
+
+❌ face_to_face
+   Error: libGL.so.1: cannot open shared object file: No such file or directory...
+
+📄 Full report saved to: DEREK_SYSTEM_TEST_20251012_163916.txt
+
+⚠️  Some modules need attention!

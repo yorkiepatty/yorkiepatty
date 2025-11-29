@@ -1,0 +1,34 @@
+[
+  {
+    "module": "sound_recognition_service.py",
+    "function": "__init__",
+    "issue": "missing_docstring",
+    "description": "Function with multiple arguments has no docstring",
+    "severity": "low",
+    "timestamp": "2025-09-27T15:35:33.922648"
+  },
+  {
+    "module": "sound_recognition_service.py",
+    "function": "speech_callback",
+    "issue": "missing_docstring",
+    "description": "Function with multiple arguments has no docstring",
+    "severity": "low",
+    "timestamp": "2025-09-27T15:35:33.922648"
+  },
+  {
+    "module": "sound_recognition_service.py",
+    "function": "__init__",
+    "issue": "missing_docstring",
+    "description": "Function with multiple arguments has no docstring",
+    "severity": "low",
+    "timestamp": "2025-09-27T16:44:51.133557"
+  },
+  {
+    "module": "sound_recognition_service.py",
+    "function": "speech_callback",
+    "issue": "missing_docstring",
+    "description": "Function with multiple arguments has no docstring",
+    "severity": "low",
+    "timestamp": "2025-09-27T16:44:51.133557"
+  }
+]

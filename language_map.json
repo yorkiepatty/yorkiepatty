@@ -1,0 +1,50 @@
+{
+    "Hand Up": {
+        "intent": "Request attention",
+        "message": "I need help."
+    },
+    "Wave Left": {
+        "intent": "Previous mode",
+        "message": "Go back."
+    },
+    "Wave Right": {
+        "intent": "Next mode",
+        "message": "Move forward."
+    },
+    "Head Jerk": {
+        "intent": "Stress (tick)",
+        "message": "I'm overwhelmed."
+    },
+    "Looking Up": {
+        "intent": "Thinking",
+        "message": "I'm thinking."
+    },
+    "Rapid Blinking": {
+        "intent": "Discomfort",
+        "message": "I'm uneasy."
+    },
+    "Neutral": {
+        "intent": "Calm",
+        "message": "I'm fine."
+    },
+    "Happy": {
+        "intent": "Joy",
+        "message": "I'm happy."
+    },
+    "Sad": {
+        "intent": "Unhappy",
+        "message": "I'm sad."
+    },
+    "Angry": {
+        "intent": "Upset",
+        "message": "I'm angry."
+    },
+    "Fear": {
+        "intent": "Worried",
+        "message": "I'm scared."
+    },
+    "Surprise": {
+        "intent": "Shocked",
+        "message": "I'm surprised."
+    }
+}

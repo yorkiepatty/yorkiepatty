@@ -1,0 +1,9 @@
+{
+  "terms": [
+    { "alias": "bath room", "canonical": "bathroom" },
+    { "alias": "eye gaze", "canonical": "eye tracking" },
+    { "alias": "yes please", "canonical": "affirmative" },
+    { "alias": "no thank you", "canonical": "decline" }
+  ]
+}
+

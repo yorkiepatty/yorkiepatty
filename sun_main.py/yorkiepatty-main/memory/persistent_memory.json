@@ -1,0 +1,57 @@
+{
+  "last_updated": "2025-10-15T05:12:59.322477",
+  "long_term": {
+    "user_name": {
+      "value": "Nathaniel",
+      "timestamp": "2025-10-15T05:12:59.322386",
+      "access_count": 1
+    },
+    "project": {
+      "value": "DerekC AI Assistant",
+      "timestamp": "2025-10-15T05:12:59.322410",
+      "access_count": 1
+    },
+    "goal": {
+      "value": "Derek learns from master AIs until reaching 85% confidence",
+      "timestamp": "2025-10-15T05:12:59.322423",
+      "access_count": 1
+    },
+    "priority": {
+      "value": "Solid persistent memory with GitHub backup",
+      "timestamp": "2025-10-15T05:12:59.322444",
+      "access_count": 1
+    }
+  },
+  "recent_conversations": [
+    {
+      "key": "user_name",
+      "value": "Nathaniel",
+      "timestamp": "2025-10-15T05:12:59.322386"
+    },
+    {
+      "key": "project",
+      "value": "DerekC AI Assistant",
+      "timestamp": "2025-10-15T05:12:59.322410"
+    },
+    {
+      "key": "goal",
+      "value": "Derek learns from master AIs until reaching 85% confidence",
+      "timestamp": "2025-10-15T05:12:59.322423"
+    },
+    {
+      "key": "priority",
+      "value": "Solid persistent memory with GitHub backup",
+      "timestamp": "2025-10-15T05:12:59.322444"
+    }
+  ],
+  "statistics": {
+    "total_memories": 4,
+    "total_conversations": 4,
+    "memory_keys": [
+      "user_name",
+      "project",
+      "goal",
+      "priority"
+    ]
+  }
+}

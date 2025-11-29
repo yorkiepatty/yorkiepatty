@@ -1,0 +1,97 @@
+AlphaVox Voice System Diagnostic Report
+======================================
+
+Date: 2025-10-19 03:27:47
+Test Text: 'This is a test of the voice system'
+Language: en
+
+Configuration: US English (com), Speed: Slow
+  Filename: com_slow.mp3
+  File Size: 23808 bytes
+  MD5 Hash: adb41feeb49cb0aeaa43036106e17529
+
+Configuration: US English (com), Speed: Normal
+  Filename: com_normal.mp3
+  File Size: 20160 bytes
+  MD5 Hash: f19d93353a2431daed9204189bd33d80
+
+Configuration: UK English (co.uk), Speed: Slow
+  Filename: co_uk_slow.mp3
+  File Size: 25344 bytes
+  MD5 Hash: 1cd6b875ea5e30a08878e78e03e7572d
+
+Configuration: UK English (co.uk), Speed: Normal
+  Filename: co_uk_normal.mp3
+  File Size: 21120 bytes
+  MD5 Hash: a7803eb88e8132e1e789767fe6b32f1c
+
+Configuration: Australian English (com.au), Speed: Slow
+  Filename: com_au_slow.mp3
+  File Size: 24960 bytes
+  MD5 Hash: e7aed4b115dc995909356a4b848635b9
+
+Configuration: Australian English (com.au), Speed: Normal
+  Filename: com_au_normal.mp3
+  File Size: 21312 bytes
+  MD5 Hash: 833b60785955bfc9bbcec8df9886eaa7
+
+Configuration: Canadian English (ca), Speed: Slow
+  Filename: ca_slow.mp3
+  File Size: 23808 bytes
+  MD5 Hash: 85eae96d6c6bd26c8ed22c474fac4ea4
+
+Configuration: Canadian English (ca), Speed: Normal
+  Filename: ca_normal.mp3
+  File Size: 20160 bytes
+  MD5 Hash: f19d93353a2431daed9204189bd33d80
+
+Configuration: Indian English (co.in), Speed: Slow
+  Filename: co_in_slow.mp3
+  File Size: 24576 bytes
+  MD5 Hash: c7304c8ab8137612aba1d47e5ca9f9a0
+
+Configuration: Indian English (co.in), Speed: Normal
+  Filename: co_in_normal.mp3
+  File Size: 20928 bytes
+  MD5 Hash: 58d3de6022a241a537783cb390c05212
+
+Configuration: South African English (co.za), Speed: Slow
+  Filename: co_za_slow.mp3
+  File Size: 25344 bytes
+  MD5 Hash: 1cd6b875ea5e30a08878e78e03e7572d
+
+Configuration: South African English (co.za), Speed: Normal
+  Filename: co_za_normal.mp3
+  File Size: 21120 bytes
+  MD5 Hash: a7803eb88e8132e1e789767fe6b32f1c
+
+Configuration: Irish English (ie), Speed: Slow
+  Filename: ie_slow.mp3
+  File Size: 25344 bytes
+  MD5 Hash: 1cd6b875ea5e30a08878e78e03e7572d
+
+Configuration: Irish English (ie), Speed: Normal
+  Filename: ie_normal.mp3
+  File Size: 21120 bytes
+  MD5 Hash: a7803eb88e8132e1e789767fe6b32f1c
+
+Uniqueness Analysis
+------------------
+Total Configurations: 14
+Unique Outputs: 9
+
+Identical Output Groups:
+Group 2:
+  - US English (com), Speed: Normal
+  - Canadian English (ca), Speed: Normal
+
+Group 3:
+  - UK English (co.uk), Speed: Slow
+  - South African English (co.za), Speed: Slow
+  - Irish English (ie), Speed: Slow
+
+Group 4:
+  - UK English (co.uk), Speed: Normal
+  - South African English (co.za), Speed: Normal
+  - Irish English (ie), Speed: Normal
+

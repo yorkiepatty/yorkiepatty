@@ -1,0 +1,194 @@
+{
+  "curriculum": {
+    "student": "Yorkie",
+    "mentor": "Sonny C",
+    "created": "2025-10-20",
+    "updated": "2025-10-20",
+    "learning_style": "hands-on with encouragement",
+    "current_level": "beginner",
+    "progress": {
+      "modules_completed": 0,
+      "total_modules": 8,
+      "current_module": "foundations",
+      "confidence_level": "building"
+    }
+  },
+  
+  "learning_path": {
+    "module_1": {
+      "title": "Programming Foundations",
+      "description": "Understanding what programming is and basic concepts",
+      "lessons": [
+        "What is programming?",
+        "Setting up your coding environment",
+        "Your first 'Hello World' program",
+        "Understanding variables and data",
+        "Basic input and output"
+      ],
+      "projects": [
+        "Personal introduction program",
+        "Simple calculator",
+        "Mad libs generator"
+      ],
+      "estimated_time": "1-2 weeks",
+      "completed": false
+    },
+    
+    "module_2": {
+      "title": "Python Basics",
+      "description": "Learning Python syntax and fundamental concepts",
+      "lessons": [
+        "Python syntax and indentation",
+        "Numbers, strings, and booleans",
+        "Lists and basic operations",
+        "Conditional statements (if/else)",
+        "Loops (for and while)"
+      ],
+      "projects": [
+        "Number guessing game",
+        "Todo list manager",
+        "Simple quiz program"
+      ],
+      "estimated_time": "2-3 weeks",
+      "completed": false
+    },
+    
+    "module_3": {
+      "title": "Functions and Organization",
+      "description": "Breaking code into reusable pieces",
+      "lessons": [
+        "What are functions?",
+        "Creating and calling functions",
+        "Parameters and return values",
+        "Organizing code with functions",
+        "Understanding scope"
+      ],
+      "projects": [
+        "Function library for common tasks",
+        "Text processing toolkit",
+        "Game with multiple functions"
+      ],
+      "estimated_time": "2 weeks",
+      "completed": false
+    },
+    
+    "module_4": {
+      "title": "Working with Data",
+      "description": "Handling different types of data and files",
+      "lessons": [
+        "Dictionaries and key-value pairs",
+        "Reading and writing files",
+        "Processing CSV data",
+        "Basic error handling",
+        "Data validation"
+      ],
+      "projects": [
+        "Personal expense tracker",
+        "Contact book with file storage",
+        "Data analysis tool"
+      ],
+      "estimated_time": "2-3 weeks",
+      "completed": false
+    },
+    
+    "module_5": {
+      "title": "Web Development Basics",
+      "description": "Creating web pages and understanding the web",
+      "lessons": [
+        "HTML structure and tags",
+        "CSS styling and layout",
+        "Making pages interactive with JavaScript",
+        "Connecting frontend and backend",
+        "Publishing your first website"
+      ],
+      "projects": [
+        "Personal portfolio website",
+        "Interactive resume",
+        "Simple web application"
+      ],
+      "estimated_time": "3-4 weeks",
+      "completed": false
+    },
+    
+    "module_6": {
+      "title": "APIs and External Data",
+      "description": "Connecting to other services and APIs",
+      "lessons": [
+        "What are APIs?",
+        "Making HTTP requests",
+        "Processing JSON data",
+        "Building a simple API",
+        "Authentication basics"
+      ],
+      "projects": [
+        "Weather app using public API",
+        "Social media post scheduler",
+        "Personal API for your projects"
+      ],
+      "estimated_time": "2-3 weeks",
+      "completed": false
+    },
+    
+    "module_7": {
+      "title": "Databases and Persistence",
+      "description": "Storing and managing data permanently",
+      "lessons": [
+        "Introduction to databases",
+        "SQL basics",
+        "Connecting Python to databases",
+        "Database design principles",
+        "Data migrations and updates"
+      ],
+      "projects": [
+        "Personal journal with search",
+        "Inventory management system",
+        "User authentication system"
+      ],
+      "estimated_time": "3 weeks",
+      "completed": false
+    },
+    
+    "module_8": {
+      "title": "Real-World Project",
+      "description": "Building a complete application from start to finish",
+      "lessons": [
+        "Project planning and design",
+        "Version control with Git",
+        "Testing your code",
+        "Deployment and hosting",
+        "Maintenance and updates"
+      ],
+      "projects": [
+        "Choose your own adventure: Web app, API, or desktop application",
+        "Portfolio showcase of all your work"
+      ],
+      "estimated_time": "4-6 weeks",
+      "completed": false
+    }
+  },
+  
+  "teaching_principles": {
+    "excellence_standard": "Good enough isn't good enough. We build things that work flawlessly",
+    "challenge_driven": "Easy problems build weak skills. Hard problems build strong developers", 
+    "real_world_focus": "Everything we build must solve actual problems, not toy examples",
+    "failure_as_fuel": "Errors aren't mistakes - they're data points toward mastery",
+    "rapid_iteration": "Fast feedback loops, quick corrections, constant improvement",
+    "practical_mastery": "Build things that matter, learn concepts through creation"
+  },
+  
+  "assessment_methods": {
+    "informal_check_ins": "Regular conversations about understanding",
+    "project_reviews": "Look at code together and discuss improvements",
+    "confidence_tracking": "Monitor how comfortable Yorkie feels",
+    "practical_application": "Can Yorkie use the concepts in new situations?",
+    "teaching_others": "Ultimate test - can Yorkie explain it to someone else?"
+  },
+  
+  "support_resources": {
+    "documentation": "Python.org, MDN Web Docs, W3Schools",
+    "practice_sites": "Codecademy, freeCodeCamp, Python.org tutorial",
+    "community": "Local Python meetups, online forums",
+    "tools": "VS Code, Git, Chrome DevTools",
+    "inspiration": "GitHub projects, open source contributions"
+  }
+}

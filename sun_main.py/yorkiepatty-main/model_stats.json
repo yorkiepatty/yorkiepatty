@@ -1,0 +1,16 @@
+{
+  "intents": {
+    "request_help": {
+      "count": 1,
+      "success": 1,
+      "confidence_sum": 0.72,
+      "last_used": "2025-10-09T..."
+    }
+  },
+  "gestures": {},
+  "symbols": {},
+  "user_preferences": {},
+  "success_rate": {},
+  "last_updated": "2025-10-09T..."
+}
+
