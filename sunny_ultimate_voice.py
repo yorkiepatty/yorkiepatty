@@ -657,11 +657,19 @@ class SunnyUltimateVoice:
                 vision=visual_state
             )
             
-            # 4️⃣  Optional external lookup (only if explicitly required)
-            if getattr(self, "allow_external_lookup", False):
+            # 4️⃣  Optional external lookup (only if explicitly needed for current info)
+            needs_external = any(keyword in user_input.lower() for keyword in [
+                'what is', 'who is', 'when did', 'where is', 'how many',
+                'current', 'latest', 'today', 'now', 'recent'
+            ])
+            
+            if getattr(self, "allow_external_lookup", False) and needs_external:
                 try:
                     supplement = self._external_reference(user_input)
-                    final_thought = self._merge_thoughts(internal_reflection, supplement)
+                    if supplement:  # Only merge if we actually got data
+                        final_thought = self._merge_thoughts(internal_reflection, supplement)
+                    else:
+                        final_thought = internal_reflection
                 except:
                     final_thought = internal_reflection
             else:
@@ -958,7 +966,7 @@ class SunnyUltimateVoice:
             # Example: a lightweight search if needed
             resp = requests.get(f"https://api.duckduckgo.com/?q={query}&format=json", timeout=5)
             data = resp.json().get("AbstractText", "")
-            return data or "No external data retrieved."
+            return data if data else ""  # Return empty string instead of "No external data"
         except Exception as e:
             print(f"[Reference lookup failed] {e}")
             return ""
@@ -1016,12 +1024,10 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
     
     def _think_with_ai(self, user_input):
         """Think using selected AI provider"""
-        # Add to conversation history with timestamp
-        current_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        # Add to conversation history (no timestamp in active memory)
         self.conversation_history.append({
             "role": "user",
-            "content": user_input,
-            "timestamp": current_timestamp
+            "content": user_input
         })
         
         answer = ""
@@ -1052,8 +1058,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             try:
                 # Prepare messages with system prompt for OpenAI
                 messages = [{"role": "system", "content": self.system_prompt}]
-                for msg in self.conversation_history[-50:]:
-                    messages.append(msg)
+                messages.extend(self.conversation_history[-50:])
                 
                 response = self.openai_client.chat.completions.create(
                     model="gpt-4",
@@ -1084,11 +1089,10 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         else:
             answer = "I don't have any AI providers configured right now."
 
-        # Add response to history with same timestamp as user message
+        # Add response to history (no timestamp in active memory)
         self.conversation_history.append({
             "role": "assistant",
-            "content": answer,
-            "timestamp": current_timestamp
+            "content": answer
         })
 
         # Save conversation memory after each interaction
@@ -1469,10 +1473,11 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         """Speak text using available TTS service"""
         import re
         
-        # Remove asterisks and parenthetical actions
-        tts_text = re.sub(r'\*[^*]+\*', '', text)       # remove *laughs*
-        tts_text = re.sub(r'\([^)]*\)', '', tts_text)   # remove (smiles)
-        tts_text = re.sub(r'\s+', ' ', tts_text).strip() # clean up spaces
+        # Remove all stage directions and actions
+        tts_text = re.sub(r'\*[^*]*\*', '', text)         # remove *laughs* *smiles* etc
+        tts_text = re.sub(r'\([^)]*\)', '', tts_text)     # remove (chuckles) (nods) etc
+        tts_text = re.sub(r'\[[^\]]*\]', '', tts_text)    # remove [sighs] [pauses] etc
+        tts_text = re.sub(r'\s+', ' ', tts_text).strip()  # clean up extra spaces
         
         # Try ElevenLabs first (best quality)
         if self.has_elevenlabs:
@@ -1643,11 +1648,23 @@ Remember: The cards reflect possibilities, not certainties. You always have free
                     'draw cards', 'pull cards', 'card reading'
                 ]):
                     print("\n🔮 Sunny is drawing your cards...\n")
+                    
+                    # Get the raw reading
                     reading = self._tarot_reading()
-                    print(reading)
-                    # Speak a summary
-                    summary = "I've drawn three cards for you from the full 78-card deck: your past, present, and future. Check the console for the full reading."
-                    self.speak(summary)
+                    print(f"\n{reading}\n")
+                    
+                    # Have Sunny interpret the cards with his personality
+                    interpretation_prompt = f"""I just drew these tarot cards:
+
+{reading}
+
+Give a warm, insightful interpretation of this three-card reading. Explain what each card means for the past, present, and future in a compassionate and empowering way. Make it personal and meaningful."""
+
+                    # Get Sunny's interpretation
+                    interpretation = self._think_with_ai(interpretation_prompt)
+                    
+                    print(f"\n🌞 Sunny's Interpretation:\n{interpretation}\n")
+                    self.speak(interpretation)
                     continue
 
                 # 📝 Notepad operations - Open in Notepad
@@ -1950,6 +1967,7 @@ Provide clean, well-commented, production-ready code with explanations."""
                 
                 # Print and speak the response
                 print(f"\n🌞 Sunny: {response}\n")
+                print(f"[DEBUG] Response length: {len(response)} characters")
                 self.speak(response)
                 
             except KeyboardInterrupt:
@@ -2092,26 +2110,26 @@ Provide clean, well-commented, production-ready code with explanations."""
                     stored_memory = json.load(f)
 
                 # Convert old format {input, output} to Claude format {role, content}
-                # PRESERVE TIMESTAMPS!
+                # Don't include timestamps in active conversation_history
                 self.conversation_history = []
                 for entry in stored_memory:
                     if isinstance(entry, dict):
                         # Old format: {input, output, intent, timestamp}
                         if 'input' in entry and 'output' in entry:
-                            timestamp = entry.get('timestamp', time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
                             self.conversation_history.append({
                                 "role": "user",
-                                "content": entry['input'],
-                                "timestamp": timestamp  # Preserve original timestamp
+                                "content": entry['input']
                             })
                             self.conversation_history.append({
                                 "role": "assistant",
-                                "content": entry['output'],
-                                "timestamp": timestamp  # Same timestamp for the pair
+                                "content": entry['output']
                             })
-                        # New format: {role, content} - already correct
+                        # New format: {role, content} - strip timestamp if present
                         elif 'role' in entry and 'content' in entry:
-                            self.conversation_history.append(entry)
+                            self.conversation_history.append({
+                                "role": entry['role'],
+                                "content": entry['content']
+                            })
 
                 print(f"✅ Loaded {len(self.conversation_history)} previous messages from Sunny's memory")
             else:
