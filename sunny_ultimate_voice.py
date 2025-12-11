@@ -59,15 +59,15 @@ def playsound(audio_file):
         elif system == "Linux":
             subprocess.run(["aplay", audio_file], check=True)
         elif system == "Windows":
-            # Use pygame for Windows (supports MP3)
-            import pygame
-            pygame.mixer.init()
-            pygame.mixer.music.load(audio_file)
-            pygame.mixer.music.play()
-            # Wait for playback to finish
-            while pygame.mixer.music.get_busy():
-                pygame.time.Clock().tick(10)
-            pygame.mixer.quit()
+            # Use playsound library for Windows (simple, no compilation needed)
+            try:
+                from playsound import playsound as play
+                play(audio_file)
+            except ImportError:
+                # Fallback to Windows Media Player via subprocess
+                os.startfile(audio_file)
+                import time
+                time.sleep(3)  # Give it time to play
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
