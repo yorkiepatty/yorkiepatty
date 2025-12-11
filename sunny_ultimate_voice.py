@@ -373,29 +373,38 @@ class SunnyUltimateVoice:
     
     def _initialize_speech_recognition(self):
         """Initialize speech recognition with optimal settings for natural conversation"""
-        self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
-        
-        # Enhanced settings to avoid cutting off natural speech
-        self.recognizer.energy_threshold = 3000  # Lower threshold for better sensitivity
-        self.recognizer.dynamic_energy_threshold = True
-        self.recognizer.dynamic_energy_adjustment_damping = 0.15
-        self.recognizer.dynamic_energy_ratio = 1.5
-        
-        # CRITICAL: Extended pause detection to handle natural pauses
-        self.recognizer.pause_threshold = 2.0  # Wait 2 seconds of silence (was 1.2)
-        self.recognizer.phrase_threshold = 0.2  # Min phrase length (shorter = more responsive)
-        self.recognizer.non_speaking_duration = 0.8  # Allow longer pauses mid-sentence (was 0.5)
-        
-        # Calibrate microphone
-        print("🎤 Calibrating microphone...")
-        print("   (Please be COMPLETELY SILENT for 3 seconds...)")
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source, duration=3)
-        
-        self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 3000)
-        print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
-        print(f"   Sunny will wait 2 seconds of silence before processing your speech.")
+        try:
+            self.recognizer = sr.Recognizer()
+            self.microphone = sr.Microphone()
+
+            # Enhanced settings to avoid cutting off natural speech
+            self.recognizer.energy_threshold = 3000  # Lower threshold for better sensitivity
+            self.recognizer.dynamic_energy_threshold = True
+            self.recognizer.dynamic_energy_adjustment_damping = 0.15
+            self.recognizer.dynamic_energy_ratio = 1.5
+
+            # CRITICAL: Extended pause detection to handle natural pauses
+            self.recognizer.pause_threshold = 2.0  # Wait 2 seconds of silence (was 1.2)
+            self.recognizer.phrase_threshold = 0.2  # Min phrase length (shorter = more responsive)
+            self.recognizer.non_speaking_duration = 0.8  # Allow longer pauses mid-sentence (was 0.5)
+
+            # Calibrate microphone
+            print("🎤 Calibrating microphone...")
+            print("   (Please be COMPLETELY SILENT for 3 seconds...)")
+            with self.microphone as source:
+                self.recognizer.adjust_for_ambient_noise(source, duration=3)
+
+            self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 3000)
+            print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
+            print(f"   Sunny will wait 2 seconds of silence before processing your speech.")
+            self.has_microphone = True
+        except Exception as e:
+            print(f"⚠️  Microphone not available: {e}")
+            print("   PyAudio is not installed. Sunny will run in TEXT-ONLY mode.")
+            print("   You can type your messages instead of speaking.")
+            self.has_microphone = False
+            self.recognizer = None
+            self.microphone = None
     
     def _initialize_web_search(self):
         """Initialize web search capabilities"""
@@ -541,15 +550,19 @@ class SunnyUltimateVoice:
     
     def listen(self):
         """Advanced speech recognition - patient listening, won't cut you off"""
+        # If no microphone, return None to trigger text input
+        if not self.has_microphone:
+            return None
+
         text = self.speech_recognition.listen() if hasattr(self, 'speech_recognition') else None
         if text:
             if hasattr(self, 'memory'):
                 self.memory.store("heard", text)
             return text
-        
+
         # Fallback to standard speech recognition
         print("\n🎤 Listening... (Sunny is patient - take your time, he won't cut you off)")
-        
+
         for attempt in range(3):  # Up to 3 attempts
             try:
                 with self.microphone as source:
