@@ -1506,13 +1506,17 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         # Try ElevenLabs first (best quality)
         if self.has_elevenlabs:
             try:
+                print("🎙️  Using ElevenLabs voice...")
                 return self._speak_elevenlabs(clean_text)
             except Exception as e:
                 print(f"⚠️  ElevenLabs failed: {e}")
+                import traceback
+                traceback.print_exc()
 
         # Fallback to AWS Polly
         if self.has_polly and self.voice_id in POLLY_VOICES:
             try:
+                print("🎙️  Using AWS Polly voice...")
                 return self._speak_polly(clean_text)
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
@@ -1520,6 +1524,7 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         # Final fallback to gTTS
         if self.has_gtts:
             try:
+                print("🎙️  Using Google TTS voice...")
                 return self._speak_gtts(clean_text)
             except Exception as e:
                 print(f"⚠️  gTTS failed: {e}")
