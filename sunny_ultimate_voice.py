@@ -59,15 +59,14 @@ def playsound(audio_file):
         elif system == "Linux":
             subprocess.run(["aplay", audio_file], check=True)
         elif system == "Windows":
-            # Use playsound library for Windows (simple, no compilation needed)
-            try:
-                from playsound import playsound as play
-                play(audio_file)
-            except ImportError:
-                # Fallback to Windows Media Player via subprocess
-                os.startfile(audio_file)
-                import time
-                time.sleep(3)  # Give it time to play
+            # Use Windows built-in startfile - no libraries needed!
+            os.startfile(audio_file)
+            # Calculate approximate playback time based on file size
+            import time
+            file_size = os.path.getsize(audio_file)
+            # Estimate: 16KB per second of audio (128kbps MP3)
+            estimated_duration = (file_size / 16000) + 0.5  # Add 0.5 second buffer
+            time.sleep(min(estimated_duration, 10))  # Cap at 10 seconds
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
