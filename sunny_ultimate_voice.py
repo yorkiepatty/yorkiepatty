@@ -37,6 +37,9 @@ import speech_recognition as sr
 import subprocess
 import platform
 from gtts import gTTS
+import sounddevice as sd
+import numpy as np
+import queue
 
 # ElevenLabs TTS
 try:
@@ -71,6 +74,30 @@ def playsound(audio_file):
         print(f"⚠️  Audio playback failed: {e}")
         import traceback
         traceback.print_exc()
+
+class SoundDeviceMicrophone:
+    """Custom microphone class using sounddevice instead of PyAudio"""
+
+    def __init__(self, sample_rate=16000, chunk_size=1024):
+        self.sample_rate = sample_rate
+        self.chunk_size = chunk_size
+        self.audio_queue = queue.Queue()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def record(self, duration=5):
+        """Record audio for specified duration"""
+        print(f"🎤 Recording for {duration} seconds...")
+        recording = sd.rec(int(duration * self.sample_rate),
+                          samplerate=self.sample_rate,
+                          channels=1,
+                          dtype='int16')
+        sd.wait()
+        return recording.flatten()
 
 def capture_screen():
     """Capture the current screen and return as base64 encoded image"""
@@ -372,35 +399,22 @@ class SunnyUltimateVoice:
             sys.exit(1)
     
     def _initialize_speech_recognition(self):
-        """Initialize speech recognition with optimal settings for natural conversation"""
+        """Initialize speech recognition using sounddevice"""
         try:
             self.recognizer = sr.Recognizer()
-            self.microphone = sr.Microphone()
+            # Use sounddevice instead of PyAudio
+            self.microphone = SoundDeviceMicrophone()
 
             # Enhanced settings to avoid cutting off natural speech
-            self.recognizer.energy_threshold = 3000  # Lower threshold for better sensitivity
+            self.recognizer.energy_threshold = 3000
             self.recognizer.dynamic_energy_threshold = True
-            self.recognizer.dynamic_energy_adjustment_damping = 0.15
-            self.recognizer.dynamic_energy_ratio = 1.5
 
-            # CRITICAL: Extended pause detection to handle natural pauses
-            self.recognizer.pause_threshold = 2.0  # Wait 2 seconds of silence (was 1.2)
-            self.recognizer.phrase_threshold = 0.2  # Min phrase length (shorter = more responsive)
-            self.recognizer.non_speaking_duration = 0.8  # Allow longer pauses mid-sentence (was 0.5)
-
-            # Calibrate microphone
-            print("🎤 Calibrating microphone...")
-            print("   (Please be COMPLETELY SILENT for 3 seconds...)")
-            with self.microphone as source:
-                self.recognizer.adjust_for_ambient_noise(source, duration=3)
-
-            self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 3000)
-            print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
-            print(f"   Sunny will wait 2 seconds of silence before processing your speech.")
+            print("✅ Microphone initialized with sounddevice")
+            print("   Sunny is ready to listen!")
             self.has_microphone = True
         except Exception as e:
             print(f"⚠️  Microphone not available: {e}")
-            print("   PyAudio is not installed. Sunny will run in TEXT-ONLY mode.")
+            print("   Sunny will run in TEXT-ONLY mode.")
             print("   You can type your messages instead of speaking.")
             self.has_microphone = False
             self.recognizer = None
@@ -549,7 +563,7 @@ class SunnyUltimateVoice:
 
     
     def listen(self):
-        """Advanced speech recognition - patient listening, won't cut you off"""
+        """Advanced speech recognition using sounddevice"""
         # If no microphone, return None to trigger text input
         if not self.has_microphone:
             return None
@@ -560,23 +574,22 @@ class SunnyUltimateVoice:
                 self.memory.store("heard", text)
             return text
 
-        # Fallback to standard speech recognition
-        print("\n🎤 Listening... (Sunny is patient - take your time, he won't cut you off)")
+        # Use sounddevice for audio recording
+        print("\n🎤 Listening... (Speak now, Sunny is listening!)")
 
         for attempt in range(3):  # Up to 3 attempts
             try:
-                with self.microphone as source:
-                    # EXTENDED listening parameters for natural conversation
-                    # timeout: 15 seconds to START speaking (was 10)
-                    # phrase_time_limit: 60 seconds for COMPLETE message (was 30)
-                    audio = self.recognizer.listen(
-                        source, 
-                        timeout=15,  # Wait longer for you to start
-                        phrase_time_limit=60  # Allow full minute for complete thoughts
-                    )
-                
+                # Record audio using sounddevice
+                audio_data = self.microphone.record(duration=10)  # 10 second recording
+
+                # Convert numpy array to bytes for SpeechRecognition
+                audio_bytes = audio_data.tobytes()
+
+                # Create AudioData object for SpeechRecognition
+                audio = sr.AudioData(audio_bytes, self.microphone.sample_rate, 2)
+
                 print("🔄 Processing your complete message...")
-                
+
                 # Try Google Speech Recognition
                 try:
                     text = self.recognizer.recognize_google(audio)
@@ -591,17 +604,18 @@ class SunnyUltimateVoice:
                     else:
                         print("   Please type your message instead.")
                         return None
-                
-            except sr.WaitTimeoutError:
-                if attempt == 0:
-                    print("⏱️  No speech detected. Trying again... (Sunny is listening)")
-                    continue
-                else:
-                    print("⏱️  Timeout. You can type your message if speaking isn't working.")
-                    return None
+
             except Exception as e:
                 print(f"❌ Error with speech recognition: {e}")
-                return None
+                import traceback
+                traceback.print_exc()
+                if attempt < 2:
+                    print("   Trying again...")
+                    time.sleep(1)
+                    continue
+                else:
+                    print("   Please type your message instead.")
+                    return None
         
         return None
     
