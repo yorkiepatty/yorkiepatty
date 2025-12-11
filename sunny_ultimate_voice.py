@@ -281,8 +281,9 @@ class SunnyUltimateVoice:
         - Internal cognitive reasoning and emotional context
         - Local vision, tone, and memory integration
         - Multi-model AI access (Claude Sonnet 4.5, GPT-4, Perplexity)
-        - Web search and external validation
+        - Web search (Google and Perplexity) for real-time information
         - Voice synthesis (ElevenLabs, Polly, gTTS fallback)
+        - Music playback via YouTube search
         - Master Coder: Expert in Python, JavaScript, HTML/CSS, SQL, React, Node.js, APIs, debugging
         - File Operations: Create, read, edit, write any file via voice commands
         - Notepad Integration: Open, edit, and create files in Windows Notepad
@@ -1276,6 +1277,37 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             print(f"⚠️  Error opening in Notepad: {e}")
             return False
 
+    def _play_music(self, query):
+        """Open YouTube music search in browser"""
+        try:
+            import webbrowser
+            search_url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
+            webbrowser.open(search_url)
+            print(f"🎵 Opening YouTube search for: {query}")
+            return True
+        except Exception as e:
+            print(f"⚠️  Error opening music: {e}")
+            return False
+
+    def _web_search(self, query):
+        """Perform web search using Perplexity or return search URL"""
+        try:
+            # If Perplexity is available, use it for AI-powered search
+            if hasattr(self, 'perplexity_client') and self.perplexity_client:
+                print(f"🔍 Searching with Perplexity: {query}")
+                response = self.perplexity_client.search(query)
+                return response
+            else:
+                # Fall back to opening Google search
+                import webbrowser
+                search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
+                webbrowser.open(search_url)
+                print(f"🔍 Opened Google search for: {query}")
+                return f"I've opened a Google search for '{query}' in your browser."
+        except Exception as e:
+            print(f"⚠️  Error searching: {e}")
+            return f"I had trouble searching for that: {str(e)}"
+
     def _tarot_reading(self):
         """Perform a tarot card reading with full 78-card deck"""
         import random
@@ -1554,6 +1586,13 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("\n📸 Vision Commands:")
         print("  - 'look at my screen' - Sunny will see and analyze what's on your screen")
         print("  - 'what am I looking at' - Same as above")
+        print("\n🎵 Music & Entertainment:")
+        print("  - 'play music [song/artist]' - Open YouTube to play music")
+        print("  - 'play song [name]' - Same as above")
+        print("\n🔍 Web Search:")
+        print("  - 'search for [query]' - Search the web (Google or Perplexity)")
+        print("  - 'look up [topic]' - Same as above")
+        print("  - 'google [query]' - Direct Google search")
         print("\n🔮 Tarot & Spiritual:")
         print("  - 'tarot reading' - Get a three-card reading from full 78-card deck")
         print("  - 'pull cards' - Same as above (Past, Present, Future)")
@@ -1581,7 +1620,7 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("  - 'memory stats' - Memory system status\n")
         
         # Initial greeting
-        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities: vision, memory, tarot readings, master coding, file operations, and autonomous learning. How can I help you today?"
+        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I can play music, search the web, read tarot cards, write code, edit files in Notepad, and remember everything we talk about. What can I help you with today?"
         self.speak(greeting)
         
         while True:
@@ -1633,6 +1672,44 @@ Remember: The cards reflect possibilities, not certainties. You always have free
                         error_msg = result if result else "Sorry, I couldn't capture your screen."
                         print(f"\n⚠️  {error_msg}\n")
                         self.speak(error_msg)
+                    continue
+
+                # 🎵 Music commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'play music', 'play song', 'play some music',
+                    'find music', 'search for music', 'search for song'
+                ]):
+                    # Extract what to play
+                    query = user_input.lower()
+                    for phrase in ['play music', 'play song', 'play some music', 'play ', 'find music', 'search for music', 'search for song']:
+                        query = query.replace(phrase, '').strip()
+
+                    if query:
+                        success = self._play_music(query)
+                        if success:
+                            self.speak(f"Opening YouTube to play {query}")
+                        else:
+                            self.speak("I had trouble opening music")
+                    else:
+                        self.speak("What music would you like me to play?")
+                    continue
+
+                # 🔍 Web search commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'search for', 'search the web', 'google', 'look up',
+                    'find information about', 'search online'
+                ]):
+                    # Extract search query
+                    query = user_input.lower()
+                    for phrase in ['search for', 'search the web for', 'search the web', 'google', 'look up', 'find information about', 'search online for', 'search online']:
+                        query = query.replace(phrase, '').strip()
+
+                    if query:
+                        print(f"\n🔍 Searching for: {query}\n")
+                        result = self._web_search(query)
+                        self.speak(result)
+                    else:
+                        self.speak("What would you like me to search for?")
                     continue
 
                 # 🔮 Tarot reading commands
