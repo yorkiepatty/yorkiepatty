@@ -982,7 +982,7 @@ class SunnyUltimateVoice:
             # Example: a lightweight search if needed
             resp = requests.get(f"https://api.duckduckgo.com/?q={query}&format=json", timeout=5)
             data = resp.json().get("AbstractText", "")
-            return data or "No external data retrieved."
+            return data or ""
         except Exception as e:
             print(f"[Reference lookup failed] {e}")
             return ""
@@ -995,7 +995,7 @@ class SunnyUltimateVoice:
         """Integrate outside data into Sunny's internal narrative."""
         if not external:
             return internal
-        return f"{internal}\n\nAfter checking external data, I also found:\n{external}"
+        return f"{internal}\n\n{external}"
 
     def _think_with_web_search(self, user_input):
         """Think with web search capabilities"""
