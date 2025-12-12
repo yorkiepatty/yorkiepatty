@@ -406,8 +406,8 @@ class VideoGenerator:
                         upload_data = json.loads(response_text)
 
                         # Check for "no face detected" error in response
-                        error_msg = upload_data.get("error", {}).get("message", "") or upload_data.get("message", "")
-                        if "face" in error_msg.lower() or "detect" in error_msg.lower():
+                        error_msg = upload_data.get("error", {}).get("message", "") or upload_data.get("message", "") or ""
+                        if error_msg and ("face" in error_msg.lower() or "detect" in error_msg.lower()):
                             print(f"[VIDEO] HeyGen: No face detected in image, will use local animation")
                             return VideoResult(
                                 success=False,
