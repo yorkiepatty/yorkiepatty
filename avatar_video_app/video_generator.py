@@ -55,23 +55,37 @@ class VideoGenerator:
         """Initialize video generation providers"""
         providers = []
 
-        # Local generator is primary - works with ANY avatar (animals, cartoons, etc.)
-        providers.append({
-            "name": "local",
-            "enabled": True,
-            "priority": 1,
-            "description": "Local video generator using OpenCV/FFmpeg - works with any avatar type"
-        })
-
-        # HeyGen API (talking avatars) - better lip-sync, works with various images
+        # HeyGen API (talking avatars) - best for human faces
         if config.heygen_api_key:
             providers.append({
                 "name": "heygen",
                 "enabled": True,  # Enable HeyGen when API key is present
-                "priority": 0,  # Highest priority - best quality lip-sync
+                "priority": 0,  # Highest priority - best quality for human faces
                 "endpoint": "https://api.heygen.com/v2/video/generate",
                 "max_duration": 180,  # 3 minutes
-                "note": "Professional lip-sync with HeyGen API"
+                "note": "Professional lip-sync with HeyGen API - best for human faces"
+            })
+
+        # Hedra direct API - WORKS WITH ANIMALS and non-human characters!
+        if config.hedra_api_key:
+            providers.append({
+                "name": "hedra",
+                "enabled": True,
+                "priority": 1,  # Try after HeyGen - works with animals/cartoons
+                "endpoint": "https://api.hedra.com/web-app/public",
+                "max_duration": 180,
+                "note": "Hedra Character API - works with animals and non-human characters"
+            })
+
+        # Sieve API (Hedra backend) - WORKS WITH ANIMALS and non-human characters!
+        if config.sieve_api_key:
+            providers.append({
+                "name": "sieve",
+                "enabled": True,
+                "priority": 2,  # Use if Hedra fails
+                "endpoint": "https://mango.sievedata.com/v2/push",
+                "max_duration": 180,
+                "note": "Hedra-powered lip-sync - works with animals and non-human characters"
             })
 
         # D-ID API (talking avatars) - only works with HUMAN faces
@@ -86,27 +100,13 @@ class VideoGenerator:
                 "note": "Only works with human faces - not animals or cartoons"
             })
 
-        # Sieve API (Hedra backend) - WORKS WITH ANIMALS and non-human characters!
-        if config.sieve_api_key:
-            providers.append({
-                "name": "sieve",
-                "enabled": True,
-                "priority": 2,  # Use for animals when HeyGen fails
-                "endpoint": "https://mango.sievedata.com/v2/push",
-                "max_duration": 180,
-                "note": "Hedra-powered lip-sync - works with animals and non-human characters"
-            })
-
-        # Hedra direct API - WORKS WITH ANIMALS and non-human characters!
-        if config.hedra_api_key:
-            providers.append({
-                "name": "hedra",
-                "enabled": True,
-                "priority": 1,  # High priority for animals when HeyGen fails
-                "endpoint": "https://api.hedra.com/web-app/public",
-                "max_duration": 180,
-                "note": "Hedra Character API - works with animals and non-human characters"
-            })
+        # Local generator is LAST RESORT - works with any avatar but poor quality
+        providers.append({
+            "name": "local",
+            "enabled": True,
+            "priority": 99,  # LAST RESORT - only use if all APIs fail
+            "description": "Local video generator using OpenCV/FFmpeg - fallback only"
+        })
 
         return sorted(providers, key=lambda x: x.get("priority", 99))
 
