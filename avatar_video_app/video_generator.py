@@ -725,6 +725,27 @@ class VideoGenerator:
                         return VideoResult(success=False, error=f"Hedra image upload failed: {error_text[:200]}")
                     print(f"[VIDEO] Image uploaded successfully")
 
+                # Step 2.5: Wait for image asset to be ready
+                print(f"[VIDEO] Waiting for image asset to be ready...")
+                max_waits = 30  # 30 seconds max
+                for i in range(max_waits):
+                    async with session.get(
+                        f"{base_url}/assets/{image_id}",
+                        headers=headers
+                    ) as response:
+                        if response.status == 200:
+                            asset_status = await response.json()
+                            status = asset_status.get("status", "").lower()
+                            print(f"[VIDEO] Image asset status: {status}")
+                            if status == "ready":
+                                print(f"[VIDEO] Image asset is ready!")
+                                break
+                            elif status in ["failed", "error"]:
+                                return VideoResult(success=False, error=f"Hedra image asset failed: {asset_status.get('error')}")
+                    await asyncio.sleep(1)
+                else:
+                    return VideoResult(success=False, error="Hedra image asset timeout - never became ready")
+
                 # Step 3: Create audio asset
                 print(f"[VIDEO] Step 3: Creating audio asset...")
                 audio_filename = os.path.basename(audio_path)
@@ -756,10 +777,33 @@ class VideoGenerator:
                         return VideoResult(success=False, error=f"Hedra audio upload failed: {error_text[:200]}")
                     print(f"[VIDEO] Audio uploaded successfully")
 
+                # Step 4.5: Wait for audio asset to be ready
+                print(f"[VIDEO] Waiting for audio asset to be ready...")
+                max_waits = 30  # 30 seconds max
+                for i in range(max_waits):
+                    async with session.get(
+                        f"{base_url}/assets/{audio_id}",
+                        headers=headers
+                    ) as response:
+                        if response.status == 200:
+                            asset_status = await response.json()
+                            status = asset_status.get("status", "").lower()
+                            print(f"[VIDEO] Audio asset status: {status}")
+                            if status == "ready":
+                                print(f"[VIDEO] Audio asset is ready!")
+                                break
+                            elif status in ["failed", "error"]:
+                                return VideoResult(success=False, error=f"Hedra audio asset failed: {asset_status.get('error')}")
+                    await asyncio.sleep(1)
+                else:
+                    return VideoResult(success=False, error="Hedra audio asset timeout - never became ready")
+
                 # Step 5: Submit generation request
                 print(f"[VIDEO] Step 5: Submitting generation request...")
+                print(f"[VIDEO] Using image ID: {image_id} (status: ready)")
+                print(f"[VIDEO] Using audio ID: {audio_id} (status: ready)")
                 gen_payload = {
-                    "imageId": image_id,
+                    "start_keyframe_id": image_id,  # Use the ready image asset ID
                     "audioId": audio_id,
                     "aspectRatio": "9:16",  # Portrait mode
                     "resolution": "540p"
