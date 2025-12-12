@@ -380,6 +380,7 @@ async def download_video(filename: str):
 async def generate_full_video(
     avatar_description: str = Form(...),
     avatar_style: str = Form(default="realistic"),
+    avatar_path: str = Form(default=None),
     voice_effect: str = Form(default="normal"),
     output_name: str = Form(default=None),
     text: str = Form(default=None),
@@ -401,30 +402,45 @@ async def generate_full_video(
         print(f"[PIPELINE] Received parameters:")
         print(f"[PIPELINE]   avatar_description: '{avatar_description[:50] if avatar_description else 'EMPTY'}'...")
         print(f"[PIPELINE]   avatar_style: '{avatar_style}'")
+        print(f"[PIPELINE]   avatar_path: '{avatar_path if avatar_path else 'NONE (will generate)'}'")
         print(f"[PIPELINE]   voice_effect: '{voice_effect}'")
         print(f"[PIPELINE]   text: '{text[:50] if text else 'NONE/EMPTY'}' (type={type(text).__name__}, len={len(text) if text else 0})")
         print(f"[PIPELINE]   audio: '{audio.filename if audio else 'NONE'}'")
         print(f"[PIPELINE] Audio source check: text={bool(text)}, audio={bool(audio)}")
         print("[PIPELINE] ============================================")
 
-        # Step 1: Generate Avatar
-        print("[PIPELINE] Step 1: Generating avatar...")
-        avatar_result = await avatar_generator.generate(
-            description=avatar_description,
-            style=avatar_style
-        )
-
-        if not avatar_result.success:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Avatar generation failed: {avatar_result.error}"
+        # Step 1: Get Avatar (use uploaded or generate new one)
+        if avatar_path:
+            # Use uploaded image
+            print(f"[PIPELINE] Step 1: Using uploaded avatar from: {avatar_path}")
+            final_avatar_path = avatar_path
+            results["steps"].append({
+                "step": "avatar",
+                "success": True,
+                "image_path": avatar_path,
+                "source": "uploaded"
+            })
+        else:
+            # Generate new avatar
+            print("[PIPELINE] Step 1: Generating new avatar...")
+            avatar_result = await avatar_generator.generate(
+                description=avatar_description,
+                style=avatar_style
             )
 
-        results["steps"].append({
-            "step": "avatar",
-            "success": True,
-            "image_path": avatar_result.image_path
-        })
+            if not avatar_result.success:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Avatar generation failed: {avatar_result.error}"
+                )
+
+            final_avatar_path = avatar_result.image_path
+            results["steps"].append({
+                "step": "avatar",
+                "success": True,
+                "image_path": avatar_result.image_path,
+                "source": "generated"
+            })
 
         # Step 2: Process Voice
         print("[PIPELINE] Step 2: Processing voice...")
@@ -473,21 +489,24 @@ async def generate_full_video(
 
         # Step 3: Generate Video
         video_result = await video_generator.generate_video(
-            avatar_image_path=avatar_result.image_path,
+            avatar_image_path=final_avatar_path,
             audio_path=voice_result.audio_path,
             output_name=output_name
         )
 
         if not video_result.success and video_result.status != "processing":
             # Return error with partial results so user can see what happened
+            avatar_response = {"image_path": final_avatar_path}
+            if not avatar_path:  # Only include these if avatar was generated
+                avatar_response.update({
+                    "image_base64": avatar_result.image_base64,
+                    "style": avatar_result.style
+                })
+
             return {
                 "success": False,
                 "error": f"Video generation failed: {video_result.error}",
-                "avatar": {
-                    "image_path": avatar_result.image_path,
-                    "image_base64": avatar_result.image_base64,
-                    "style": avatar_result.style
-                },
+                "avatar": avatar_response,
                 "voice": {
                     "audio_path": voice_result.audio_path,
                     "duration": voice_result.duration
@@ -506,14 +525,18 @@ async def generate_full_video(
             "video_path": video_result.video_path
         })
 
+        # Build avatar response based on whether it was uploaded or generated
+        avatar_response = {"image_path": final_avatar_path}
+        if not avatar_path:  # Only include these if avatar was generated
+            avatar_response.update({
+                "image_base64": avatar_result.image_base64,
+                "style": avatar_result.style
+            })
+
         return {
             "success": True,
             "message": "Video generation complete" if video_result.status == "completed" else "Video processing",
-            "avatar": {
-                "image_path": avatar_result.image_path,
-                "image_base64": avatar_result.image_base64,
-                "style": avatar_result.style
-            },
+            "avatar": avatar_response,
             "voice": {
                 "audio_path": voice_result.audio_path,
                 "duration": voice_result.duration,

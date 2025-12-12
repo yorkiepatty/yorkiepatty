@@ -31,6 +31,11 @@ function GenerateButton({
       formData.append('avatar_style', avatarStyle)
       formData.append('voice_effect', voiceEffect)
 
+      // If user uploaded an image, send the path so backend uses it instead of generating
+      if (avatarPath) {
+        formData.append('avatar_path', avatarPath)
+      }
+
       // Add audio source - debug logging
       console.log('[GenerateButton] Voice mode:', voiceMode)
       console.log('[GenerateButton] TTS text:', ttsText)
