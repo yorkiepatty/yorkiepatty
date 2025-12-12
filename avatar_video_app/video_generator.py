@@ -927,7 +927,7 @@ class VideoGenerator:
                                     return VideoResult(
                                         success=True,
                                         status="completed",
-                                        video_path=str(output_path),
+                                        video_path=output_path.name,  # Just filename, not full path
                                         video_url=result_url,
                                         provider="did",
                                         job_id=job_id,
@@ -1008,7 +1008,7 @@ class VideoGenerator:
                                     return VideoResult(
                                         success=True,
                                         status="completed",
-                                        video_path=str(output_path),
+                                        video_path=output_path.name,  # Just filename, not full path
                                         video_url=video_url,
                                         video_base64=video_b64,
                                         provider="heygen",
@@ -1108,7 +1108,7 @@ class VideoGenerator:
                                         return VideoResult(
                                             success=True,
                                             status="completed",
-                                            video_path=str(output_path),
+                                            video_path=output_path.name,  # Just filename, not full path
                                             video_url=video_url,
                                             video_base64=video_b64,
                                             provider="sieve",
@@ -1208,7 +1208,7 @@ class VideoGenerator:
                                         return VideoResult(
                                             success=True,
                                             status="completed",
-                                            video_path=str(output_path),
+                                            video_path=output_path.name,  # Just filename, not full path
                                             video_url=video_url,
                                             video_base64=video_b64,
                                             provider="hedra",
@@ -1339,7 +1339,7 @@ class VideoGenerator:
                 return VideoResult(
                     success=True,
                     status="completed",
-                    video_path=str(output_path),
+                    video_path=output_path.name,  # Just filename, not full path
                     video_base64=video_b64,
                     duration=audio_duration,
                     provider="local",
