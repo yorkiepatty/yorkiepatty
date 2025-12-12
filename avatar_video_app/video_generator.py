@@ -802,12 +802,20 @@ class VideoGenerator:
                 print(f"[VIDEO] Step 5: Submitting generation request...")
                 print(f"[VIDEO] Using image ID: {image_id} (status: ready)")
                 print(f"[VIDEO] Using audio ID: {audio_id} (status: ready)")
+
+                # Hedra requires this exact format
                 gen_payload = {
-                    "start_keyframe_id": image_id,  # Use the ready image asset ID
-                    "audioId": audio_id,
-                    "aspectRatio": "9:16",  # Portrait mode
-                    "resolution": "540p"
+                    "type": "video",
+                    "ai_model_id": "character-2",  # Hedra's character model
+                    "start_keyframe_id": image_id,  # Ready image asset ID
+                    "audio_id": audio_id,  # Ready audio asset ID (note: lowercase with underscore)
+                    "generated_video_inputs": {
+                        "resolution": "720p",
+                        "aspect_ratio": "9:16",
+                        "duration_ms": 8000  # 8 seconds default
+                    }
                 }
+                print(f"[VIDEO] Generation payload: {json.dumps(gen_payload, indent=2)}")
                 async with session.post(
                     f"{base_url}/generations",
                     headers=headers,
