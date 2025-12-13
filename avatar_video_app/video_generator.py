@@ -1137,7 +1137,8 @@ class VideoGenerator:
 
                 # Hedra status endpoint
                 hedra_id = job.get("hedra_id")
-                base_url = "https://api.hedra.com/web-app/public"
+                # Try the main API endpoint (not /web-app/public)
+                base_url = "https://api.hedra.com/v1"
 
                 print(f"[VIDEO] Fetching Hedra status from: {base_url}/generations/{hedra_id}")
 
