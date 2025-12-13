@@ -772,13 +772,13 @@ class VideoGenerator:
                 # Hedra requires this exact format
                 gen_payload = {
                     "type": "video",
-                    "ai_model_id": "character-2",  # Hedra's character model
                     "start_keyframe_id": image_id,  # Ready image asset ID
-                    "audio_id": audio_id,  # Ready audio asset ID (note: lowercase with underscore)
+                    "audio_id": audio_id,  # Ready audio asset ID
                     "generated_video_inputs": {
                         "resolution": "720p",
                         "aspect_ratio": "9:16",
-                        "duration_ms": 8000  # 8 seconds default
+                        "duration_ms": 8000,  # 8 seconds default
+                        "text_prompt": ""  # Required field, but we're using audio for lip-sync
                     }
                 }
                 print(f"[VIDEO] Generation payload: {json.dumps(gen_payload, indent=2)}")
