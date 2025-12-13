@@ -792,6 +792,8 @@ class VideoGenerator:
 
                     if response.status in [200, 201]:
                         data = json.loads(response_text)
+                        print(f"[VIDEO] Full Hedra generation response: {json.dumps(data, indent=2)}")
+
                         hedra_gen_id = data.get("id") or data.get("generationId")
 
                         if hedra_gen_id:
