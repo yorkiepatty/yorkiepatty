@@ -1129,6 +1129,7 @@ class VideoGenerator:
         hedra_key = config.hedra_api_key or os.getenv("HEDRA_API_KEY")
 
         try:
+            print(f"[VIDEO] _check_hedra_status starting for job {job_id}")
             async with aiohttp.ClientSession() as session:
                 headers = {
                     "x-api-key": hedra_key
@@ -1138,14 +1139,18 @@ class VideoGenerator:
                 hedra_id = job.get("hedra_id")
                 base_url = "https://api.hedra.com/web-app/public"
 
+                print(f"[VIDEO] Fetching Hedra status from: {base_url}/generations/{hedra_id}")
+
                 async with session.get(
                     f"{base_url}/generations/{hedra_id}",
                     headers=headers
                 ) as response:
+                    print(f"[VIDEO] Hedra status endpoint response: {response.status}")
                     if response.status == 200:
                         data = await response.json()
                         status = data.get("status", "").lower()
                         print(f"[VIDEO] Hedra status: {status}")
+                        print(f"[VIDEO] Full Hedra response: {json.dumps(data, indent=2)[:500]}")
 
                         if status in ["completed", "complete", "done"]:
                             # Get the output video URL
@@ -1214,13 +1219,19 @@ class VideoGenerator:
                                 job_id=job_id
                             )
 
-                    return VideoResult(
-                        success=False,
-                        error=f"Failed to check Hedra status: {response.status}"
-                    )
+                    else:
+                        error_text = await response.text()
+                        print(f"[VIDEO] Hedra status check failed: HTTP {response.status}")
+                        print(f"[VIDEO] Error response: {error_text[:300]}")
+                        return VideoResult(
+                            success=False,
+                            error=f"Failed to check Hedra status: {response.status}"
+                        )
 
         except Exception as e:
-            print(f"[VIDEO] Hedra status check error: {str(e)}")
+            print(f"[VIDEO] Hedra status check EXCEPTION: {type(e).__name__}: {str(e)}")
+            import traceback
+            print(f"[VIDEO] Traceback: {traceback.format_exc()[:500]}")
             return VideoResult(success=False, error=f"Hedra status check error: {str(e)}")
 
     async def _check_ffmpeg(self) -> bool:
