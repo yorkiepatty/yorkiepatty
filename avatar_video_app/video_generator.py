@@ -834,7 +834,11 @@ class VideoGenerator:
 
     async def check_job_status(self, job_id: str) -> VideoResult:
         """Check status of async video generation job"""
+        print(f"[VIDEO] Checking status for job: {job_id}")
+        print(f"[VIDEO] Jobs in memory: {list(self._jobs.keys())}")
+
         if job_id not in self._jobs:
+            print(f"[VIDEO] Job NOT FOUND in memory!")
             return VideoResult(
                 success=False,
                 error=f"Job not found: {job_id}",
@@ -842,6 +846,7 @@ class VideoGenerator:
             )
 
         job = self._jobs[job_id]
+        print(f"[VIDEO] Job found! Provider: {job['provider']}")
 
         if job["provider"] == "heygen":
             return await self._check_heygen_status(job_id, job)
@@ -850,6 +855,7 @@ class VideoGenerator:
         elif job["provider"] == "sieve":
             return await self._check_sieve_status(job_id, job)
         elif job["provider"] == "hedra":
+            print(f"[VIDEO] Calling Hedra status check...")
             return await self._check_hedra_status(job_id, job)
 
         return VideoResult(
