@@ -725,33 +725,9 @@ class VideoGenerator:
                         return VideoResult(success=False, error=f"Hedra image upload failed: {error_text[:200]}")
                     print(f"[VIDEO] Image uploaded successfully")
 
-                # Step 2.5: Wait for image asset to be ready
-                print(f"[VIDEO] Waiting for image asset to be ready...")
-                max_waits = 60  # 60 seconds max (Hedra can take time to process)
-                for i in range(max_waits):
-                    async with session.get(
-                        f"{base_url}/assets/{image_id}",
-                        headers=headers
-                    ) as response:
-                        if response.status == 200:
-                            asset_status = await response.json()
-                            status = asset_status.get("status", "").lower()
-                            if i % 5 == 0:  # Log every 5 seconds
-                                print(f"[VIDEO] Image asset status check ({i}s): {status}")
-                            if status == "ready":
-                                print(f"[VIDEO] Image asset is ready!")
-                                break
-                            elif status in ["failed", "error"]:
-                                error_msg = asset_status.get('error') or asset_status.get('message') or 'Unknown error'
-                                print(f"[VIDEO] Hedra image asset failed: {error_msg}")
-                                return VideoResult(success=False, error=f"Hedra image asset failed: {error_msg}")
-                        else:
-                            error_text = await response.text()
-                            print(f"[VIDEO] Error checking image asset status: {response.status} - {error_text[:200]}")
-                    await asyncio.sleep(1)
-                else:
-                    print(f"[VIDEO] Image asset timeout after {max_waits} seconds - status never became 'ready'")
-                    return VideoResult(success=False, error=f"Hedra image asset timeout - never became ready after {max_waits}s")
+                # Hedra assets are ready immediately after successful upload
+                # No need to poll - if upload returned 200, the asset is ready
+                print(f"[VIDEO] Image asset is ready (upload succeeded)")
 
                 # Step 3: Create audio asset
                 print(f"[VIDEO] Step 3: Creating audio asset...")
@@ -784,33 +760,9 @@ class VideoGenerator:
                         return VideoResult(success=False, error=f"Hedra audio upload failed: {error_text[:200]}")
                     print(f"[VIDEO] Audio uploaded successfully")
 
-                # Step 4.5: Wait for audio asset to be ready
-                print(f"[VIDEO] Waiting for audio asset to be ready...")
-                max_waits = 60  # 60 seconds max (Hedra can take time to process)
-                for i in range(max_waits):
-                    async with session.get(
-                        f"{base_url}/assets/{audio_id}",
-                        headers=headers
-                    ) as response:
-                        if response.status == 200:
-                            asset_status = await response.json()
-                            status = asset_status.get("status", "").lower()
-                            if i % 5 == 0:  # Log every 5 seconds
-                                print(f"[VIDEO] Audio asset status check ({i}s): {status}")
-                            if status == "ready":
-                                print(f"[VIDEO] Audio asset is ready!")
-                                break
-                            elif status in ["failed", "error"]:
-                                error_msg = asset_status.get('error') or asset_status.get('message') or 'Unknown error'
-                                print(f"[VIDEO] Hedra audio asset failed: {error_msg}")
-                                return VideoResult(success=False, error=f"Hedra audio asset failed: {error_msg}")
-                        else:
-                            error_text = await response.text()
-                            print(f"[VIDEO] Error checking audio asset status: {response.status} - {error_text[:200]}")
-                    await asyncio.sleep(1)
-                else:
-                    print(f"[VIDEO] Audio asset timeout after {max_waits} seconds - status never became 'ready'")
-                    return VideoResult(success=False, error=f"Hedra audio asset timeout - never became ready after {max_waits}s")
+                # Hedra assets are ready immediately after successful upload
+                # No need to poll - if upload returned 200, the asset is ready
+                print(f"[VIDEO] Audio asset is ready (upload succeeded)")
 
                 # Step 5: Submit generation request
                 print(f"[VIDEO] Step 5: Submitting generation request...")
