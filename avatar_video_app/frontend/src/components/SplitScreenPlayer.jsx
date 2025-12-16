@@ -19,7 +19,8 @@ function SplitScreenPlayer({ conversation, onClose }) {
   const playCurrentVideo = () => {
     const videoRef = currentLine.speaker === 1 ? videoRef1 : videoRef2
     if (videoRef.current && currentVideo) {
-      videoRef.current.src = currentVideo.url || `data:video/mp4;base64,${currentVideo.base64}`
+      // Backend sends video_base64, not just base64
+      videoRef.current.src = currentVideo.url || `data:video/mp4;base64,${currentVideo.video_base64}`
       videoRef.current.play()
     }
   }
