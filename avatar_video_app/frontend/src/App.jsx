@@ -7,8 +7,13 @@ import VideoPreview from './components/VideoPreview'
 import GenerateButton from './components/GenerateButton'
 import VideoGallery from './components/VideoGallery'
 import YorkieHelper from './components/YorkieHelper'
+import ConversationMode from './components/ConversationMode'
+import SplitScreenPlayer from './components/SplitScreenPlayer'
 
 function App() {
+  // Mode state - 'single' or 'conversation'
+  const [appMode, setAppMode] = useState('single')
+
   // State for the entire app
   const [currentStep, setCurrentStep] = useState(1)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -54,8 +59,34 @@ function App() {
     setVideoStatus(null)
   }, [])
 
+  // Conversation mode state
+  const [conversationVideo, setConversationVideo] = useState(null)
+
   // Check if ready to generate
   const canGenerate = avatarPath && (processedAudio || recordedAudio || uploadedAudio || ttsText)
+
+  // Handle conversation generation
+  const handleConversationGenerate = async (data) => {
+    // For now, just log - we'll implement the full API call later
+    console.log('[APP] Conversation generation requested:', data)
+    // TODO: Call conversation API endpoint
+  }
+
+  // If in conversation mode, show that interface
+  if (appMode === 'conversation') {
+    return conversationVideo ? (
+      <SplitScreenPlayer
+        videos={conversationVideo.videos}
+        script={conversationVideo.script}
+        onBack={() => setConversationVideo(null)}
+      />
+    ) : (
+      <ConversationMode
+        onBack={() => setAppMode('single')}
+        onGenerate={handleConversationGenerate}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen">
@@ -77,6 +108,16 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* Mode Switcher */}
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={() => setAppMode('conversation')}
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white font-bold shadow-lg transition-all"
+          >
+            🎭 Try Conversation Mode →
+          </button>
+        </div>
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
