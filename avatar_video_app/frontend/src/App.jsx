@@ -67,9 +67,49 @@ function App() {
 
   // Handle conversation generation
   const handleConversationGenerate = async (data) => {
-    // For now, just log - we'll implement the full API call later
-    console.log('[APP] Conversation generation requested:', data)
-    // TODO: Call conversation API endpoint
+    try {
+      setIsGenerating(true)
+      setError(null)
+
+      console.log('[APP] Generating conversation with:', {
+        character1: data.character1.name,
+        character2: data.character2.name,
+        avatarType1: data.character1.avatarType,
+        avatarType2: data.character2.avatarType,
+        scriptLines: data.script.length
+      })
+
+      const response = await fetch('/api/conversation/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          character1: data.character1,
+          character2: data.character2,
+          script: data.script,
+          mode: data.mode
+        })
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to generate conversation')
+      }
+
+      // Set the conversation video for playback
+      setConversationVideo({
+        videos: result.videos,
+        script: data.script
+      })
+
+    } catch (error) {
+      console.error('[APP] Conversation generation error:', error)
+      setError(error.message || 'Failed to generate conversation')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   // If in conversation mode, show that interface
