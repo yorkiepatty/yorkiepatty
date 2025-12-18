@@ -71,6 +71,12 @@ class AvatarConfig:
         self.elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
         self.hedra_api_key = os.getenv("HEDRA_API_KEY")
 
+        # Debug: Show ALL environment variables with "HEDRA" in them
+        print(f"[CONFIG] All HEDRA environment variables:")
+        for key, value in os.environ.items():
+            if "HEDRA" in key.upper():
+                print(f"[CONFIG]   {key} = {value[:20]}..." if len(value) > 20 else f"[CONFIG]   {key} = {value}")
+
         # Debug: Show which keys are loaded
         print(f"[CONFIG] HEDRA_API_KEY loaded: {'Yes' if self.hedra_api_key else 'No'}")
         if self.hedra_api_key:
