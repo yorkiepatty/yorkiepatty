@@ -51,7 +51,7 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
     return YORKIE_MESSAGES[currentStep] || YORKIE_MESSAGES.idle
   }
 
-  // Show new message
+  // Show new message with TTS
   const showMessage = (customMessage = null) => {
     const messages = getMessages()
     const newMessage = customMessage || messages[Math.floor(Math.random() * messages.length)]
@@ -65,13 +65,46 @@ function YorkieHelper({ currentStep, isGenerating, videoReady }) {
       setMouthOpen(prev => !prev)
     }, 100)
 
-    // Stop speaking after message duration
-    if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current)
-    messageTimeoutRef.current = setTimeout(() => {
-      setIsSpeaking(false)
-      if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
-      setMouthOpen(false)
-    }, newMessage.length * 50) // ~50ms per character
+    // Text-to-Speech
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel()
+
+      const utterance = new SpeechSynthesisUtterance(newMessage)
+
+      // Use a higher-pitched voice for Yorkie
+      utterance.pitch = 1.5
+      utterance.rate = 1.1
+      utterance.volume = 0.8
+
+      // Try to use a female or child-like voice
+      const voices = window.speechSynthesis.getVoices()
+      const preferredVoice = voices.find(voice =>
+        voice.name.includes('Female') ||
+        voice.name.includes('Girl') ||
+        voice.name.includes('Zira') ||
+        voice.name.includes('Google US English')
+      )
+      if (preferredVoice) {
+        utterance.voice = preferredVoice
+      }
+
+      utterance.onend = () => {
+        setIsSpeaking(false)
+        if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+        setMouthOpen(false)
+      }
+
+      window.speechSynthesis.speak(utterance)
+    } else {
+      // Fallback to timer if no TTS support
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current)
+      messageTimeoutRef.current = setTimeout(() => {
+        setIsSpeaking(false)
+        if (mouthIntervalRef.current) clearInterval(mouthIntervalRef.current)
+        setMouthOpen(false)
+      }, newMessage.length * 50)
+    }
   }
 
   // Auto-show message on step change
