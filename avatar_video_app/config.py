@@ -11,9 +11,14 @@ try:
     from dotenv import load_dotenv
     # Load from project root .env file
     env_path = Path(__file__).parent.parent / '.env'
+    print(f"[CONFIG] Loading .env from: {env_path}")
+    print(f"[CONFIG] .env file exists: {env_path.exists()}")
     load_dotenv(env_path)
-except ImportError:
-    pass  # dotenv not installed, will use system environment variables
+    print(f"[CONFIG] .env loaded successfully")
+except ImportError as e:
+    print(f"[CONFIG] python-dotenv not installed, using system environment variables")
+except Exception as e:
+    print(f"[CONFIG] Error loading .env: {e}")
 
 @dataclass
 class AvatarConfig:
@@ -52,6 +57,11 @@ class AvatarConfig:
         self.did_api_key = os.getenv("DID_API_KEY")
         self.elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
         self.hedra_api_key = os.getenv("HEDRA_API_KEY")
+
+        # Debug: Show which keys are loaded
+        print(f"[CONFIG] HEDRA_API_KEY loaded: {'Yes' if self.hedra_api_key else 'No'}")
+        if self.hedra_api_key:
+            print(f"[CONFIG] HEDRA_API_KEY: {self.hedra_api_key[:10]}...")
 
         # Default avatar styles
         if self.avatar_styles is None:
