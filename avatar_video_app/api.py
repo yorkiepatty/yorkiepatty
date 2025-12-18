@@ -516,9 +516,9 @@ async def generate_conversation(request: Request):
                     f.write(base64.b64decode(avatar_data))
 
             # Generate voice (TTS)
-            voice_result = await voice_processor.generate_tts(
+            voice_result = await voice_processor.text_to_speech(
                 text=text,
-                voice_name="default",
+                voice="default",
                 effect_name="normal"
             )
 
