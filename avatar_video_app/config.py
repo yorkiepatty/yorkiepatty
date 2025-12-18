@@ -7,15 +7,28 @@ from typing import Optional
 from pathlib import Path
 
 # Load environment variables from .env file
+env_loaded = False
 try:
     from dotenv import load_dotenv
-    # Load from project root .env file
-    env_path = Path(__file__).parent.parent / '.env'
-    print(f"[CONFIG] Loading .env from: {env_path}")
-    print(f"[CONFIG] .env file exists: {env_path.exists()}")
-    load_dotenv(env_path)
-    print(f"[CONFIG] .env loaded successfully")
-except ImportError as e:
+    # Try multiple .env file locations
+    possible_paths = [
+        Path(__file__).parent.parent / '.env',  # Project root
+        Path(__file__).parent / '.env',          # avatar_video_app folder
+        Path.cwd() / '.env',                     # Current working directory
+    ]
+
+    for env_path in possible_paths:
+        if env_path.exists():
+            print(f"[CONFIG] Loading .env from: {env_path}")
+            load_dotenv(env_path, override=True)
+            env_loaded = True
+            print(f"[CONFIG] .env loaded successfully from {env_path}")
+            break
+
+    if not env_loaded:
+        print(f"[CONFIG] No .env file found in searched locations")
+
+except ImportError:
     print(f"[CONFIG] python-dotenv not installed, using system environment variables")
 except Exception as e:
     print(f"[CONFIG] Error loading .env: {e}")
