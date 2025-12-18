@@ -142,6 +142,47 @@ async def get_avatar_styles():
     }
 
 
+@app.get("/api/avatars/list")
+async def list_avatars():
+    """List all available avatars from avatar_outputs directory"""
+    import os
+    import base64
+    from pathlib import Path
+
+    avatars = []
+    avatar_dir = Path("avatar_outputs")
+
+    if not avatar_dir.exists():
+        return {"success": True, "avatars": []}
+
+    # Get all image files
+    for file_path in avatar_dir.glob("*"):
+        if file_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif']:
+            try:
+                # Read and encode image
+                with open(file_path, 'rb') as f:
+                    image_data = f.read()
+                    image_base64 = f"data:image/{file_path.suffix[1:]};base64,{base64.b64encode(image_data).decode()}"
+
+                avatars.append({
+                    "filename": file_path.name,
+                    "path": str(file_path),
+                    "source": "local",
+                    "image_base64": image_base64,
+                    "is_heygen": False,
+                    "heygen_id": None,
+                    "heygen_name": None
+                })
+            except Exception as e:
+                print(f"Error loading avatar {file_path}: {e}")
+                continue
+
+    return {
+        "success": True,
+        "avatars": avatars
+    }
+
+
 # ============== Voice Endpoints ==============
 
 @app.post("/api/voice/upload")
