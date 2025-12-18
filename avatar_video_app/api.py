@@ -451,6 +451,132 @@ async def generate_full_video(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============== Conversation Generation ==============
+
+@app.post("/api/conversation/generate")
+async def generate_conversation(request: Request):
+    """Generate a multi-character conversation video"""
+    try:
+        data = await request.json()
+
+        character1 = data.get('character1')
+        character2 = data.get('character2')
+        script = data.get('script', [])
+        mode = data.get('mode', 'scripted')
+
+        if not character1 or not character2:
+            raise HTTPException(status_code=400, detail="Both characters are required")
+
+        if not script or len(script) == 0:
+            raise HTTPException(status_code=400, detail="Script is required")
+
+        job_id = video_generator._generate_job_id()
+        videos = []
+
+        print(f"[CONVERSATION] Starting conversation generation")
+        print(f"[CONVERSATION] Character 1: {character1.get('name')} - avatarType: {character1.get('avatarType', 'NOT SET')}")
+        print(f"[CONVERSATION] Character 2: {character2.get('name')} - avatarType: {character2.get('avatarType', 'NOT SET')}")
+        print(f"[CONVERSATION] Script lines: {len(script)}")
+
+        # Generate each line
+        for index, line in enumerate(script):
+            speaker_num = line.get('speaker')
+            text = line.get('text')
+
+            if not text:
+                continue
+
+            # Select the character
+            character = character1 if speaker_num == 1 else character2
+            avatar_type = character.get('avatarType', 'human')
+
+            print(f"[CONVERSATION] Generating line {index + 1}/{len(script)}")
+            print(f"[CONVERSATION] Speaker: {character.get('name')}")
+            print(f"[CONVERSATION] Avatar type: {avatar_type}")
+            print(f"[CONVERSATION] Text: {text}")
+
+            # Get avatar image path or base64
+            avatar_path = character.get('path')
+            if not avatar_path and character.get('avatarImage'):
+                # If no path, save the base64 image temporarily
+                import base64
+                import tempfile
+                from pathlib import Path
+
+                avatar_data = character.get('avatarImage')
+                if avatar_data.startswith('data:image'):
+                    avatar_data = avatar_data.split(',')[1]
+
+                # Save to temp file
+                temp_dir = Path(config.output_dir) / "temp"
+                temp_dir.mkdir(exist_ok=True)
+                avatar_path = str(temp_dir / f"{job_id}_speaker{speaker_num}.png")
+
+                with open(avatar_path, 'wb') as f:
+                    f.write(base64.b64decode(avatar_data))
+
+            # Generate voice (TTS)
+            voice_result = await voice_processor.generate_tts(
+                text=text,
+                voice_name="default",
+                effect_name="normal"
+            )
+
+            if not voice_result.success:
+                raise HTTPException(status_code=500, detail=f"Voice generation failed: {voice_result.error}")
+
+            # Generate video with proper routing
+            if avatar_type == 'animal':
+                # Use Hedra directly for animal avatars
+                print(f"[CONVERSATION] Using Hedra for animal avatar...")
+                job_id_video = video_generator._generate_job_id()
+                video_result = await video_generator._generate_with_hedra(
+                    avatar_path=avatar_path,
+                    audio_path=voice_result.audio_path,
+                    job_id=job_id_video,
+                    output_name=f"{job_id}_line_{index}"
+                )
+            else:
+                # Use normal provider chain (HeyGen first) for human avatars
+                print(f"[CONVERSATION] Using HeyGen for human avatar...")
+                video_result = await video_generator.generate_video(
+                    avatar_image_path=avatar_path,
+                    audio_path=voice_result.audio_path,
+                    output_name=f"{job_id}_line_{index}"
+                )
+
+            if not video_result.success:
+                raise HTTPException(status_code=500, detail=f"Video generation failed: {video_result.error}")
+
+            # Add to results
+            videos.append({
+                "speaker": speaker_num,
+                "text": text,
+                "character_name": character.get('name'),
+                "video_base64": video_result.video_base64,
+                "video_path": video_result.video_path,
+                "duration": voice_result.duration,
+                "provider": video_result.provider
+            })
+
+            print(f"[CONVERSATION] Line {index + 1} generated successfully with {video_result.provider}")
+
+        return {
+            "success": True,
+            "videos": videos,
+            "job_id": job_id,
+            "total_lines": len(videos)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[CONVERSATION] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============== Static Files (for frontend) ==============
 
 # Mount output directory for video access
