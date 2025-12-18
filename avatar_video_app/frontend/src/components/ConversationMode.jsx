@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { getCharacters, saveCharacter, createCharacter } from '../utils/characterStorage'
+import YorkieHelper from './YorkieHelper'
 
 function ConversationMode({ onBack, onGenerate }) {
   const [mode, setMode] = useState(null) // 'ai' or 'scripted'
@@ -409,6 +410,13 @@ function ConversationMode({ onBack, onGenerate }) {
           </button>
         )}
       </div>
+
+      {/* Yorkie Helper */}
+      <YorkieHelper
+        currentStep={script.length > 0 ? 3 : character1 && character2 ? 2 : 1}
+        isGenerating={false}
+        videoReady={false}
+      />
     </div>
   )
 }
