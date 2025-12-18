@@ -525,25 +525,13 @@ async def generate_conversation(request: Request):
             if not voice_result.success:
                 raise HTTPException(status_code=500, detail=f"Voice generation failed: {voice_result.error}")
 
-            # Generate video with proper routing
-            if avatar_type == 'animal':
-                # Use Hedra directly for animal avatars
-                print(f"[CONVERSATION] Using Hedra for animal avatar...")
-                job_id_video = video_generator._generate_job_id()
-                video_result = await video_generator._generate_with_hedra(
-                    avatar_path=avatar_path,
-                    audio_path=voice_result.audio_path,
-                    job_id=job_id_video,
-                    output_name=f"{job_id}_line_{index}"
-                )
-            else:
-                # Use normal provider chain (HeyGen first) for human avatars
-                print(f"[CONVERSATION] Using HeyGen for human avatar...")
-                video_result = await video_generator.generate_video(
-                    avatar_image_path=avatar_path,
-                    audio_path=voice_result.audio_path,
-                    output_name=f"{job_id}_line_{index}"
-                )
+            # Generate video (local provider works with all avatar types)
+            print(f"[CONVERSATION] Generating video for {avatar_type} avatar...")
+            video_result = await video_generator.generate_video(
+                avatar_image_path=avatar_path,
+                audio_path=voice_result.audio_path,
+                output_name=f"{job_id}_line_{index}"
+            )
 
             if not video_result.success:
                 raise HTTPException(status_code=500, detail=f"Video generation failed: {video_result.error}")
