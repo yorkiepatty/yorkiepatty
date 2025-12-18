@@ -4,6 +4,16 @@ Configuration for Avatar Video App
 import os
 from dataclasses import dataclass
 from typing import Optional
+from pathlib import Path
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    # Load from project root .env file
+    env_path = Path(__file__).parent.parent / '.env'
+    load_dotenv(env_path)
+except ImportError:
+    pass  # dotenv not installed, will use system environment variables
 
 @dataclass
 class AvatarConfig:
