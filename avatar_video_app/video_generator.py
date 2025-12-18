@@ -718,14 +718,18 @@ class VideoGenerator:
 
                 # 5. Add subtle brightness variation based on talking
                 brightness = int(8 * energy * np.sin(t * 10 * np.pi))
-                frame = cv2.add(frame, np.ones_like(frame) * brightness, dtype=cv2.CV_8UC3)
+                # Clip brightness to valid range to avoid uint8 overflow
+                brightness = np.clip(brightness, -30, 30)
+                frame = np.clip(frame.astype(np.int16) + brightness, 0, 255).astype(np.uint8)
 
                 # 6. Add subtle glow effect when talking (simulates energy/expression)
                 if energy > 0.5:
                     # Add warm glow overlay
-                    glow = np.zeros_like(frame)
-                    glow[:, :, 2] = int(20 * (energy - 0.5))  # Red channel
-                    glow[:, :, 1] = int(10 * (energy - 0.5))  # Green channel
+                    glow = np.zeros_like(frame, dtype=np.uint8)
+                    red_val = np.clip(int(20 * (energy - 0.5)), 0, 255)
+                    green_val = np.clip(int(10 * (energy - 0.5)), 0, 255)
+                    glow[:, :, 2] = red_val  # Red channel
+                    glow[:, :, 1] = green_val  # Green channel
                     frame = cv2.addWeighted(frame, 1.0, glow, 0.3, 0)
 
                 out.write(frame)
