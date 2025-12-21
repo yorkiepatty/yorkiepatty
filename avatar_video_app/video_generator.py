@@ -442,33 +442,40 @@ class VideoGenerator:
 
                 # Step 2: Upload audio file
                 print(f"[HEYGEN] Step 2: Uploading audio file...")
-                audio_name = Path(audio_path).name
 
+                # Read audio as raw binary data
                 with open(audio_path, "rb") as f:
-                    form_data = aiohttp.FormData()
-                    form_data.add_field("file", f, filename=audio_name)
+                    audio_data = f.read()
 
-                    async with session.post(
-                        f"{upload_base}/v1/asset",
-                        headers=headers,
-                        data=form_data,
-                        timeout=aiohttp.ClientTimeout(total=60)
-                    ) as response:
-                        if response.status != 200:
-                            error_text = await response.text()
-                            print(f"[HEYGEN] ERROR: Upload audio failed ({response.status}): {error_text}")
-                            return VideoResult(success=False, error=f"HeyGen upload audio failed: {error_text}")
+                # Detect content type from file extension
+                audio_content_type, _ = mimetypes.guess_type(audio_path)
+                if not audio_content_type or not audio_content_type.startswith('audio/'):
+                    audio_content_type = "audio/mpeg"  # fallback for mp3
 
-                        upload_result = await response.json()
-                        print(f"[HEYGEN] Audio upload response: {upload_result}")
+                async with session.post(
+                    f"{upload_base}/v1/asset",
+                    headers={
+                        "X-Api-Key": config.heygen_api_key,
+                        "Content-Type": audio_content_type
+                    },
+                    data=audio_data,  # Send raw binary data
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        print(f"[HEYGEN] ERROR: Upload audio failed ({response.status}): {error_text}")
+                        return VideoResult(success=False, error=f"HeyGen upload audio failed: {error_text}")
 
-                        audio_url = upload_result.get("data", {}).get("url")
+                    upload_result = await response.json()
+                    print(f"[HEYGEN] Audio upload response: {upload_result}")
 
-                        if not audio_url:
-                            print(f"[HEYGEN] ERROR: No audio URL in response: {upload_result}")
-                            return VideoResult(success=False, error="HeyGen did not return audio URL")
+                    audio_url = upload_result.get("data", {}).get("url")
 
-                        print(f"[HEYGEN] Audio uploaded successfully: {audio_url}")
+                    if not audio_url:
+                        print(f"[HEYGEN] ERROR: No audio URL in response: {upload_result}")
+                        return VideoResult(success=False, error="HeyGen did not return audio URL")
+
+                    print(f"[HEYGEN] Audio uploaded successfully: {audio_url}")
 
                 # Step 3: Create video generation
                 print(f"[HEYGEN] Step 3: Creating video generation...")
