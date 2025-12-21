@@ -41,6 +41,7 @@ class AvatarConfig:
     did_api_key: Optional[str] = None
     elevenlabs_api_key: Optional[str] = None
     hedra_api_key: Optional[str] = None
+    heygen_api_key: Optional[str] = None
 
     # Avatar settings
     default_avatar_size: tuple = (512, 512)
@@ -70,6 +71,7 @@ class AvatarConfig:
         self.did_api_key = os.getenv("DID_API_KEY")
         self.elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
         self.hedra_api_key = os.getenv("HEDRA_API_KEY")
+        self.heygen_api_key = os.getenv("HEYGEN_API_KEY")
 
         # Debug: Show ALL environment variables with "HEDRA" in them
         print(f"[CONFIG] All HEDRA environment variables:")
@@ -81,6 +83,10 @@ class AvatarConfig:
         print(f"[CONFIG] HEDRA_API_KEY loaded: {'Yes' if self.hedra_api_key else 'No'}")
         if self.hedra_api_key:
             print(f"[CONFIG] HEDRA_API_KEY: {self.hedra_api_key[:10]}...")
+
+        print(f"[CONFIG] HEYGEN_API_KEY loaded: {'Yes' if self.heygen_api_key else 'No'}")
+        if self.heygen_api_key:
+            print(f"[CONFIG] HEYGEN_API_KEY: {self.heygen_api_key[:10]}...")
 
         # Default avatar styles
         if self.avatar_styles is None:

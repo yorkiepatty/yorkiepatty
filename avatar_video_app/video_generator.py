@@ -58,10 +58,24 @@ class VideoGenerator:
         # Debug: Show config state
         print(f"[VIDEO_GEN] Initializing providers...")
         print(f"[VIDEO_GEN] config.hedra_api_key: {'SET' if config.hedra_api_key else 'NOT SET'}")
+        print(f"[VIDEO_GEN] config.heygen_api_key: {'SET' if config.heygen_api_key else 'NOT SET'}")
+
+        # HeyGen API - BEST for realistic human avatars
+        if config.heygen_api_key:
+            print(f"[VIDEO_GEN] Adding HeyGen provider (priority 1 for humans)")
+            providers.append({
+                "name": "heygen",
+                "enabled": True,
+                "priority": 1,
+                "endpoint": "https://api.heygen.com/v2/video/generate",
+                "description": "HeyGen API - optimized for realistic human avatars"
+            })
+        else:
+            print(f"[VIDEO_GEN] HeyGen provider NOT added (no API key)")
 
         # Hedra API - BEST for animals, cartoons, and non-human avatars
         if config.hedra_api_key:
-            print(f"[VIDEO_GEN] Adding Hedra provider (priority 1)")
+            print(f"[VIDEO_GEN] Adding Hedra provider (priority 1 for animals/cartoons)")
             providers.append({
                 "name": "hedra",
                 "enabled": True,
@@ -103,11 +117,34 @@ class VideoGenerator:
         random_part = hashlib.md5(os.urandom(8)).hexdigest()[:8]
         return f"video_{timestamp}_{random_part}"
 
+    async def _try_provider(
+        self,
+        provider: Dict[str, Any],
+        avatar_path: str,
+        audio_path: str,
+        job_id: str,
+        output_name: Optional[str]
+    ) -> VideoResult:
+        """Try a specific provider for video generation"""
+        provider_name = provider["name"]
+
+        if provider_name == "heygen":
+            return await self._generate_with_heygen(avatar_path, audio_path, job_id, output_name)
+        elif provider_name == "hedra":
+            return await self._generate_with_hedra(avatar_path, audio_path, job_id, output_name)
+        elif provider_name == "did":
+            return await self._generate_with_did(avatar_path, audio_path, job_id, output_name)
+        elif provider_name == "local":
+            return await self._generate_local(avatar_path, audio_path, job_id, output_name)
+        else:
+            return VideoResult(success=False, error=f"Unknown provider: {provider_name}")
+
     async def generate_video(
         self,
         avatar_image_path: str,
         audio_path: str,
-        output_name: Optional[str] = None
+        output_name: Optional[str] = None,
+        preferred_provider: Optional[str] = None
     ) -> VideoResult:
         """
         Generate a talking avatar video.
@@ -116,6 +153,7 @@ class VideoGenerator:
             avatar_image_path: Path to avatar image
             audio_path: Path to audio file
             output_name: Optional custom output filename
+            preferred_provider: Optional provider name to try first (e.g., 'heygen', 'hedra')
 
         Returns:
             VideoResult with video data or job status
@@ -137,31 +175,31 @@ class VideoGenerator:
                 job_id=job_id
             )
 
+        # If preferred provider is specified, try it first
+        if preferred_provider:
+            print(f"[VIDEO_GEN] Preferred provider requested: {preferred_provider}")
+            for provider in self.providers:
+                if provider.get("enabled") and provider["name"] == preferred_provider:
+                    print(f"[VIDEO_GEN] Trying preferred provider: {preferred_provider}")
+                    result = await self._try_provider(provider, avatar_image_path, audio_path, job_id, output_name)
+                    if result.success or result.status == "processing":
+                        return result
+                    else:
+                        print(f"[VIDEO_GEN] Preferred provider {preferred_provider} failed, will try others")
+                    break
+
         # Try providers in order
         for provider in self.providers:
             if not provider.get("enabled"):
                 continue
 
-            if provider["name"] == "hedra":
-                result = await self._generate_with_hedra(
-                    avatar_image_path, audio_path, job_id, output_name
-                )
-                if result.success or result.status == "processing":
-                    return result
+            # Skip if we already tried this as preferred provider
+            if preferred_provider and provider["name"] == preferred_provider:
+                continue
 
-            elif provider["name"] == "did":
-                result = await self._generate_with_did(
-                    avatar_image_path, audio_path, job_id, output_name
-                )
-                if result.success or result.status == "processing":
-                    return result
-
-            elif provider["name"] == "local":
-                result = await self._generate_local(
-                    avatar_image_path, audio_path, job_id, output_name
-                )
-                if result.success:
-                    return result
+            result = await self._try_provider(provider, avatar_image_path, audio_path, job_id, output_name)
+            if result.success or result.status == "processing":
+                return result
 
         return VideoResult(
             success=False,
@@ -336,6 +374,218 @@ class VideoGenerator:
 
         except Exception as e:
             return VideoResult(success=False, error=f"Status check error: {str(e)}")
+
+    async def _generate_with_heygen(
+        self,
+        avatar_path: str,
+        audio_path: str,
+        job_id: str,
+        output_name: Optional[str]
+    ) -> VideoResult:
+        """
+        Generate video using HeyGen API for realistic human avatars.
+        Reference: https://docs.heygen.com/reference/create-an-avatar-video-v2
+        """
+        if not config.heygen_api_key:
+            return VideoResult(success=False, error="HeyGen API key not configured")
+
+        try:
+            print(f"[HEYGEN] Starting video generation for job {job_id}")
+
+            base_url = "https://api.heygen.com"
+
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "X-Api-Key": config.heygen_api_key,
+                    "Content-Type": "application/json"
+                }
+
+                # HeyGen typically requires pre-uploaded assets or uses photo avatars
+                # For now, we'll use their photo avatar feature with uploaded image
+
+                # Step 1: Upload avatar image
+                print(f"[HEYGEN] Step 1: Uploading avatar image...")
+                avatar_name = Path(avatar_path).name
+
+                with open(avatar_path, "rb") as f:
+                    form_data = aiohttp.FormData()
+                    form_data.add_field("file", f, filename=avatar_name)
+
+                    async with session.post(
+                        f"{base_url}/v1/photo.upload",
+                        headers={"X-Api-Key": config.heygen_api_key},
+                        data=form_data,
+                        timeout=aiohttp.ClientTimeout(total=60)
+                    ) as response:
+                        if response.status != 200:
+                            error_text = await response.text()
+                            print(f"[HEYGEN] ERROR: Upload avatar failed ({response.status}): {error_text}")
+                            return VideoResult(success=False, error=f"HeyGen upload avatar failed: {error_text}")
+
+                        upload_result = await response.json()
+                        photo_id = upload_result.get("data", {}).get("photo_id")
+
+                        if not photo_id:
+                            print(f"[HEYGEN] ERROR: No photo_id in response: {upload_result}")
+                            return VideoResult(success=False, error="HeyGen did not return photo_id")
+
+                        print(f"[HEYGEN] Avatar uploaded successfully: {photo_id}")
+
+                # Step 2: Upload audio file
+                print(f"[HEYGEN] Step 2: Uploading audio file...")
+                audio_name = Path(audio_path).name
+
+                with open(audio_path, "rb") as f:
+                    form_data = aiohttp.FormData()
+                    form_data.add_field("file", f, filename=audio_name)
+
+                    async with session.post(
+                        f"{base_url}/v1/asset.upload",
+                        headers={"X-Api-Key": config.heygen_api_key},
+                        data=form_data,
+                        timeout=aiohttp.ClientTimeout(total=60)
+                    ) as response:
+                        if response.status != 200:
+                            error_text = await response.text()
+                            print(f"[HEYGEN] ERROR: Upload audio failed ({response.status}): {error_text}")
+                            return VideoResult(success=False, error=f"HeyGen upload audio failed: {error_text}")
+
+                        upload_result = await response.json()
+                        audio_url = upload_result.get("data", {}).get("url")
+
+                        if not audio_url:
+                            print(f"[HEYGEN] ERROR: No audio URL in response: {upload_result}")
+                            return VideoResult(success=False, error="HeyGen did not return audio URL")
+
+                        print(f"[HEYGEN] Audio uploaded successfully")
+
+                # Step 3: Create video generation
+                print(f"[HEYGEN] Step 3: Creating video generation...")
+                generation_payload = {
+                    "video_inputs": [
+                        {
+                            "character": {
+                                "type": "photo",
+                                "photo_id": photo_id,
+                                "photo_url": None
+                            },
+                            "voice": {
+                                "type": "audio",
+                                "audio_url": audio_url
+                            }
+                        }
+                    ],
+                    "dimension": {
+                        "width": 1080,
+                        "height": 1920
+                    },
+                    "aspect_ratio": "9:16",
+                    "test": False
+                }
+
+                async with session.post(
+                    f"{base_url}/v2/video/generate",
+                    headers=headers,
+                    json=generation_payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        print(f"[HEYGEN] ERROR: Create generation failed ({response.status}): {error_text}")
+                        return VideoResult(success=False, error=f"HeyGen create generation failed: {error_text}")
+
+                    generation = await response.json()
+                    video_id = generation.get("data", {}).get("video_id")
+
+                    if not video_id:
+                        print(f"[HEYGEN] ERROR: No video_id in response: {generation}")
+                        return VideoResult(success=False, error="HeyGen did not return video_id")
+
+                    print(f"[HEYGEN] Generation created: {video_id}")
+
+                # Step 4: Poll for completion
+                print(f"[HEYGEN] Step 4: Waiting for video generation (polling every 5s)...")
+                download_url = await self._poll_heygen_generation(session, headers, base_url, video_id, max_wait=300)
+
+                if not download_url:
+                    return VideoResult(success=False, error="HeyGen generation timed out or failed")
+
+                # Step 5: Download video
+                print(f"[HEYGEN] Step 5: Downloading video from: {download_url}")
+                async with session.get(download_url, timeout=aiohttp.ClientTimeout(total=120)) as response:
+                    if response.status != 200:
+                        return VideoResult(success=False, error=f"Failed to download video ({response.status})")
+
+                    video_data = await response.read()
+
+                    # Save video
+                    output_filename = output_name or f"{job_id}_heygen.mp4"
+                    output_path = self.output_dir / output_filename
+
+                    with open(output_path, "wb") as f:
+                        f.write(video_data)
+
+                    video_b64 = base64.b64encode(video_data).decode()
+
+                    print(f"[HEYGEN] ✅ Video saved successfully: {output_path}")
+
+                    return VideoResult(
+                        success=True,
+                        video_path=str(output_path),
+                        video_base64=video_b64,
+                        provider="heygen",
+                        job_id=job_id,
+                        status="completed"
+                    )
+
+        except Exception as e:
+            print(f"[HEYGEN] ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return VideoResult(success=False, error=f"HeyGen error: {str(e)}")
+
+    async def _poll_heygen_generation(
+        self,
+        session: aiohttp.ClientSession,
+        headers: dict,
+        base_url: str,
+        video_id: str,
+        max_wait: int = 300
+    ) -> Optional[str]:
+        """Poll HeyGen generation status and return download URL when complete"""
+        start_time = asyncio.get_event_loop().time()
+
+        while (asyncio.get_event_loop().time() - start_time) < max_wait:
+            try:
+                async with session.get(
+                    f"{base_url}/v1/video_status.get",
+                    headers=headers,
+                    params={"video_id": video_id},
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        status = data.get("data", {}).get("status")
+
+                        print(f"[HEYGEN] Status: {status}")
+
+                        if status == "completed":
+                            video_url = data.get("data", {}).get("video_url")
+                            return video_url
+                        elif status == "failed" or status == "error":
+                            error_msg = data.get("data", {}).get("error", "Unknown error")
+                            print(f"[HEYGEN] Generation failed: {error_msg}")
+                            return None
+
+                # Wait 5 seconds before next poll
+                await asyncio.sleep(5)
+
+            except Exception as e:
+                print(f"[HEYGEN] Polling error: {e}")
+                await asyncio.sleep(5)
+
+        print(f"[HEYGEN] Generation timed out after {max_wait}s")
+        return None
 
     async def _generate_with_hedra(
         self,

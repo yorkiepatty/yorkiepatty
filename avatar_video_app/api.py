@@ -525,12 +525,16 @@ async def generate_conversation(request: Request):
             if not voice_result.success:
                 raise HTTPException(status_code=500, detail=f"Voice generation failed: {voice_result.error}")
 
-            # Generate video (local provider works with all avatar types)
-            print(f"[CONVERSATION] Generating video for {avatar_type} avatar...")
+            # Route to appropriate provider based on avatar type
+            # HeyGen for humans, Hedra for animals/cartoons
+            preferred_provider = "heygen" if avatar_type == "human" else "hedra"
+            print(f"[CONVERSATION] Generating video for {avatar_type} avatar using {preferred_provider}...")
+
             video_result = await video_generator.generate_video(
                 avatar_image_path=avatar_path,
                 audio_path=voice_result.audio_path,
-                output_name=f"{job_id}_line_{index}"
+                output_name=f"{job_id}_line_{index}",
+                preferred_provider=preferred_provider
             )
 
             if not video_result.success:
