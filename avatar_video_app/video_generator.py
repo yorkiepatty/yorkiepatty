@@ -403,34 +403,42 @@ class VideoGenerator:
 
                 # Step 1: Upload avatar image as talking photo
                 print(f"[HEYGEN] Step 1: Uploading avatar image as talking photo...")
-                avatar_name = Path(avatar_path).name
 
+                # Read image as raw binary data
                 with open(avatar_path, "rb") as f:
-                    form_data = aiohttp.FormData()
-                    form_data.add_field("file", f, filename=avatar_name)
+                    image_data = f.read()
 
-                    async with session.post(
-                        f"{upload_base}/v1/talking_photo",
-                        headers=headers,
-                        data=form_data,
-                        timeout=aiohttp.ClientTimeout(total=60)
-                    ) as response:
-                        if response.status != 200:
-                            error_text = await response.text()
-                            print(f"[HEYGEN] ERROR: Upload talking photo failed ({response.status}): {error_text}")
-                            return VideoResult(success=False, error=f"HeyGen upload talking photo failed: {error_text}")
+                # Detect content type from file extension
+                import mimetypes
+                content_type, _ = mimetypes.guess_type(avatar_path)
+                if not content_type or not content_type.startswith('image/'):
+                    content_type = "image/jpeg"  # fallback
 
-                        upload_result = await response.json()
-                        print(f"[HEYGEN] Upload response: {upload_result}")
+                async with session.post(
+                    f"{upload_base}/v1/talking_photo",
+                    headers={
+                        "X-Api-Key": config.heygen_api_key,
+                        "Content-Type": content_type
+                    },
+                    data=image_data,  # Send raw binary data
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        print(f"[HEYGEN] ERROR: Upload talking photo failed ({response.status}): {error_text}")
+                        return VideoResult(success=False, error=f"HeyGen upload talking photo failed: {error_text}")
 
-                        # Extract talking_photo_id from response
-                        talking_photo_id = upload_result.get("data", {}).get("talking_photo_id")
+                    upload_result = await response.json()
+                    print(f"[HEYGEN] Upload response: {upload_result}")
 
-                        if not talking_photo_id:
-                            print(f"[HEYGEN] ERROR: No talking_photo_id in response: {upload_result}")
-                            return VideoResult(success=False, error="HeyGen did not return talking_photo_id")
+                    # Extract talking_photo_id from response
+                    talking_photo_id = upload_result.get("data", {}).get("talking_photo_id")
 
-                        print(f"[HEYGEN] Talking photo uploaded successfully: {talking_photo_id}")
+                    if not talking_photo_id:
+                        print(f"[HEYGEN] ERROR: No talking_photo_id in response: {upload_result}")
+                        return VideoResult(success=False, error="HeyGen did not return talking_photo_id")
+
+                    print(f"[HEYGEN] Talking photo uploaded successfully: {talking_photo_id}")
 
                 # Step 2: Upload audio file
                 print(f"[HEYGEN] Step 2: Uploading audio file...")
