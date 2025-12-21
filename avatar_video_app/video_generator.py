@@ -693,10 +693,11 @@ class VideoGenerator:
                 print(f"[HEDRA] Step 5: Creating video generation...")
                 generation_payload = {
                     "type": "video",
-                    "ai_model_id": "1",
+                    "ai_model_id": "d1dd37a3-e39a-4854-a298-6510289f9cf2",  # Valid UUID for Hedra model
                     "start_keyframe_id": image_id,
                     "audio_id": audio_id,
                     "generated_video_inputs": {
+                        "text_prompt": "A talking avatar",  # Required field
                         "resolution": "720p",
                         "aspect_ratio": "9:16"
                     }
