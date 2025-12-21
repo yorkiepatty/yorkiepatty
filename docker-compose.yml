@@ -15,6 +15,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - HEDRA_API_KEY=${HEDRA_API_KEY}
+      - HEYGEN_API_KEY=${HEYGEN_API_KEY}
     volumes:
       - ./derek_knowledge:/var/task/derek_knowledge
       - ./derek_memory:/var/task/derek_memory
