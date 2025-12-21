@@ -612,7 +612,7 @@ class VideoGenerator:
 
             async with aiohttp.ClientSession() as session:
                 headers = {
-                    "x-api-key": config.hedra_api_key  # Lowercase with hyphen!
+                    "X-API-Key": config.hedra_api_key  # Capitalized header
                 }
 
                 # Step 1: Create image asset
@@ -642,7 +642,7 @@ class VideoGenerator:
 
                     async with session.post(
                         f"{base_url}/assets/{image_id}/upload",
-                        headers={"x-api-key": config.hedra_api_key},  # Don't set Content-Type for multipart
+                        headers={"X-API-Key": config.hedra_api_key},  # Don't set Content-Type for multipart
                         data=form_data,
                         timeout=aiohttp.ClientTimeout(total=60)
                     ) as response:
@@ -679,7 +679,7 @@ class VideoGenerator:
 
                     async with session.post(
                         f"{base_url}/assets/{audio_id}/upload",
-                        headers={"x-api-key": config.hedra_api_key},
+                        headers={"X-API-Key": config.hedra_api_key},
                         data=form_data,
                         timeout=aiohttp.ClientTimeout(total=60)
                     ) as response:
