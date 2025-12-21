@@ -345,157 +345,136 @@ class VideoGenerator:
         output_name: Optional[str]
     ) -> VideoResult:
         """
-        Generate video using Hedra API.
-        Hedra requires a multi-step process:
-        1. Upload image asset → get image_asset_id
-        2. Wait for image to be ready
-        3. Upload audio asset → get audio_asset_id
-        4. Wait for audio to be ready
-        5. Request video generation with both asset IDs
-        6. Poll for video completion
-        7. Download the final video
+        Generate video using Hedra API with correct two-step upload process.
+        Reference: https://github.com/hedra-labs/hedra-api-starter
         """
         if not config.hedra_api_key:
             return VideoResult(success=False, error="Hedra API key not configured")
 
         try:
-            print(f"[HEDRA] Starting multi-step video generation for job {job_id}")
+            print(f"[HEDRA] Starting video generation for job {job_id}")
+
+            base_url = "https://api.hedra.com/web-app/public"
 
             async with aiohttp.ClientSession() as session:
                 headers = {
-                    "X-API-Key": config.hedra_api_key,
-                    "Content-Type": "application/json"
+                    "x-api-key": config.hedra_api_key  # Lowercase with hyphen!
                 }
 
-                # Step 1: Upload image asset
-                print(f"[HEDRA] Step 1: Uploading image asset...")
+                # Step 1: Create image asset
+                print(f"[HEDRA] Step 1: Creating image asset...")
+                avatar_name = Path(avatar_path).name
+
+                async with session.post(
+                    f"{base_url}/assets",
+                    headers={**headers, "Content-Type": "application/json"},
+                    json={"name": avatar_name, "type": "image"},
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        print(f"[HEDRA] ERROR: Create image asset failed ({response.status}): {error_text}")
+                        return VideoResult(success=False, error=f"Hedra create image asset failed: {error_text}")
+
+                    image_asset = await response.json()
+                    image_id = image_asset["id"]
+                    print(f"[HEDRA] Image asset created: {image_id}")
+
+                # Step 2: Upload image file
+                print(f"[HEDRA] Step 2: Uploading image file...")
                 with open(avatar_path, "rb") as f:
-                    image_data = base64.b64encode(f.read()).decode()
+                    form_data = aiohttp.FormData()
+                    form_data.add_field("file", f, filename=avatar_name)
 
-                image_ext = Path(avatar_path).suffix.lower()
-                image_type = "image/png" if image_ext == ".png" else "image/jpeg"
+                    async with session.post(
+                        f"{base_url}/assets/{image_id}/upload",
+                        headers={"x-api-key": config.hedra_api_key},  # Don't set Content-Type for multipart
+                        data=form_data,
+                        timeout=aiohttp.ClientTimeout(total=60)
+                    ) as response:
+                        if response.status != 200:
+                            error_text = await response.text()
+                            print(f"[HEDRA] ERROR: Upload image failed ({response.status}): {error_text}")
+                            return VideoResult(success=False, error=f"Hedra upload image failed: {error_text}")
+                        print(f"[HEDRA] Image uploaded successfully")
 
-                image_payload = {
-                    "type": "image",
-                    "data": f"data:{image_type};base64,{image_data}"
-                }
+                # Step 3: Create audio asset
+                print(f"[HEDRA] Step 3: Creating audio asset...")
+                audio_name = Path(audio_path).name
 
                 async with session.post(
-                    "https://api.hedra.com/v1/assets",
-                    headers=headers,
-                    json=image_payload,
-                    timeout=aiohttp.ClientTimeout(total=60)
+                    f"{base_url}/assets",
+                    headers={**headers, "Content-Type": "application/json"},
+                    json={"name": audio_name, "type": "audio"},
+                    timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
-                    print(f"[HEDRA] Image upload response status: {response.status}")
                     if response.status != 200:
                         error_text = await response.text()
-                        error_msg = f"Hedra image upload failed ({response.status}): {error_text}"
-                        print(f"[HEDRA] ERROR: {error_msg}")
-                        return VideoResult(
-                            success=False,
-                            error=error_msg
-                        )
+                        print(f"[HEDRA] ERROR: Create audio asset failed ({response.status}): {error_text}")
+                        return VideoResult(success=False, error=f"Hedra create audio asset failed: {error_text}")
 
-                    image_result = await response.json()
-                    image_asset_id = image_result.get("id")
-                    print(f"[HEDRA] Image asset uploaded: {image_asset_id}")
+                    audio_asset = await response.json()
+                    audio_id = audio_asset["id"]
+                    print(f"[HEDRA] Audio asset created: {audio_id}")
 
-                # Step 2: Wait for image to be ready
-                print(f"[HEDRA] Step 2: Waiting for image asset to be ready...")
-                image_ready = await self._wait_for_hedra_asset(session, headers, image_asset_id, max_wait=60)
-                if not image_ready:
-                    return VideoResult(
-                        success=False,
-                        error="Hedra image asset failed to become ready"
-                    )
-                print(f"[HEDRA] Image asset ready!")
-
-                # Step 3: Upload audio asset
-                print(f"[HEDRA] Step 3: Uploading audio asset...")
+                # Step 4: Upload audio file
+                print(f"[HEDRA] Step 4: Uploading audio file...")
                 with open(audio_path, "rb") as f:
-                    audio_data = base64.b64encode(f.read()).decode()
+                    form_data = aiohttp.FormData()
+                    form_data.add_field("file", f, filename=audio_name)
 
-                audio_payload = {
-                    "type": "audio",
-                    "data": f"data:audio/wav;base64,{audio_data}"
-                }
+                    async with session.post(
+                        f"{base_url}/assets/{audio_id}/upload",
+                        headers={"x-api-key": config.hedra_api_key},
+                        data=form_data,
+                        timeout=aiohttp.ClientTimeout(total=60)
+                    ) as response:
+                        if response.status != 200:
+                            error_text = await response.text()
+                            print(f"[HEDRA] ERROR: Upload audio failed ({response.status}): {error_text}")
+                            return VideoResult(success=False, error=f"Hedra upload audio failed: {error_text}")
+                        print(f"[HEDRA] Audio uploaded successfully")
 
-                async with session.post(
-                    "https://api.hedra.com/v1/assets",
-                    headers=headers,
-                    json=audio_payload,
-                    timeout=aiohttp.ClientTimeout(total=60)
-                ) as response:
-                    if response.status != 200:
-                        error_text = await response.text()
-                        return VideoResult(
-                            success=False,
-                            error=f"Hedra audio upload failed ({response.status}): {error_text}"
-                        )
-
-                    audio_result = await response.json()
-                    audio_asset_id = audio_result.get("id")
-                    print(f"[HEDRA] Audio asset uploaded: {audio_asset_id}")
-
-                # Step 4: Wait for audio to be ready
-                print(f"[HEDRA] Step 4: Waiting for audio asset to be ready...")
-                audio_ready = await self._wait_for_hedra_asset(session, headers, audio_asset_id, max_wait=60)
-                if not audio_ready:
-                    return VideoResult(
-                        success=False,
-                        error="Hedra audio asset failed to become ready"
-                    )
-                print(f"[HEDRA] Audio asset ready!")
-
-                # Step 5: Request video generation
-                print(f"[HEDRA] Step 5: Requesting video generation...")
-                video_payload = {
+                # Step 5: Create generation
+                print(f"[HEDRA] Step 5: Creating video generation...")
+                generation_payload = {
                     "type": "video",
-                    "ai_model_id": "1",  # Default model
-                    "start_keyframe_id": image_asset_id,
-                    "audio_id": audio_asset_id,
+                    "ai_model_id": "1",
+                    "start_keyframe_id": image_id,
+                    "audio_id": audio_id,
                     "generated_video_inputs": {
                         "resolution": "720p",
-                        "aspect_ratio": "9:16",
-                        "duration_ms": 8000  # 8 seconds default
+                        "aspect_ratio": "9:16"
                     }
                 }
 
                 async with session.post(
-                    "https://api.hedra.com/v1/generations",
-                    headers=headers,
-                    json=video_payload,
-                    timeout=aiohttp.ClientTimeout(total=60)
+                    f"{base_url}/generations",
+                    headers={**headers, "Content-Type": "application/json"},
+                    json=generation_payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        return VideoResult(
-                            success=False,
-                            error=f"Hedra video generation request failed ({response.status}): {error_text}"
-                        )
+                        print(f"[HEDRA] ERROR: Create generation failed ({response.status}): {error_text}")
+                        return VideoResult(success=False, error=f"Hedra create generation failed: {error_text}")
 
-                    generation_result = await response.json()
-                    generation_id = generation_result.get("id")
-                    print(f"[HEDRA] Video generation started: {generation_id}")
+                    generation = await response.json()
+                    generation_id = generation["id"]
+                    print(f"[HEDRA] Generation created: {generation_id}")
 
-                # Step 6: Poll for video completion
-                print(f"[HEDRA] Step 6: Polling for video completion...")
-                video_url = await self._wait_for_hedra_video(session, headers, generation_id, max_wait=180)
-                if not video_url:
-                    return VideoResult(
-                        success=False,
-                        error="Hedra video generation timed out or failed"
-                    )
-                print(f"[HEDRA] Video completed: {video_url}")
+                # Step 6: Poll for completion
+                print(f"[HEDRA] Step 6: Waiting for video generation (polling every 5s)...")
+                download_url = await self._poll_hedra_generation(session, headers, base_url, generation_id, max_wait=300)
 
-                # Step 7: Download the video
-                print(f"[HEDRA] Step 7: Downloading final video...")
-                async with session.get(video_url, timeout=aiohttp.ClientTimeout(total=120)) as response:
+                if not download_url:
+                    return VideoResult(success=False, error="Hedra generation timed out or failed")
+
+                # Step 7: Download video
+                print(f"[HEDRA] Step 7: Downloading video from: {download_url}")
+                async with session.get(download_url, timeout=aiohttp.ClientTimeout(total=120)) as response:
                     if response.status != 200:
-                        return VideoResult(
-                            success=False,
-                            error=f"Failed to download Hedra video ({response.status})"
-                        )
+                        return VideoResult(success=False, error=f"Failed to download video ({response.status})")
 
                     video_data = await response.read()
 
@@ -506,10 +485,9 @@ class VideoGenerator:
                     with open(output_path, "wb") as f:
                         f.write(video_data)
 
-                    # Encode to base64
                     video_b64 = base64.b64encode(video_data).decode()
 
-                    print(f"[HEDRA] Video saved successfully: {output_path}")
+                    print(f"[HEDRA] ✅ Video saved successfully: {output_path}")
 
                     return VideoResult(
                         success=True,
@@ -521,62 +499,26 @@ class VideoGenerator:
                     )
 
         except Exception as e:
-            print(f"[HEDRA] Error: {str(e)}")
+            print(f"[HEDRA] ERROR: {str(e)}")
             import traceback
             traceback.print_exc()
-            return VideoResult(success=False, error=f"Hedra generation error: {str(e)}")
+            return VideoResult(success=False, error=f"Hedra error: {str(e)}")
 
-    async def _wait_for_hedra_asset(
+    async def _poll_hedra_generation(
         self,
         session: aiohttp.ClientSession,
         headers: dict,
-        asset_id: str,
-        max_wait: int = 60
-    ) -> bool:
-        """Wait for Hedra asset to be ready"""
-        start_time = asyncio.get_event_loop().time()
-
-        while (asyncio.get_event_loop().time() - start_time) < max_wait:
-            try:
-                async with session.get(
-                    f"https://api.hedra.com/v1/assets/{asset_id}",
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=30)
-                ) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        status = data.get("status")
-
-                        if status == "ready" or status == "complete":
-                            return True
-                        elif status == "failed" or status == "error":
-                            print(f"[HEDRA] Asset {asset_id} failed: {data.get('error')}")
-                            return False
-
-                # Wait before next check
-                await asyncio.sleep(2)
-
-            except Exception as e:
-                print(f"[HEDRA] Asset check error: {e}")
-                await asyncio.sleep(2)
-
-        print(f"[HEDRA] Asset {asset_id} timed out waiting to be ready")
-        return False
-
-    async def _wait_for_hedra_video(
-        self,
-        session: aiohttp.ClientSession,
-        headers: dict,
+        base_url: str,
         generation_id: str,
-        max_wait: int = 180
+        max_wait: int = 300
     ) -> Optional[str]:
-        """Wait for Hedra video generation to complete and return video URL"""
+        """Poll Hedra generation status and return download URL when complete"""
         start_time = asyncio.get_event_loop().time()
 
         while (asyncio.get_event_loop().time() - start_time) < max_wait:
             try:
                 async with session.get(
-                    f"https://api.hedra.com/v1/generations/{generation_id}",
+                    f"{base_url}/generations/{generation_id}/status",
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
@@ -584,21 +526,23 @@ class VideoGenerator:
                         data = await response.json()
                         status = data.get("status")
 
-                        if status == "complete" or status == "completed":
-                            video_url = data.get("video_url") or data.get("url")
-                            return video_url
+                        print(f"[HEDRA] Status: {status}")
+
+                        if status == "completed" or status == "complete":
+                            download_url = data.get("download_url") or data.get("url") or data.get("video_url")
+                            return download_url
                         elif status == "failed" or status == "error":
-                            print(f"[HEDRA] Video generation failed: {data.get('error')}")
+                            print(f"[HEDRA] Generation failed: {data.get('error')}")
                             return None
 
-                # Wait before next check (longer for video generation)
+                # Wait 5 seconds before next poll
                 await asyncio.sleep(5)
 
             except Exception as e:
-                print(f"[HEDRA] Video check error: {e}")
+                print(f"[HEDRA] Poll error: {e}")
                 await asyncio.sleep(5)
 
-        print(f"[HEDRA] Video generation {generation_id} timed out")
+        print(f"[HEDRA] Generation timed out after {max_wait}s")
         return None
 
     async def _generate_local(
