@@ -386,11 +386,14 @@ class VideoGenerator:
                     json=image_payload,
                     timeout=aiohttp.ClientTimeout(total=60)
                 ) as response:
+                    print(f"[HEDRA] Image upload response status: {response.status}")
                     if response.status != 200:
                         error_text = await response.text()
+                        error_msg = f"Hedra image upload failed ({response.status}): {error_text}"
+                        print(f"[HEDRA] ERROR: {error_msg}")
                         return VideoResult(
                             success=False,
-                            error=f"Hedra image upload failed ({response.status}): {error_text}"
+                            error=error_msg
                         )
 
                     image_result = await response.json()
