@@ -55,8 +55,13 @@ class VideoGenerator:
         """Initialize video generation providers"""
         providers = []
 
+        # Debug: Show config state
+        print(f"[VIDEO_GEN] Initializing providers...")
+        print(f"[VIDEO_GEN] config.hedra_api_key: {'SET' if config.hedra_api_key else 'NOT SET'}")
+
         # Hedra API - BEST for animals, cartoons, and non-human avatars
         if config.hedra_api_key:
+            print(f"[VIDEO_GEN] Adding Hedra provider (priority 1)")
             providers.append({
                 "name": "hedra",
                 "enabled": True,
@@ -64,8 +69,11 @@ class VideoGenerator:
                 "endpoint": "https://api.hedra.com/v1",
                 "description": "Hedra API - optimized for animals, cartoons, and stylized avatars"
             })
+        else:
+            print(f"[VIDEO_GEN] Hedra provider NOT added (no API key)")
 
         # Local generator is fallback - works with ANY avatar (animals, cartoons, etc.)
+        print(f"[VIDEO_GEN] Adding Local provider (priority 2)")
         providers.append({
             "name": "local",
             "enabled": True,
@@ -85,7 +93,9 @@ class VideoGenerator:
                 "note": "Only works with human faces - not animals or cartoons"
             })
 
-        return sorted(providers, key=lambda x: x.get("priority", 99))
+        sorted_providers = sorted(providers, key=lambda x: x.get("priority", 99))
+        print(f"[VIDEO_GEN] Initialized {len(sorted_providers)} providers: {[p['name'] for p in sorted_providers]}")
+        return sorted_providers
 
     def _generate_job_id(self) -> str:
         """Generate unique job ID"""
