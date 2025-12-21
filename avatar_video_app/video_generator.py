@@ -392,19 +392,17 @@ class VideoGenerator:
         try:
             print(f"[HEYGEN] Starting video generation for job {job_id}")
 
-            base_url = "https://api.heygen.com"
-
             async with aiohttp.ClientSession() as session:
                 headers = {
-                    "X-Api-Key": config.heygen_api_key,
-                    "Content-Type": "application/json"
+                    "X-Api-Key": config.heygen_api_key
                 }
 
-                # HeyGen typically requires pre-uploaded assets or uses photo avatars
-                # For now, we'll use their photo avatar feature with uploaded image
+                # HeyGen uses separate upload and API base URLs
+                upload_base = "https://upload.heygen.com"
+                api_base = "https://api.heygen.com"
 
-                # Step 1: Upload avatar image
-                print(f"[HEYGEN] Step 1: Uploading avatar image...")
+                # Step 1: Upload avatar image as talking photo
+                print(f"[HEYGEN] Step 1: Uploading avatar image as talking photo...")
                 avatar_name = Path(avatar_path).name
 
                 with open(avatar_path, "rb") as f:
@@ -412,24 +410,27 @@ class VideoGenerator:
                     form_data.add_field("file", f, filename=avatar_name)
 
                     async with session.post(
-                        f"{base_url}/v1/photo.upload",
-                        headers={"X-Api-Key": config.heygen_api_key},
+                        f"{upload_base}/v1/talking_photo",
+                        headers=headers,
                         data=form_data,
                         timeout=aiohttp.ClientTimeout(total=60)
                     ) as response:
                         if response.status != 200:
                             error_text = await response.text()
-                            print(f"[HEYGEN] ERROR: Upload avatar failed ({response.status}): {error_text}")
-                            return VideoResult(success=False, error=f"HeyGen upload avatar failed: {error_text}")
+                            print(f"[HEYGEN] ERROR: Upload talking photo failed ({response.status}): {error_text}")
+                            return VideoResult(success=False, error=f"HeyGen upload talking photo failed: {error_text}")
 
                         upload_result = await response.json()
-                        photo_id = upload_result.get("data", {}).get("photo_id")
+                        print(f"[HEYGEN] Upload response: {upload_result}")
 
-                        if not photo_id:
-                            print(f"[HEYGEN] ERROR: No photo_id in response: {upload_result}")
-                            return VideoResult(success=False, error="HeyGen did not return photo_id")
+                        # Extract talking_photo_id from response
+                        talking_photo_id = upload_result.get("data", {}).get("talking_photo_id")
 
-                        print(f"[HEYGEN] Avatar uploaded successfully: {photo_id}")
+                        if not talking_photo_id:
+                            print(f"[HEYGEN] ERROR: No talking_photo_id in response: {upload_result}")
+                            return VideoResult(success=False, error="HeyGen did not return talking_photo_id")
+
+                        print(f"[HEYGEN] Talking photo uploaded successfully: {talking_photo_id}")
 
                 # Step 2: Upload audio file
                 print(f"[HEYGEN] Step 2: Uploading audio file...")
@@ -440,8 +441,8 @@ class VideoGenerator:
                     form_data.add_field("file", f, filename=audio_name)
 
                     async with session.post(
-                        f"{base_url}/v1/asset.upload",
-                        headers={"X-Api-Key": config.heygen_api_key},
+                        f"{upload_base}/v1/asset",
+                        headers=headers,
                         data=form_data,
                         timeout=aiohttp.ClientTimeout(total=60)
                     ) as response:
@@ -451,13 +452,15 @@ class VideoGenerator:
                             return VideoResult(success=False, error=f"HeyGen upload audio failed: {error_text}")
 
                         upload_result = await response.json()
+                        print(f"[HEYGEN] Audio upload response: {upload_result}")
+
                         audio_url = upload_result.get("data", {}).get("url")
 
                         if not audio_url:
                             print(f"[HEYGEN] ERROR: No audio URL in response: {upload_result}")
                             return VideoResult(success=False, error="HeyGen did not return audio URL")
 
-                        print(f"[HEYGEN] Audio uploaded successfully")
+                        print(f"[HEYGEN] Audio uploaded successfully: {audio_url}")
 
                 # Step 3: Create video generation
                 print(f"[HEYGEN] Step 3: Creating video generation...")
@@ -465,9 +468,8 @@ class VideoGenerator:
                     "video_inputs": [
                         {
                             "character": {
-                                "type": "photo",
-                                "photo_id": photo_id,
-                                "photo_url": None
+                                "type": "talking_photo",
+                                "talking_photo_id": talking_photo_id
                             },
                             "voice": {
                                 "type": "audio",
@@ -484,8 +486,8 @@ class VideoGenerator:
                 }
 
                 async with session.post(
-                    f"{base_url}/v2/video/generate",
-                    headers=headers,
+                    f"{api_base}/v2/video/generate",
+                    headers={**headers, "Content-Type": "application/json"},
                     json=generation_payload,
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
@@ -495,6 +497,8 @@ class VideoGenerator:
                         return VideoResult(success=False, error=f"HeyGen create generation failed: {error_text}")
 
                     generation = await response.json()
+                    print(f"[HEYGEN] Generation response: {generation}")
+
                     video_id = generation.get("data", {}).get("video_id")
 
                     if not video_id:
@@ -505,7 +509,7 @@ class VideoGenerator:
 
                 # Step 4: Poll for completion
                 print(f"[HEYGEN] Step 4: Waiting for video generation (polling every 5s)...")
-                download_url = await self._poll_heygen_generation(session, headers, base_url, video_id, max_wait=300)
+                download_url = await self._poll_heygen_generation(session, headers, api_base, video_id, max_wait=300)
 
                 if not download_url:
                     return VideoResult(success=False, error="HeyGen generation timed out or failed")
