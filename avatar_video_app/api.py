@@ -142,6 +142,46 @@ async def get_avatar_styles():
     }
 
 
+@app.post("/api/avatar/upload")
+async def upload_avatar(file: UploadFile = File(...)):
+    """Upload an existing avatar image"""
+    import base64
+    from pathlib import Path
+    import uuid
+
+    try:
+        # Check file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+
+        # Read file data
+        image_data = await file.read()
+
+        # Save to output directory
+        file_ext = file.filename.split('.')[-1] if file.filename else 'png'
+        avatar_id = str(uuid.uuid4())[:8]
+        save_path = Path(config.output_dir) / f"uploaded_{avatar_id}.{file_ext}"
+
+        with open(save_path, 'wb') as f:
+            f.write(image_data)
+
+        # Encode as base64 for preview
+        image_base64 = base64.b64encode(image_data).decode()
+
+        return {
+            "success": True,
+            "image_path": str(save_path),
+            "image_base64": image_base64,
+            "provider": "upload",
+            "metadata": {
+                "filename": file.filename,
+                "size": len(image_data)
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+
 @app.get("/api/avatars/list")
 async def list_avatars():
     """List all available avatars from avatar_outputs directory"""

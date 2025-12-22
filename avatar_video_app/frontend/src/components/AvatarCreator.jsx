@@ -25,6 +25,8 @@ function AvatarCreator({
   setError
 }) {
   const [isGenerating, setIsGenerating] = useState(false)
+  const [mode, setMode] = useState('generate') // 'generate' or 'upload'
+  const fileInputRef = React.useRef(null)
 
   const generateAvatar = async () => {
     if (!description.trim()) {
@@ -56,6 +58,48 @@ function AvatarCreator({
     }
   }
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (PNG, JPG, etc.)')
+      return
+    }
+
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image too large. Maximum size is 10MB.')
+      return
+    }
+
+    setIsGenerating(true)
+    setError(null)
+
+    try {
+      // Upload to backend
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await axios.post('/api/avatar/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      if (response.data.success) {
+        setPreview(`data:image/png;base64,${response.data.image_base64}`)
+        setAvatarPath(response.data.image_path)
+        onComplete()
+      } else {
+        setError('Failed to upload avatar')
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to upload avatar')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   return (
     <div className="card h-full">
       <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -65,8 +109,37 @@ function AvatarCreator({
         Create Your Avatar
       </h2>
 
-      {/* Description Input */}
-      <div className="mb-4">
+      {/* Mode Selection */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setMode('generate')}
+          className={`flex-1 py-2 px-4 rounded-xl font-medium transition-all ${
+            mode === 'generate'
+              ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white'
+              : 'bg-white/5 text-white/70 hover:bg-white/10'
+          }`}
+        >
+          <span className="mr-2">✨</span>
+          Generate
+        </button>
+        <button
+          onClick={() => setMode('upload')}
+          className={`flex-1 py-2 px-4 rounded-xl font-medium transition-all ${
+            mode === 'upload'
+              ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white'
+              : 'bg-white/5 text-white/70 hover:bg-white/10'
+          }`}
+        >
+          <span className="mr-2">📁</span>
+          Upload
+        </button>
+      </div>
+
+      {/* Generate Mode */}
+      {mode === 'generate' && (
+        <>
+          {/* Description Input */}
+          <div className="mb-4">
         <label className="label">Describe Your Avatar</label>
         <textarea
           value={description}
@@ -101,29 +174,56 @@ function AvatarCreator({
         </div>
       </div>
 
-      {/* Generate Button */}
-      <button
-        onClick={generateAvatar}
-        disabled={isGenerating || !description.trim()}
-        className="btn-primary w-full mb-6"
-      >
-        {isGenerating ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          {/* Generate Button */}
+          <button
+            onClick={generateAvatar}
+            disabled={isGenerating || !description.trim()}
+            className="btn-primary w-full mb-6"
+          >
+            {isGenerating ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Generating Avatar...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Generate Avatar
+              </span>
+            )}
+          </button>
+        </>
+      )}
+
+      {/* Upload Mode */}
+      {mode === 'upload' && (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isGenerating}
+            className="w-full h-48 border-2 border-dashed border-white/20 rounded-xl hover:border-primary-500/50 hover:bg-white/5 transition-all flex flex-col items-center justify-center text-white/50 mb-6"
+          >
+            <svg className="w-16 h-16 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            Generating Avatar...
-          </span>
-        ) : (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Generate Avatar
-          </span>
-        )}
-      </button>
+            <span className="text-lg font-medium">Click to upload existing avatar</span>
+            <span className="text-sm mt-2">PNG, JPG (max 10MB)</span>
+          </button>
+        </>
+      )}
 
       {/* Preview */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-white/5 border-2 border-dashed border-white/20">
