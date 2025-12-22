@@ -12,6 +12,7 @@ function GenerateButton({
   recordedAudio,
   uploadedAudio,
   ttsText,
+  ttsVoice,
   voiceEffect,
   processedAudio,
   setGeneratedVideo,
@@ -34,6 +35,7 @@ function GenerateButton({
       // Add audio source
       if (voiceMode === 'tts') {
         formData.append('text', ttsText)
+        formData.append('voice', ttsVoice || 'male')
       } else if (processedAudio?.blob) {
         formData.append('audio', processedAudio.blob, 'voice.wav')
       } else if (recordedAudio) {

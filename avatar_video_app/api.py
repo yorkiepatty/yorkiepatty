@@ -330,6 +330,7 @@ async def generate_full_video(
     voice_effect: str = Form(default="normal"),
     output_name: str = Form(default=None),
     text: str = Form(default=None),
+    voice: str = Form(default="male"),
     audio: UploadFile = File(default=None)
 ):
     """
@@ -375,6 +376,7 @@ async def generate_full_video(
             # Use TTS
             voice_result = await voice_processor.text_to_speech(
                 text=text,
+                voice=voice,
                 effect_name=voice_effect
             )
         else:

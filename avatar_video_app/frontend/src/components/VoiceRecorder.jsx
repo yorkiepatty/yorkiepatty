@@ -13,7 +13,9 @@ function VoiceRecorder({
   setUploadedAudio,
   audioDuration,
   setAudioDuration,
-  setError
+  setError,
+  ttsVoice,
+  setTtsVoice
 }) {
   const [isRecording, setIsRecording] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
@@ -287,6 +289,35 @@ function VoiceRecorder({
       {/* TTS Mode */}
       {mode === 'tts' && (
         <div>
+          {/* Voice Selection */}
+          <div className="mb-4">
+            <label className="label">Select Voice</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setTtsVoice('male')}
+                className={`py-3 px-4 rounded-xl font-medium transition-all ${
+                  ttsVoice === 'male'
+                    ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white ring-2 ring-white/20'
+                    : 'bg-white/5 text-white/70 hover:bg-white/10'
+                }`}
+              >
+                <span className="text-xl mr-2">🗣️</span>
+                Male
+              </button>
+              <button
+                onClick={() => setTtsVoice('female')}
+                className={`py-3 px-4 rounded-xl font-medium transition-all ${
+                  ttsVoice === 'female'
+                    ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white ring-2 ring-white/20'
+                    : 'bg-white/5 text-white/70 hover:bg-white/10'
+                }`}
+              >
+                <span className="text-xl mr-2">👩</span>
+                Female
+              </button>
+            </div>
+          </div>
+
           <label className="label">Enter text to speak (max 3 minutes of speech)</label>
           <textarea
             value={ttsText}

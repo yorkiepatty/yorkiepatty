@@ -411,7 +411,7 @@ class VoiceProcessor:
 
         Args:
             text: Text to convert to speech
-            voice: Voice to use (implementation-dependent)
+            voice: Voice to use - can be ElevenLabs voice ID or "male"/"female" for gTTS
             effect_name: Voice effect to apply
 
         Returns:
@@ -419,12 +419,33 @@ class VoiceProcessor:
         """
         audio_id = self._generate_audio_id()
 
+        # Try ElevenLabs first if API key is available
+        if config.elevenlabs_api_key:
+            try:
+                result = await self._elevenlabs_tts(text, voice, effect_name, audio_id)
+                if result.success:
+                    return result
+                print(f"[TTS] ElevenLabs failed, falling back to gTTS: {result.error}")
+            except Exception as e:
+                print(f"[TTS] ElevenLabs error, falling back to gTTS: {e}")
+
+        # Fall back to gTTS
         try:
-            # Try gTTS first
             from gtts import gTTS
 
             output_path = self.temp_dir / f"{audio_id}_tts.mp3"
-            tts = gTTS(text=text, lang='en')
+
+            # Map voice to gTTS language/accent
+            # For gTTS, we can't directly control male/female, but we can use different accents
+            lang = 'en'
+            if voice in ['male', 'default']:
+                tld = 'com'  # US English (more neutral/male-sounding)
+            elif voice == 'female':
+                tld = 'co.uk'  # UK English (can sound more feminine)
+            else:
+                tld = 'com'  # default
+
+            tts = gTTS(text=text, lang=lang, tld=tld)
             tts.save(str(output_path))
 
             # Convert to WAV for effects
@@ -455,7 +476,7 @@ class VoiceProcessor:
                 effect_applied=effect_name,
                 metadata={
                     "audio_id": audio_id,
-                    "source": "tts",
+                    "source": "gtts",
                     "voice": voice,
                     "text_length": len(text)
                 }
@@ -468,6 +489,93 @@ class VoiceProcessor:
             )
         except Exception as e:
             return VoiceResult(success=False, error=f"TTS error: {str(e)}")
+
+    async def _elevenlabs_tts(
+        self,
+        text: str,
+        voice: str,
+        effect_name: str,
+        audio_id: str
+    ) -> VoiceResult:
+        """Generate TTS using ElevenLabs API"""
+        try:
+            import aiohttp
+
+            # Default male voices from ElevenLabs
+            VOICE_MAP = {
+                "male": "pNInz6obpgDQGcFmaJgB",  # Adam - deep male voice
+                "female": "21m00Tcm4TlvDq8ikWAM",  # Rachel - calm female voice
+                "default": "pNInz6obpgDQGcFmaJgB",  # Default to Adam (male)
+            }
+
+            # Use mapped voice or assume it's a direct voice ID
+            voice_id = VOICE_MAP.get(voice, voice)
+
+            url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+
+            headers = {
+                "Accept": "audio/mpeg",
+                "Content-Type": "application/json",
+                "xi-api-key": config.elevenlabs_api_key
+            }
+
+            data = {
+                "text": text,
+                "model_id": "eleven_monolingual_v1",
+                "voice_settings": {
+                    "stability": 0.5,
+                    "similarity_boost": 0.5
+                }
+            }
+
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=data, headers=headers) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        return VoiceResult(success=False, error=f"ElevenLabs API error ({response.status}): {error_text}")
+
+                    audio_content = await response.read()
+
+                    # Save audio
+                    output_path = self.temp_dir / f"{audio_id}_elevenlabs.mp3"
+                    with open(output_path, 'wb') as f:
+                        f.write(audio_content)
+
+                    # Convert to WAV for effects
+                    wav_path = await self._convert_to_wav(output_path)
+
+                    # Apply effect if needed
+                    if effect_name and effect_name != "normal" and wav_path:
+                        print(f"[TTS] Applying effect '{effect_name}' to ElevenLabs audio")
+                        final_path = await self._apply_effect(wav_path, effect_name, audio_id)
+                    elif effect_name and effect_name != "normal" and not wav_path:
+                        print(f"[TTS] Warning: Cannot apply effect '{effect_name}' - WAV conversion failed")
+                        final_path = output_path
+                    else:
+                        final_path = wav_path if wav_path else output_path
+
+                    duration = self._get_audio_duration(final_path)
+
+                    with open(final_path, "rb") as f:
+                        audio_b64 = base64.b64encode(f.read()).decode()
+
+                    return VoiceResult(
+                        success=True,
+                        audio_path=str(final_path),
+                        audio_base64=audio_b64,
+                        duration=duration,
+                        sample_rate=config.sample_rate,
+                        effect_applied=effect_name,
+                        metadata={
+                            "audio_id": audio_id,
+                            "source": "elevenlabs",
+                            "voice": voice_id,
+                            "text_length": len(text)
+                        }
+                    )
+
+        except Exception as e:
+            return VoiceResult(success=False, error=f"ElevenLabs error: {str(e)}")
 
     def validate_audio_duration(self, duration: float) -> Tuple[bool, str]:
         """Validate audio duration for video generation"""

@@ -29,6 +29,7 @@ function App() {
   const [voiceMode, setVoiceMode] = useState('record') // 'record' | 'tts' | 'upload'
   const [recordedAudio, setRecordedAudio] = useState(null)
   const [ttsText, setTtsText] = useState('')
+  const [ttsVoice, setTtsVoice] = useState('male') // 'male' | 'female'
   const [uploadedAudio, setUploadedAudio] = useState(null)
   const [voiceEffect, setVoiceEffect] = useState('normal')
   const [processedAudio, setProcessedAudio] = useState(null)
@@ -50,6 +51,7 @@ function App() {
     setVoiceMode('record')
     setRecordedAudio(null)
     setTtsText('')
+    setTtsVoice('male')
     setUploadedAudio(null)
     setVoiceEffect('normal')
     setProcessedAudio(null)
@@ -228,6 +230,8 @@ function App() {
               setRecordedAudio={setRecordedAudio}
               ttsText={ttsText}
               setTtsText={setTtsText}
+              ttsVoice={ttsVoice}
+              setTtsVoice={setTtsVoice}
               uploadedAudio={uploadedAudio}
               setUploadedAudio={setUploadedAudio}
               audioDuration={audioDuration}
@@ -259,6 +263,7 @@ function App() {
             recordedAudio={recordedAudio}
             uploadedAudio={uploadedAudio}
             ttsText={ttsText}
+            ttsVoice={ttsVoice}
             voiceEffect={voiceEffect}
             processedAudio={processedAudio}
             setGeneratedVideo={setGeneratedVideo}
