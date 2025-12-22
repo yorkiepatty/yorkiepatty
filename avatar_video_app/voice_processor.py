@@ -383,12 +383,22 @@ class VoiceProcessor:
     def _get_audio_duration(self, audio_path: Path) -> float:
         """Get duration of audio file in seconds"""
         try:
+            # Try WAV first
             with wave.open(str(audio_path), 'rb') as wav:
                 frames = wav.getnframes()
                 rate = wav.getframerate()
                 return frames / float(rate)
         except Exception:
-            return 0.0
+            # Fall back to using mutagen for MP3/other formats
+            try:
+                from mutagen import File
+                audio = File(str(audio_path))
+                if audio and audio.info:
+                    return audio.info.length
+            except Exception:
+                pass
+            # Default fallback
+            return 3.0  # Assume 3 seconds if we can't determine
 
     async def text_to_speech(
         self,
@@ -417,16 +427,19 @@ class VoiceProcessor:
             tts = gTTS(text=text, lang='en')
             tts.save(str(output_path))
 
-            # Convert to WAV
+            # Convert to WAV for effects
             wav_path = await self._convert_to_wav(output_path)
-            if not wav_path:
-                wav_path = output_path
 
-            # Apply effect if needed
-            if effect_name and effect_name != "normal":
+            # Apply effect if needed (only if we have WAV format)
+            if effect_name and effect_name != "normal" and wav_path:
+                print(f"[TTS] Applying effect '{effect_name}' to WAV file")
                 final_path = await self._apply_effect(wav_path, effect_name, audio_id)
+            elif effect_name and effect_name != "normal" and not wav_path:
+                print(f"[TTS] Warning: Cannot apply effect '{effect_name}' - WAV conversion failed, using MP3")
+                final_path = output_path
             else:
-                final_path = wav_path
+                # Use WAV if available, otherwise use original MP3
+                final_path = wav_path if wav_path else output_path
 
             duration = self._get_audio_duration(final_path)
 
