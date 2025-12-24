@@ -365,8 +365,9 @@ async def download_video(filename: str):
 
 @app.post("/api/generate-full")
 async def generate_full_video(
-    avatar_description: str = Form(...),
+    avatar_description: str = Form(default=None),
     avatar_style: str = Form(default="realistic"),
+    avatar_path: str = Form(default=None),
     voice_effect: str = Form(default="normal"),
     output_name: str = Form(default=None),
     text: str = Form(default=None),
@@ -377,29 +378,50 @@ async def generate_full_video(
     Full pipeline: Generate avatar + process voice + create video
 
     Either provide:
+    - avatar_path: Use existing avatar image
+    - avatar_description: Generate new avatar
+
+    And either:
     - audio: Upload audio file
     - text: Use text-to-speech
     """
     results = {"steps": []}
 
     try:
-        # Step 1: Generate Avatar
-        avatar_result = await avatar_generator.generate(
-            description=avatar_description,
-            style=avatar_style
-        )
-
-        if not avatar_result.success:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Avatar generation failed: {avatar_result.error}"
+        # Step 1: Get or Generate Avatar
+        if avatar_path:
+            # Use existing avatar
+            avatar_image_path = avatar_path
+            results["steps"].append({
+                "step": "avatar",
+                "success": True,
+                "image_path": avatar_image_path,
+                "note": "Using existing avatar"
+            })
+        elif avatar_description:
+            # Generate new avatar
+            avatar_result = await avatar_generator.generate(
+                description=avatar_description,
+                style=avatar_style
             )
 
-        results["steps"].append({
-            "step": "avatar",
-            "success": True,
-            "image_path": avatar_result.image_path
-        })
+            if not avatar_result.success:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Avatar generation failed: {avatar_result.error}"
+                )
+
+            avatar_image_path = avatar_result.image_path
+            results["steps"].append({
+                "step": "avatar",
+                "success": True,
+                "image_path": avatar_image_path
+            })
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Either 'avatar_path' or 'avatar_description' must be provided"
+            )
 
         # Step 2: Process Voice
         if audio:
@@ -446,7 +468,7 @@ async def generate_full_video(
 
         # Step 3: Generate Video
         video_result = await video_generator.generate_video(
-            avatar_image_path=avatar_result.image_path,
+            avatar_image_path=avatar_image_path,
             audio_path=voice_result.audio_path,
             output_name=output_name
         )

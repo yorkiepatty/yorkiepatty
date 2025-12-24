@@ -28,8 +28,16 @@ function GenerateButton({
 
     try {
       const formData = new FormData()
-      formData.append('avatar_description', avatarDescription)
-      formData.append('avatar_style', avatarStyle)
+
+      // If we have an avatar path (uploaded or generated), use it directly
+      if (avatarPath) {
+        formData.append('avatar_path', avatarPath)
+      } else {
+        // Otherwise generate a new avatar from description
+        formData.append('avatar_description', avatarDescription)
+        formData.append('avatar_style', avatarStyle)
+      }
+
       formData.append('voice_effect', voiceEffect)
 
       // Add audio source
