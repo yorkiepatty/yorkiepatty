@@ -786,8 +786,12 @@ class SunnyUltimateVoice:
                             if text:
                                 has_speech = True
                                 silence_count = 0
-                                collected_text = text
-                                print(f"\r   Heard: {text[:60]}{'...' if len(text) > 60 else ''}          ", end="", flush=True)
+                                # Accumulate text instead of overwriting
+                                if collected_text:
+                                    collected_text += " " + text
+                                else:
+                                    collected_text = text
+                                print(f"\r   Heard so far: {collected_text[:60]}{'...' if len(collected_text) > 60 else ''}          ", end="", flush=True)
                         else:
                             partial = json.loads(rec.PartialResult())
                             partial_text = partial.get("partial", "")
@@ -804,10 +808,15 @@ class SunnyUltimateVoice:
                                 # End after ~4 seconds of silence (40 * 100ms)
                                 if silence_count > 40:
                                     result = json.loads(rec.FinalResult())
-                                    text = result.get("text", "").strip() or collected_text
-                                    if text:
-                                        print(f"\n📝 You said: {text}")
-                                        return text
+                                    final_text = result.get("text", "").strip()
+                                    # Combine any final text with collected
+                                    if final_text and collected_text:
+                                        full_text = collected_text + " " + final_text
+                                    else:
+                                        full_text = final_text or collected_text
+                                    if full_text:
+                                        print(f"\n📝 You said: {full_text}")
+                                        return full_text
                                     break
                     except Exception:
                         timeout_count += 1
@@ -817,10 +826,15 @@ class SunnyUltimateVoice:
 
                 # Final result
                 result = json.loads(rec.FinalResult())
-                text = result.get("text", "").strip() or collected_text
-                if text:
-                    print(f"\n📝 You said: {text}")
-                    return text
+                final_text = result.get("text", "").strip()
+                # Combine any final text with collected
+                if final_text and collected_text:
+                    full_text = collected_text + " " + final_text
+                else:
+                    full_text = final_text or collected_text
+                if full_text:
+                    print(f"\n📝 You said: {full_text}")
+                    return full_text
 
         except Exception as e:
             print(f"\n❌ Vosk error: {e}")
