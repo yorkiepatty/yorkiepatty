@@ -49,31 +49,123 @@ try:
 except ImportError:
     HAS_ELEVENLABS = False
 
-# Audio playback function that works cross-platform
+# Global interrupt flag for stopping speech
+_interrupt_speech = False
+_current_audio_process = None
+
+def interrupt_speech():
+    """Call this to interrupt/stop Sunny from speaking"""
+    global _interrupt_speech, _current_audio_process
+    _interrupt_speech = True
+    if _current_audio_process:
+        try:
+            _current_audio_process.terminate()
+            _current_audio_process = None
+            print("🛑 Speech interrupted!")
+        except:
+            pass
+    # Also stop pygame if it's playing
+    try:
+        import pygame
+        if pygame.mixer.get_init():
+            pygame.mixer.music.stop()
+            pygame.mixer.quit()
+    except:
+        pass
+
+def reset_interrupt():
+    """Reset the interrupt flag"""
+    global _interrupt_speech
+    _interrupt_speech = False
+
+def is_interrupted():
+    """Check if speech was interrupted"""
+    return _interrupt_speech
+
+# Keyboard listener for interrupt (ESC or SPACE to stop Sunny talking)
+_keyboard_listener_running = False
+
+def start_keyboard_listener():
+    """Start listening for ESC or SPACE key to interrupt speech"""
+    global _keyboard_listener_running
+    if _keyboard_listener_running:
+        return
+
+    def listen_for_interrupt():
+        global _keyboard_listener_running
+        _keyboard_listener_running = True
+        try:
+            # Try pynput first (best cross-platform)
+            from pynput import keyboard
+
+            def on_press(key):
+                try:
+                    if key == keyboard.Key.esc or key == keyboard.Key.space:
+                        interrupt_speech()
+                        return False  # Stop listener temporarily
+                except:
+                    pass
+
+            print("🎧 Press ESC or SPACE to interrupt Sunny while speaking")
+            while _keyboard_listener_running:
+                with keyboard.Listener(on_press=on_press) as listener:
+                    listener.join()
+                time.sleep(0.1)  # Small delay before restarting listener
+
+        except ImportError:
+            # Fallback: use msvcrt on Windows
+            print("⚠️  pynput not installed. Install with: pip install pynput")
+            print("    For now, interrupt not available via keyboard")
+            _keyboard_listener_running = False
+
+    # Start listener in background thread
+    listener_thread = threading.Thread(target=listen_for_interrupt, daemon=True)
+    listener_thread.start()
+    print("✅ Keyboard interrupt listener started (ESC or SPACE to stop speech)")
+
+def stop_keyboard_listener():
+    """Stop the keyboard listener"""
+    global _keyboard_listener_running
+    _keyboard_listener_running = False
+
+# Audio playback function that works cross-platform (now interruptible)
 def playsound(audio_file):
-    """Play audio file using system-appropriate method"""
+    """Play audio file using system-appropriate method - can be interrupted"""
+    global _current_audio_process, _interrupt_speech
+    reset_interrupt()  # Reset flag at start of new speech
+
     try:
         system = platform.system()
         if system == "Darwin":  # macOS
-            subprocess.run(["afplay", audio_file], check=True)
+            _current_audio_process = subprocess.Popen(["afplay", audio_file])
+            _current_audio_process.wait()
+            _current_audio_process = None
         elif system == "Linux":
-            subprocess.run(["aplay", audio_file], check=True)
+            _current_audio_process = subprocess.Popen(["aplay", audio_file])
+            _current_audio_process.wait()
+            _current_audio_process = None
         elif system == "Windows":
-            # Use pygame for Windows (supports MP3)
+            # Use pygame for Windows (supports MP3) - interruptible
             import pygame
             pygame.mixer.init()
             pygame.mixer.music.load(audio_file)
             pygame.mixer.music.play()
-            # Wait for playback to finish
+            # Wait for playback to finish, checking for interrupt
             while pygame.mixer.music.get_busy():
+                if _interrupt_speech:
+                    pygame.mixer.music.stop()
+                    break
                 pygame.time.Clock().tick(10)
             pygame.mixer.quit()
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
-        print(f"⚠️  Audio playback failed: {e}")
-        import traceback
-        traceback.print_exc()
+        if not _interrupt_speech:  # Only show error if not interrupted
+            print(f"⚠️  Audio playback failed: {e}")
+            import traceback
+            traceback.print_exc()
+    finally:
+        _current_audio_process = None
 
 def capture_screen():
     """Capture the current screen and return as base64 encoded image"""
@@ -282,6 +374,9 @@ class SunnyUltimateVoice:
         print(f"🧠 AI: {self.ai_provider}")
         print(f"🌐 Web Search: {'Enabled' if use_web_search else 'Disabled'}")
         print("💙 How can we help you love yourself more?\n")
+
+        # Start keyboard listener for interrupt (ESC or SPACE to stop speaking)
+        start_keyboard_listener()
     
     def _initialize_voice_systems(self):
         """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
