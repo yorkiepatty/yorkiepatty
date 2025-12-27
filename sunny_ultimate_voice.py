@@ -1158,14 +1158,16 @@ class SunnyUltimateVoice:
         try:
             # Build messages with conversation history for memory
             messages = []
-            # Include recent conversation history (last 20 exchanges)
+            # Include recent conversation history (last 20 exchanges) - filter empty messages
             if hasattr(self, 'conversation_history') and self.conversation_history:
-                messages.extend(self.conversation_history[-40:])  # Last 40 messages (20 exchanges)
+                for msg in self.conversation_history[-40:]:
+                    if msg.get('content') and msg['content'].strip():
+                        messages.append(msg)
             # Add current user message
-            messages.append({"role": "user", "content": user_prompt})
-
-            # Also add to conversation history
-            self.conversation_history.append({"role": "user", "content": user_prompt})
+            if user_prompt and user_prompt.strip():
+                messages.append({"role": "user", "content": user_prompt})
+                # Also add to conversation history
+                self.conversation_history.append({"role": "user", "content": user_prompt})
 
             message = self.anthropic_client.messages.create(
                 model="claude-sonnet-4-5-20250929",
@@ -2389,26 +2391,31 @@ Provide clean, well-commented, production-ready code with explanations."""
                 print(f"🧠 Found {len(stored_memory)} entries in memory file")
 
                 # Convert old format {input, output} to Claude format {role, content}
-                # Don't include timestamps in active conversation_history
+                # FILTER OUT EMPTY MESSAGES - they cause API errors
                 self.conversation_history = []
                 for entry in stored_memory:
                     if isinstance(entry, dict):
                         # Old format: {input, output, intent, timestamp}
                         if 'input' in entry and 'output' in entry:
-                            self.conversation_history.append({
-                                "role": "user",
-                                "content": entry['input']
-                            })
-                            self.conversation_history.append({
-                                "role": "assistant",
-                                "content": entry['output']
-                            })
+                            # SKIP empty messages - they cause API errors
+                            if entry['input'] and entry['input'].strip():
+                                self.conversation_history.append({
+                                    "role": "user",
+                                    "content": entry['input']
+                                })
+                            if entry['output'] and entry['output'].strip():
+                                self.conversation_history.append({
+                                    "role": "assistant",
+                                    "content": entry['output']
+                                })
                         # New format: {role, content} - strip timestamp if present
                         elif 'role' in entry and 'content' in entry:
-                            self.conversation_history.append({
-                                "role": entry['role'],
-                                "content": entry['content']
-                            })
+                            # SKIP empty messages
+                            if entry['content'] and entry['content'].strip():
+                                self.conversation_history.append({
+                                    "role": entry['role'],
+                                    "content": entry['content']
+                                })
 
                 print(f"✅ Loaded {len(self.conversation_history)} previous messages from Sunny's memory")
             else:
