@@ -50,7 +50,7 @@ def handle_recognition(text, confidence, meta=None):
         memory.load()
         context = memory.get_context()
 
-        # Get Sunny’s thought process
+        # Get Sunny's thought process
         response = sunny.think(text)
         intent = response.get("intent", "general")
 
@@ -60,9 +60,18 @@ def handle_recognition(text, confidence, meta=None):
         print(f"🤖 Sunny: {reply}")
         speak(reply)
 
+        # ALWAYS save memory after each conversation to ensure persistence
+        memory.save()
+
     except Exception as e:
         logger.error(f"Error in handle_recognition: {e}", exc_info=True)
         speak("I encountered an internal issue while processing that.")
+    finally:
+        # Ensure memory is saved even if an error occurred
+        try:
+            memory.save()
+        except:
+            pass
 
 # -------------------------------------------------------------
 # Main conversation loop

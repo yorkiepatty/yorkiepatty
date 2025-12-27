@@ -21,7 +21,7 @@ class MemoryManager:
         self.conversation_memory = []  # Current session
         self.long_term_memory = {}  # Persistent across sessions
         self.save_counter = 0
-        self.auto_save_interval = 5  # Auto-save every 5 interactions
+        self.auto_save_interval = 1  # Auto-save EVERY interaction for maximum persistence
     
     def load(self):
         """Load ALL memories from disk - both persistent and legacy files"""
@@ -115,8 +115,8 @@ class MemoryManager:
             print("☁️  Memory backed up to GitHub")
             
         except Exception as e:
-            # Silently fail - GitHub backup is nice-to-have, not critical
-            pass
+            # Log the error but don't crash - backup is important but not blocking
+            print(f"⚠️  GitHub backup failed: {e}")
     
     def store(self, key: str, value: Any):
         """Store a memory - both in session and long-term"""

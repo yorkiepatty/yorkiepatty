@@ -162,6 +162,11 @@ class DerekDashboard:
             if self.memory_engine:
                 recent_events = self.memory_engine.get_recent_events()
                 logger.info(f"Loaded {len(recent_events)} recent memory events")
+            # Save memory on startup to confirm persistence is working
+            logger.info("→ Confirming memory persistence...")
+            if self.memory:
+                self.memory.save()
+                logger.info("✓ Memory persistence confirmed")
             logger.info("")
             logger.info("=" * 60)
             logger.info("✓ Sunny Dashboard is RUNNING")
@@ -202,6 +207,8 @@ class DerekDashboard:
                 importance=0.7,
                 metadata={"timestamp": datetime.now().isoformat()}
             )
+            # ALWAYS save memory after every interaction
+            self.memory.save()
             return response.get("response", "[No output]")
         except Exception as e:
             logger.error(f"Error during message processing: {str(e)}")
