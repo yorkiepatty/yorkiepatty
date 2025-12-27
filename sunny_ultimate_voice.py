@@ -748,15 +748,15 @@ class SunnyUltimateVoice:
         import vosk
         import json
 
-        print("\n🎤 Listening... (Sunny is patient - take your time)")
+        print("\n🎤 Listening... (Sunny waits 4 seconds of silence before responding)")
 
         SAMPLE_RATE = 16000
         BLOCK_SIZE = 8000
 
         rec = vosk.KaldiRecognizer(self.vosk_model, SAMPLE_RATE)
-        audio_data = []
         silence_count = 0
         has_speech = False
+        collected_text = ""
 
         def audio_callback(indata, frames, time_info, status):
             if status:
@@ -771,9 +771,9 @@ class SunnyUltimateVoice:
                 channels=1,
                 callback=audio_callback
             ):
-                print("   (Speak now... press Ctrl+C to stop)")
+                print("   (Speak now... take your time, pause as needed)")
                 timeout_count = 0
-                max_timeout = 150  # ~15 seconds at 100ms chunks
+                max_timeout = 300  # ~30 seconds to start speaking
 
                 while timeout_count < max_timeout:
                     try:
@@ -784,34 +784,40 @@ class SunnyUltimateVoice:
                             result = json.loads(rec.Result())
                             text = result.get("text", "").strip()
                             if text:
-                                print(f"📝 You said: {text}")
-                                return text
+                                has_speech = True
+                                silence_count = 0
+                                collected_text = text
+                                print(f"\r   Heard: {text[:60]}{'...' if len(text) > 60 else ''}          ", end="", flush=True)
                         else:
                             partial = json.loads(rec.PartialResult())
                             partial_text = partial.get("partial", "")
                             if partial_text:
                                 has_speech = True
                                 silence_count = 0
-                                print(f"\r   Hearing: {partial_text[:50]}...", end="", flush=True)
+                                print(f"\r   Hearing: {partial_text[:60]}{'...' if len(partial_text) > 60 else ''}          ", end="", flush=True)
                             elif has_speech:
                                 silence_count += 1
-                                # End after ~2 seconds of silence
-                                if silence_count > 20:
+                                # Show countdown so user knows
+                                secs_left = max(0, 4 - (silence_count // 10))
+                                if silence_count % 10 == 0:  # Update every second
+                                    print(f"\r   (responding in {secs_left}s... keep talking to reset)          ", end="", flush=True)
+                                # End after ~4 seconds of silence (40 * 100ms)
+                                if silence_count > 40:
                                     result = json.loads(rec.FinalResult())
-                                    text = result.get("text", "").strip()
+                                    text = result.get("text", "").strip() or collected_text
                                     if text:
                                         print(f"\n📝 You said: {text}")
                                         return text
                                     break
                     except Exception:
                         timeout_count += 1
-                        if not has_speech and timeout_count > 50:
-                            print("\n⏱️  No speech detected")
+                        if not has_speech and timeout_count > 100:
+                            print("\n⏱️  No speech detected (10 seconds)")
                             return None
 
                 # Final result
                 result = json.loads(rec.FinalResult())
-                text = result.get("text", "").strip()
+                text = result.get("text", "").strip() or collected_text
                 if text:
                     print(f"\n📝 You said: {text}")
                     return text
