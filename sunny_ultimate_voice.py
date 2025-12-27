@@ -859,8 +859,10 @@ class SunnyUltimateVoice:
             if hasattr(self, "memory") and self.memory:
                 try:
                     mem_context = self.memory.retrieve_relevant(user_input)
-                except:
-                    pass
+                    if mem_context:
+                        print(f"🧠 Memory context: {mem_context[:100]}...")
+                except Exception as e:
+                    print(f"⚠️  Memory retrieval error: {e}")
             
             emotion_state = ""
             if hasattr(self, "tone_manager") and self.tone_manager:
@@ -1152,38 +1154,67 @@ class SunnyUltimateVoice:
             return "I'm having trouble connecting to my external AI. Let me try using my local knowledge..."
     
     def _query_anthropic(self, system_prompt: str, user_prompt: str) -> str:
-        """Query Anthropic Claude API"""
+        """Query Anthropic Claude API with conversation history"""
         try:
+            # Build messages with conversation history for memory
+            messages = []
+            # Include recent conversation history (last 20 exchanges)
+            if hasattr(self, 'conversation_history') and self.conversation_history:
+                messages.extend(self.conversation_history[-40:])  # Last 40 messages (20 exchanges)
+            # Add current user message
+            messages.append({"role": "user", "content": user_prompt})
+
+            # Also add to conversation history
+            self.conversation_history.append({"role": "user", "content": user_prompt})
+
             message = self.anthropic_client.messages.create(
                 model="claude-sonnet-4-5-20250929",
                 max_tokens=1024,
                 system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}]
+                messages=messages
             )
             # Extract text from response
             response_text = ""
             for block in message.content:
                 if hasattr(block, 'text'):
                     response_text += block.text
-            return response_text if response_text else "I'm processing that carefully."
+
+            # Save assistant response to conversation history
+            final_response = response_text if response_text else "I'm processing that carefully."
+            self.conversation_history.append({"role": "assistant", "content": final_response})
+            self._save_conversation_memory()  # Persist to disk
+
+            return final_response
         except Exception as e:
             print(f"⚠️  Anthropic query failed: {e}")
             raise
     
     def _query_openai(self, system_prompt: str, user_prompt: str) -> str:
-        """Query OpenAI GPT API"""
+        """Query OpenAI GPT API with conversation history"""
         try:
+            # Build messages with system prompt and conversation history
+            messages = [{"role": "system", "content": system_prompt}]
+            if hasattr(self, 'conversation_history') and self.conversation_history:
+                messages.extend(self.conversation_history[-40:])
+            messages.append({"role": "user", "content": user_prompt})
+
+            # Add to conversation history
+            self.conversation_history.append({"role": "user", "content": user_prompt})
+
             response = self.openai_client.chat.completions.create(
                 model="gpt-4",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
+                messages=messages,
                 max_tokens=1024,
                 temperature=0.7
             )
             content = response.choices[0].message.content
-            return content if content else "I'm thinking about that."
+            final_response = content if content else "I'm thinking about that."
+
+            # Save to conversation history
+            self.conversation_history.append({"role": "assistant", "content": final_response})
+            self._save_conversation_memory()
+
+            return final_response
         except Exception as e:
             print(f"⚠️  OpenAI query failed: {e}")
             raise
