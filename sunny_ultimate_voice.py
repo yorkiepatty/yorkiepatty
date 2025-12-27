@@ -478,37 +478,66 @@ class SunnyUltimateVoice:
             sys.exit(1)
     
     def _initialize_speech_recognition(self):
-        """Initialize speech recognition with optimal settings for natural conversation"""
+        """Initialize speech recognition using sounddevice + vosk (no PyAudio needed)"""
+        self.use_vosk = False
+        self.recognizer = None
+        self.microphone = None
+        self.vosk_model = None
+        self.audio_queue = None
+
+        # Try sounddevice + vosk first (preferred - no PyAudio needed)
+        try:
+            import sounddevice as sd
+            import vosk
+            import queue
+
+            # Find vosk model
+            model_paths = [
+                "./speech/vosk-model-small-en-us-0.15",
+                "../speech/vosk-model-small-en-us-0.15",
+                "vosk-model-small-en-us-0.15",
+            ]
+            model_path = None
+            for path in model_paths:
+                if os.path.exists(path):
+                    model_path = path
+                    break
+
+            if model_path:
+                print(f"🎤 Loading Vosk speech model from {model_path}...")
+                self.vosk_model = vosk.Model(model_path)
+                self.audio_queue = queue.Queue()
+                self.use_vosk = True
+                print("✅ Vosk speech recognition ready (using sounddevice)")
+                return
+            else:
+                print("⚠️  Vosk model not found, trying PyAudio fallback...")
+        except ImportError as e:
+            print(f"⚠️  Vosk/sounddevice not available: {e}")
+        except Exception as e:
+            print(f"⚠️  Vosk init error: {e}")
+
+        # Fallback to PyAudio-based speech_recognition
         try:
             self.recognizer = sr.Recognizer()
             self.microphone = sr.Microphone()
+
+            # Enhanced settings
+            self.recognizer.energy_threshold = 3000
+            self.recognizer.dynamic_energy_threshold = True
+            self.recognizer.pause_threshold = 2.0
+            self.recognizer.phrase_threshold = 0.2
+            self.recognizer.non_speaking_duration = 0.8
+
+            print("🎤 Calibrating microphone...")
+            with self.microphone as source:
+                self.recognizer.adjust_for_ambient_noise(source, duration=3)
+            print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
         except (AttributeError, OSError) as e:
-            print(f"⚠️  PyAudio not available - running in text-only mode")
-            print(f"   (Install PyAudio for voice input: pip install pyaudio)")
+            print(f"⚠️  No speech input available - text-only mode")
+            print(f"   Download Vosk model to: ./speech/vosk-model-small-en-us-0.15")
             self.recognizer = None
             self.microphone = None
-            return
-        
-        # Enhanced settings to avoid cutting off natural speech
-        self.recognizer.energy_threshold = 3000  # Lower threshold for better sensitivity
-        self.recognizer.dynamic_energy_threshold = True
-        self.recognizer.dynamic_energy_adjustment_damping = 0.15
-        self.recognizer.dynamic_energy_ratio = 1.5
-        
-        # CRITICAL: Extended pause detection to handle natural pauses
-        self.recognizer.pause_threshold = 2.0  # Wait 2 seconds of silence (was 1.2)
-        self.recognizer.phrase_threshold = 0.2  # Min phrase length (shorter = more responsive)
-        self.recognizer.non_speaking_duration = 0.8  # Allow longer pauses mid-sentence (was 0.5)
-        
-        # Calibrate microphone
-        print("🎤 Calibrating microphone...")
-        print("   (Please be COMPLETELY SILENT for 3 seconds...)")
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source, duration=3)
-        
-        self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 3000)
-        print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
-        print(f"   Sunny will wait 2 seconds of silence before processing your speech.")
     
     def _initialize_web_search(self):
         """Initialize web search capabilities"""
@@ -659,10 +688,18 @@ class SunnyUltimateVoice:
             if hasattr(self, 'memory'):
                 self.memory.store("heard", text)
             return text
-        
-        # Fallback to standard speech recognition
+
+        # Use Vosk + sounddevice if available (no PyAudio needed)
+        if self.use_vosk and self.vosk_model:
+            return self._listen_vosk()
+
+        # Fallback to PyAudio-based speech recognition
+        if not self.microphone or not self.recognizer:
+            print("⚠️  No speech input available")
+            return None
+
         print("\n🎤 Listening... (Sunny is patient - take your time, he won't cut you off)")
-        
+
         for attempt in range(3):  # Up to 3 attempts
             try:
                 with self.microphone as source:
@@ -670,13 +707,13 @@ class SunnyUltimateVoice:
                     # timeout: 15 seconds to START speaking (was 10)
                     # phrase_time_limit: 60 seconds for COMPLETE message (was 30)
                     audio = self.recognizer.listen(
-                        source, 
+                        source,
                         timeout=15,  # Wait longer for you to start
                         phrase_time_limit=60  # Allow full minute for complete thoughts
                     )
-                
+
                 print("🔄 Processing your complete message...")
-                
+
                 # Try Google Speech Recognition
                 try:
                     text = self.recognizer.recognize_google(audio)
@@ -704,11 +741,90 @@ class SunnyUltimateVoice:
                 return None
         
         return None
-    
+
+    def _listen_vosk(self):
+        """Listen using Vosk + sounddevice (no PyAudio required)"""
+        import sounddevice as sd
+        import vosk
+        import json
+
+        print("\n🎤 Listening... (Sunny is patient - take your time)")
+
+        SAMPLE_RATE = 16000
+        BLOCK_SIZE = 8000
+
+        rec = vosk.KaldiRecognizer(self.vosk_model, SAMPLE_RATE)
+        audio_data = []
+        silence_count = 0
+        has_speech = False
+
+        def audio_callback(indata, frames, time_info, status):
+            if status:
+                print(f"[Audio] {status}")
+            self.audio_queue.put(bytes(indata))
+
+        try:
+            with sd.RawInputStream(
+                samplerate=SAMPLE_RATE,
+                blocksize=BLOCK_SIZE,
+                dtype='int16',
+                channels=1,
+                callback=audio_callback
+            ):
+                print("   (Speak now... press Ctrl+C to stop)")
+                timeout_count = 0
+                max_timeout = 150  # ~15 seconds at 100ms chunks
+
+                while timeout_count < max_timeout:
+                    try:
+                        data = self.audio_queue.get(timeout=0.1)
+                        timeout_count = 0  # Reset on audio
+
+                        if rec.AcceptWaveform(data):
+                            result = json.loads(rec.Result())
+                            text = result.get("text", "").strip()
+                            if text:
+                                print(f"📝 You said: {text}")
+                                return text
+                        else:
+                            partial = json.loads(rec.PartialResult())
+                            partial_text = partial.get("partial", "")
+                            if partial_text:
+                                has_speech = True
+                                silence_count = 0
+                                print(f"\r   Hearing: {partial_text[:50]}...", end="", flush=True)
+                            elif has_speech:
+                                silence_count += 1
+                                # End after ~2 seconds of silence
+                                if silence_count > 20:
+                                    result = json.loads(rec.FinalResult())
+                                    text = result.get("text", "").strip()
+                                    if text:
+                                        print(f"\n📝 You said: {text}")
+                                        return text
+                                    break
+                    except Exception:
+                        timeout_count += 1
+                        if not has_speech and timeout_count > 50:
+                            print("\n⏱️  No speech detected")
+                            return None
+
+                # Final result
+                result = json.loads(rec.FinalResult())
+                text = result.get("text", "").strip()
+                if text:
+                    print(f"\n📝 You said: {text}")
+                    return text
+
+        except Exception as e:
+            print(f"\n❌ Vosk error: {e}")
+
+        return None
+
     # ==============================================================
     #  SunnyC : Independent Cognitive Reasoning Cycle
     # ==============================================================
-    
+
     def think(self, user_input: str):
         """
         Sunny's internal thought process.
