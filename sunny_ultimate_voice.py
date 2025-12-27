@@ -147,7 +147,22 @@ def playsound(audio_file):
         elif system == "Windows":
             # Use pygame for Windows (supports MP3) - interruptible
             import pygame
-            pygame.mixer.init()
+            try:
+                # Try to initialize with default settings
+                if not pygame.mixer.get_init():
+                    pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+            except pygame.error:
+                try:
+                    # Fallback: try with different settings
+                    pygame.mixer.quit()
+                    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=1024)
+                except pygame.error as e:
+                    print(f"⚠️  Pygame audio init failed: {e}")
+                    # Last resort: try Windows native
+                    import winsound
+                    winsound.PlaySound(audio_file, winsound.SND_FILENAME)
+                    return
+
             pygame.mixer.music.load(audio_file)
             pygame.mixer.music.play()
             # Wait for playback to finish, checking for interrupt
@@ -156,7 +171,6 @@ def playsound(audio_file):
                     pygame.mixer.music.stop()
                     break
                 pygame.time.Clock().tick(10)
-            pygame.mixer.quit()
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
