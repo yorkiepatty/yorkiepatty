@@ -591,7 +591,7 @@ class SunnyUltimateVoice:
             # - Episodic Memory (experiences, conversations)
             # - Semantic Memory (facts, learned knowledge)
             # - Auto-consolidation (like sleep in humans)
-            self.memory = MemoryMeshBridge(memory_dir="./derek_memory")
+            self.memory = MemoryMeshBridge(memory_dir="./sunny_memory")
             self.tone_manager = ToneManager()
             self.vision = VisionEngine()
             self.emotion_analyzer = analyze_emotion  # Function, not class
