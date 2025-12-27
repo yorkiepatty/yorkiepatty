@@ -64,7 +64,6 @@ class DerekModuleLoader:
                 "tone_manager",
                 "emotion",
                 "behavioral_interpreter",
-                "behaviors_interpreter",
                 "behavior_capturer",
                 "adaptive_conversation",
                 "emotion_tagging"

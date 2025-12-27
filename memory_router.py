@@ -7,8 +7,8 @@ import os
 
 GITHUB_API = "https://api.github.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-OWNER = "everettc"
-REPO = "derek-dashboard"
+OWNER = "everett"
+REPO = "yorkiepatty"
 
 router = APIRouter()
 
