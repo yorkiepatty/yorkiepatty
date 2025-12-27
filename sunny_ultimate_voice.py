@@ -28,6 +28,7 @@ from typing import cast, Iterable, Any, Optional
 import threading
 from pathlib import Path
 from dotenv import load_dotenv
+import pygame
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -45,34 +46,23 @@ import queue
 try:
     from elevenlabs import VoiceSettings
     from elevenlabs.client import ElevenLabs
-    HAS_ELEVENLABS = True
+    ELEVENLABS = True
 except ImportError:
-    HAS_ELEVENLABS = False
+    ELEVENLABS = False
 
 # Audio playback function that works cross-platform
+
 def playsound(audio_file):
-    """Play audio file using system-appropriate method"""
+    """Play audio file using pygame"""
     try:
-        system = platform.system()
-        if system == "Darwin":  # macOS
-            subprocess.run(["afplay", audio_file], check=True)
-        elif system == "Linux":
-            subprocess.run(["aplay", audio_file], check=True)
-        elif system == "Windows":
-            # Use Windows built-in startfile - no libraries needed!
-            os.startfile(audio_file)
-            # Calculate approximate playback time based on file size
-            import time
-            file_size = os.path.getsize(audio_file)
-            # Estimate: 16KB per second of audio (128kbps MP3)
-            estimated_duration = (file_size / 16000) + 0.5  # Add 0.5 second buffer
-            time.sleep(min(estimated_duration, 10))  # Cap at 10 seconds
-        else:
-            print(f"⚠️  Audio playback not supported on {system}")
+        pygame.mixer.init()
+        pygame.mixer.music.load(audio_file)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.wait(100)
     except Exception as e:
         print(f"⚠️  Audio playback failed: {e}")
-        import traceback
-        traceback.print_exc()
+
 
 class SoundDeviceMicrophone:
     """Custom microphone class using sounddevice instead of PyAudio"""
@@ -137,31 +127,31 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # Import project modules
 try:
     from perplexity_service import PerplexityService
-    HAS_PERPLEXITY = True
+    PERPLEXITY = True
 except ImportError:
-    HAS_PERPLEXITY = False
+    PERPLEXITY = False
     print("⚠️  Perplexity service not available")
 
 try:
     from internet_mode import query_internet
-    HAS_INTERNET_MODE = True
+    INTERNET_MODE = True
 except ImportError:
-    HAS_INTERNET_MODE = False
+    INTERNET_MODE = False
     print("⚠️  Internet mode not available")
 
 try:
     from brain import Sunny as SunnyBrain
-    HAS_DEREK_BRAIN = True
+    DEREK_BRAIN = True
 except ImportError:
-    HAS_DEREK_BRAIN = False
+    DEREK_BRAIN = False
     print("⚠️  Sunny brain not available")
 
 try:
     from json_guardian import JSONGuardian
     guardian = JSONGuardian()
-    HAS_GUARDIAN = True
+    GUARDIAN = True
 except ImportError:
-    HAS_GUARDIAN = False
+    GUARDIAN = False
     print("⚠️  JSON Guardian not available")
 
 # Screen capture capability
@@ -169,9 +159,9 @@ try:
     from PIL import ImageGrab
     import base64
     from io import BytesIO
-    HAS_SCREEN_CAPTURE = True
+    SCREEN_CAPTURE = True
 except ImportError:
-    HAS_SCREEN_CAPTURE = False
+    SCREEN_CAPTURE = False
     print("⚠️  Screen capture not available. Install with: pip install pillow")
 
 
@@ -304,24 +294,24 @@ class SunnyUltimateVoice:
         print("\n🔊 Initializing voice systems...")
 
         # ElevenLabs setup (primary)
-        self.has_elevenlabs = False
+        self.elevenlabs = False
         api_key = os.getenv("ELEVENLABS_API_KEY")
 
-        print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
+        print(f"   ELEVENLABS module: {ELEVENLABS}")
         print(f"   API key found: {bool(api_key)}")
         if api_key:
             print(f"   API key length: {len(api_key)} characters")
 
-        if HAS_ELEVENLABS and api_key:
+        if ELEVENLABS and api_key:
             try:
                 self.elevenlabs_client = ElevenLabs(api_key=api_key)
-                self.has_elevenlabs = True
+                self.elevenlabs = True
                 print("✅ ElevenLabs TTS initialized (primary voice)")
             except Exception as e:
                 print(f"⚠️  ElevenLabs initialization failed: {e}")
                 import traceback
                 traceback.print_exc()
-        elif not HAS_ELEVENLABS:
+        elif not ELEVENLABS:
             print("⚠️  ElevenLabs module not installed")
             print("   Run: pip install elevenlabs")
         elif not api_key:
@@ -331,14 +321,14 @@ class SunnyUltimateVoice:
         # AWS Polly setup (fallback)
         try:
             self.polly = boto3.client('polly')
-            self.has_polly = True
+            self.polly = True
             print("✅ AWS Polly initialized (fallback)")
         except Exception as e:
-            self.has_polly = False
+            self.polly = False
             print(f"⚠️  AWS Polly not available: {e}")
 
         # gTTS is always available as final fallback
-        self.has_gtts = True
+        self.gtts = True
         print("✅ Google TTS available as final fallback")
     
     def _initialize_ai_providers(self, provider):
@@ -371,7 +361,7 @@ class SunnyUltimateVoice:
             except Exception as e:
                 print(f"⚠️  OpenAI not available: {e}")
         
-        if HAS_PERPLEXITY and os.getenv("PERPLEXITY_API_KEY"):
+        if True and os.getenv("PERPLEXITY_API_KEY"):
             try:
                 self.perplexity_client = PerplexityService()
                 providers.append("perplexity")
@@ -436,11 +426,11 @@ class SunnyUltimateVoice:
             return
         
         # Enable internet mode if available
-        if HAS_INTERNET_MODE:
+        if INTERNET_MODE:
             os.environ["ENABLE_INTERNET_MODE"] = "true"
             print("✅ Internet mode enabled")
         
-        if HAS_PERPLEXITY:
+        if PERPLEXITY:
             print("✅ Perplexity web search enabled")
         
         print("🌐 Web search capabilities ready")
@@ -490,7 +480,7 @@ class SunnyUltimateVoice:
             self.local_reasoning_engine = None
         
         # Initialize Sunny Brain if available
-        if HAS_DEREK_BRAIN:
+        if DEREK_BRAIN:
             try:
                 self.sunny_brain = SunnyBrain()
                 print("✅ Sunny's brain initialized")
@@ -849,7 +839,7 @@ class SunnyUltimateVoice:
                 return str(result)
             
             # Try internet_mode if available
-            if HAS_INTERNET_MODE:
+            if INTERNET_MODE:
                 result = query_internet(query)
                 return str(result)
             
@@ -1002,7 +992,7 @@ class SunnyUltimateVoice:
         print("🌐 Searching the web for current information...")
         
         # Try Perplexity with web search first
-        if HAS_PERPLEXITY and self.ai_provider == "perplexity":
+        if PERPLEXITY and self.ai_provider == "perplexity":
             try:
                 response = self.perplexity_client.generate_content(
                     prompt=user_input,
@@ -1018,7 +1008,7 @@ class SunnyUltimateVoice:
                 print(f"⚠️  Perplexity web search failed: {e}")
         
         # Try internet_mode if available
-        if HAS_INTERNET_MODE:
+        if INTERNET_MODE:
             try:
                 web_result = query_internet(user_input)
                 if web_result:
@@ -1497,7 +1487,7 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         clean_text = self._clean_text_for_speech(text)
 
         # If no voice systems available, show warning
-        if not (self.has_elevenlabs or self.has_polly or self.has_gtts):
+        if not (self.elevenlabs or self.has_polly or self.has_gtts):
             print("⚠️  No voice system available!")
             print("   To enable voice:")
             print("   - ElevenLabs: Set ELEVENLABS_API_KEY in .env and run: pip install elevenlabs")
@@ -1506,7 +1496,7 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             return
 
         # Try ElevenLabs first (best quality)
-        if self.has_elevenlabs:
+        if self.elevenlabs:
             try:
                 print("🎙️  Using ElevenLabs voice...")
                 return self._speak_elevenlabs(clean_text)
@@ -1524,7 +1514,7 @@ Remember: The cards reflect possibilities, not certainties. You always have free
                 print(f"⚠️  Polly failed: {e}")
 
         # Final fallback to gTTS
-        if self.has_gtts:
+        if self.gtts:
             try:
                 print("🎙️  Using Google TTS voice...")
                 return self._speak_gtts(clean_text)
@@ -2301,28 +2291,28 @@ def main():
     print("Checking configuration...\n")
     
     # Check available APIs
-    has_anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
-    has_openai = bool(os.getenv("OPENAI_API_KEY"))
-    has_perplexity = bool(os.getenv("PERPLEXITY_API_KEY"))
-    has_aws = bool(os.getenv("AWS_ACCESS_KEY_ID")) or bool(os.getenv("AWS_PROFILE"))
+    anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
+    openai = bool(os.getenv("OPENAI_API_KEY"))
+    perplexity = bool(os.getenv("PERPLEXITY_API_KEY"))
+    aws = bool(os.getenv("AWS_ACCESS_KEY_ID")) or bool(os.getenv("AWS_PROFILE"))
     
     print("Available capabilities:")
-    print(f"  🤖 Anthropic Claude: {'✅' if has_anthropic else '❌'}")
-    print(f"  🤖 OpenAI GPT: {'✅' if has_openai else '❌'}")
-    print(f"  🤖 Perplexity AI: {'✅' if has_perplexity else '❌'}")
-    print(f"  🗣️  AWS Polly: {'✅' if has_aws else '❌'}")
+    print(f"  🤖 Anthropic Claude: {'✅' if anthropic else '❌'}")
+    print(f"  🤖 OpenAI GPT: {'✅' if openai else '❌'}")
+    print(f"  🤖 Perplexity AI: {'✅' if perplexity else '❌'}")
+    print(f"  🗣️  AWS Polly: {'✅' if aws else '❌'}")
     print(f"  🗣️  Google TTS: ✅ (always available)")
-    print(f"  🌐 Web Search: {'✅' if HAS_PERPLEXITY or HAS_INTERNET_MODE else '❌'}")
+    print(f"  🌐 Web Search: {'✅' if PERPLEXITY or INTERNET_MODE else '❌'}")
     print()
     
-    if not (has_anthropic or has_openai or has_perplexity):
+    if not (anthropic or openai or perplexity):
         print("❌ No AI providers available! Please set API keys in .env file")
         return
     
     # Voice options
     print("Available voices:")
     for voice, config in POLLY_VOICES.items():
-        status = "✅" if has_aws else "❌"
+        status = "✅" if aws else "❌"
         print(f"  {status} {voice}: {config['gender']} - {config['style']}")
     print("  ✅ gtts: Google TTS fallback\n")
     
