@@ -1,5 +1,5 @@
 """
-Event loop handler for Derek Dashboard
+Event loop handler for Sunny Dashboard
 Manages continuous processes and background tasks
 """
 
@@ -27,7 +27,7 @@ class EventLoop:  # Changed from LearningLoop
     
     def learning_loop(self):
         """Run learning loop if engine is available"""
-        if self.engine and self.engine.derek.memory is None:
+        if self.engine and self.engine.sunny.memory is None:
             logger.error("Cannot start learning loop: memory not initialized")
             raise RuntimeError("Memory system not initialized")
         try:

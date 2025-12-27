@@ -1,4 +1,4 @@
-"""GitHub integration helpers for Derek Dashboard API."""
+"""GitHub integration helpers for Sunny Dashboard API."""
 
 import logging
 from typing import Dict, Any

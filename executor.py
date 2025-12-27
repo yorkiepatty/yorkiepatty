@@ -40,7 +40,7 @@ def ask_openai(prompt: str, context=None):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are Derek, an AI assistant. Respond only to what the user actually says. Never assume what they were about to ask or claim to know their intentions.",
+                    "content": "You are Sunny, an AI assistant. Respond only to what the user actually says. Never assume what they were about to ask or claim to know their intentions.",
                 },
                 {"role": "user", "content": prompt},
             ],

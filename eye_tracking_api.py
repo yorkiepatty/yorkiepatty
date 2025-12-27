@@ -1,5 +1,5 @@
 """
-Derek Eye Tracking API - Advanced Eye Movement Analysis
+Sunny Eye Tracking API - Advanced Eye Movement Analysis
 The Christman AI Project
 
 Provides eye tracking, gaze analysis, and attention monitoring
@@ -21,10 +21,10 @@ from interpreter import analyze_frame
 logger = logging.getLogger(__name__)
 
 class EyeTrackingAPI:
-    """Derek's advanced eye tracking and gaze analysis system"""
+    """Sunny's advanced eye tracking and gaze analysis system"""
     
     def __init__(self):
-        """Initialize Derek's eye tracking system"""
+        """Initialize Sunny's eye tracking system"""
         self.tracking_active = False
         self.gaze_history = []
         self.attention_levels = []
@@ -35,7 +35,7 @@ class EyeTrackingAPI:
         self.calibration_points = []
         self.is_calibrated = False
         
-        logger.info("👁️ Derek Eye Tracking API initialized")
+        logger.info("👁️ Sunny Eye Tracking API initialized")
     
     def start_tracking(self) -> bool:
         """Start eye tracking session"""
@@ -45,7 +45,7 @@ class EyeTrackingAPI:
             self.attention_levels = []
             self.blink_count = 0
             
-            logger.info("👁️ Derek eye tracking started")
+            logger.info("👁️ Sunny eye tracking started")
             return True
             
         except Exception as e:
@@ -56,7 +56,7 @@ class EyeTrackingAPI:
         """Stop eye tracking session"""
         try:
             self.tracking_active = False
-            logger.info("👁️ Derek eye tracking stopped")
+            logger.info("👁️ Sunny eye tracking stopped")
             return True
             
         except Exception as e:

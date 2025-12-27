@@ -3,10 +3,10 @@ import websockets
 import json
 
 async def connect_to_derek():
-    uri = "ws://localhost:8000/ws/derek"
+    uri = "ws://localhost:8000/ws/sunny"
     
     async with websockets.connect(uri) as websocket:
-        print("✅ Connected to Derek API")
+        print("✅ Connected to Sunny API")
         
         # Send TTS request
         await websocket.send(json.dumps({

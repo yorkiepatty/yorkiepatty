@@ -17,7 +17,7 @@ class Memory:
 
 memory = Memory()
 
-app = FastAPI(title="Derek Dashboard")
+app = FastAPI(title="Sunny Dashboard")
 
 # Store active WebSocket connections
 class ConnectionManager:
@@ -43,7 +43,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # WebSocket endpoint for real-time communication
-@app.websocket("/ws/derek")
+@app.websocket("/ws/sunny")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
@@ -69,7 +69,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     )
                 
                 elif command == "chat":
-                    # Derek chat response
+                    # Sunny chat response
                     message = payload.get("message", "")
                     response = await derek_chat_response(message)
                     await manager.send_personal_message(
@@ -128,7 +128,7 @@ async def generate_tts_response(text: str) -> Dict:
         return {"success": False, "error": str(e)}
 
 async def derek_chat_response(message: str) -> str:
-    """Get Derek's chat response"""
+    """Get Sunny's chat response"""
     try:
         response = derek_instance.process_input(message)
         return response

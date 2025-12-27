@@ -1,6 +1,6 @@
 # /speech/transcriber.py
-# Hybrid VOSK + AlphaVox Speech Recognition + Derek Brain Integration
-# Adds "Hey Derek" wake word mode and Voice Activity Detection (VAD)
+# Hybrid VOSK + AlphaVox Speech Recognition + Sunny Brain Integration
+# Adds "Hey Sunny" wake word mode and Voice Activity Detection (VAD)
 # Auto-detects model folder safely
 
 import os
@@ -20,10 +20,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 # -------------------------------------------------------------
-# Now import Derek’s brain and TTS safely
+# Now import Sunny’s brain and TTS safely
 # -------------------------------------------------------------
 from tts_bridge import speak_response
-from brain import derek
+from brain import sunny
 
 # -------------------------------------------------------------
 # Configuration (clean version — no extra validation)
@@ -77,7 +77,7 @@ def callback(indata, frames, time_info, status):
 # -------------------------------------------------------------
 # Wake Word Detection
 # -------------------------------------------------------------
-WAKE_WORDS = ["hey derek", "okay derek", "hi derek"]
+WAKE_WORDS = ["hey sunny", "okay sunny", "hi sunny"]
 
 
 def detect_wake_word(text: str) -> bool:
@@ -89,8 +89,8 @@ def detect_wake_word(text: str) -> bool:
 # Passive Listening
 # -------------------------------------------------------------
 def passive_listen():
-    """Idle mode — listens for 'Hey Derek' without responding to everything."""
-    print("👂 Passive listening... (Say 'Hey Derek' to wake me)")
+    """Idle mode — listens for 'Hey Sunny' without responding to everything."""
+    print("👂 Passive listening... (Say 'Hey Sunny' to wake me)")
     rec = vosk.KaldiRecognizer(model, SAMPLE_RATE)
     buffer = b""
 
@@ -118,7 +118,7 @@ def passive_listen():
                         sys.stdout.flush()
 
                         if detect_wake_word(text):
-                            print("\n🚀 Wake word detected! Derek is listening...")
+                            print("\n🚀 Wake word detected! Sunny is listening...")
                             speak_response("Yes?")
                             active_listen()
                             print("👂 Back to passive listening...\n")
@@ -168,10 +168,10 @@ def active_listen():
 
 
 # -------------------------------------------------------------
-# Process Audio with Derek
+# Process Audio with Sunny
 # -------------------------------------------------------------
 def process_audio(rec):
-    """Send recognized speech to Derek’s brain and speak back."""
+    """Send recognized speech to Sunny’s brain and speak back."""
     result = json.loads(rec.FinalResult())
     text = result.get("text", "").strip()
     if not text:
@@ -182,19 +182,19 @@ def process_audio(rec):
     print(f"\n🧠 You said: {corrected}")
 
     try:
-        print("🧩 Sending to Derek.think()...")
-        response = derek.think(corrected)
-        print(f"🧩 Derek.think() returned: {response}")
+        print("🧩 Sending to Sunny.think()...")
+        response = sunny.think(corrected)
+        print(f"🧩 Sunny.think() returned: {response}")
 
         reply = response.get("response", "I'm here.")
-        print(f"🤖 Derek: {reply}\n")
+        print(f"🤖 Sunny: {reply}\n")
 
         print("🔊 Sending to speak_response()...")
         speak_response(reply)
         print("✅ Finished TTS playback.")
 
     except Exception as e:
-        print(f"⚠️ Derek response error: {e}")
+        print(f"⚠️ Sunny response error: {e}")
 
 
 # -------------------------------------------------------------

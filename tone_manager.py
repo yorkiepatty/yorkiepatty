@@ -1,4 +1,4 @@
-"""Tone and empathy management helpers for Derek."""
+"""Tone and empathy management helpers for Sunny."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Dict, List, Tuple, Any
 
 class ToneManager:
     """
-    Manages Derek's tone, empathy, and communication style
+    Manages Sunny's tone, empathy, and communication style
     Adapts to user's emotional state and communication needs
     """
     
@@ -26,7 +26,7 @@ class ToneManager:
     
     def analyze_user_input(self, text: str) -> str:
         """
-        Analyze user input for emotional tone and adjust Derek's response style
+        Analyze user input for emotional tone and adjust Sunny's response style
         
         Args:
             text: User's input text
@@ -128,7 +128,7 @@ def analyse_user_text(
 
 
 def format_response(base_text: str, cues: List[str], profile: Dict[str, Any]) -> str:
-    """Apply empathy wrappers and structure adjustments to Derek's reply."""
+    """Apply empathy wrappers and structure adjustments to Sunny's reply."""
 
     profile = _ensure_profile_defaults(profile)
     intro_parts: List[str] = []

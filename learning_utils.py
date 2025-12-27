@@ -1,4 +1,4 @@
-"""Utility helpers for Derek's autonomous learning."""
+"""Utility helpers for Sunny's autonomous learning."""
 
 from __future__ import annotations
 

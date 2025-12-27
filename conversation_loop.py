@@ -1,8 +1,8 @@
 """
-Conversation Loop for Derek
+Conversation Loop for Sunny
 The Christman AI Project - Speech-to-Action Core
 ------------------------------------------------
-Listens for speech, processes it via Derek’s brain, and replies with speech.
+Listens for speech, processes it via Sunny’s brain, and replies with speech.
 """
 
 import os
@@ -18,9 +18,9 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 # -------------------------------------------------------------
-# Imports from the Derek system
+# Imports from the Sunny system
 # -------------------------------------------------------------
-from brain import derek
+from brain import sunny
 from tts_bridge import speak_response as speak
 from executor import execute_task
 from memory_engine import MemoryEngine
@@ -46,18 +46,18 @@ def handle_recognition(text, confidence, meta=None):
     print(f"\n👤 You: {text}  (confidence: {confidence:.2f})")
 
     try:
-        # Load Derek's context memory
+        # Load Sunny's context memory
         memory.load()
         context = memory.get_context()
 
-        # Get Derek’s thought process
-        response = derek.think(text)
+        # Get Sunny’s thought process
+        response = sunny.think(text)
         intent = response.get("intent", "general")
 
         # Execute the intent / generate reply
         reply = execute_task(text, intent, context)
 
-        print(f"🤖 Derek: {reply}")
+        print(f"🤖 Sunny: {reply}")
         speak(reply)
 
     except Exception as e:
@@ -69,7 +69,7 @@ def handle_recognition(text, confidence, meta=None):
 # -------------------------------------------------------------
 def run_conversation():
     """Continuously listen for speech and process commands."""
-    print("🎙️ Derek is now live and listening...")
+    print("🎙️ Sunny is now live and listening...")
     try:
         # Start listening via the engine
         engine.start_listening(callback=handle_recognition)

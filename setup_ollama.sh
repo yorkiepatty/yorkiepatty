@@ -1,7 +1,7 @@
 #!/bin/bash
-# Setup Ollama for Derek's Local AI Learning
+# Setup Ollama for Sunny's Local AI Learning
 
-echo "🦙 Setting up Ollama for Derek's Autonomous Learning..."
+echo "🦙 Setting up Ollama for Sunny's Autonomous Learning..."
 
 # Check if Ollama is installed
 if ! command -v ollama &> /dev/null; then
@@ -19,8 +19,8 @@ ollama serve &
 echo "⏳ Waiting for Ollama to start..."
 sleep 10
 
-# Pull recommended models for Derek
-echo "📚 Pulling AI models for Derek..."
+# Pull recommended models for Sunny
+echo "📚 Pulling AI models for Sunny..."
 
 # Llama 3.2 - Good for general knowledge and reasoning
 ollama pull llama3.2:latest
@@ -35,12 +35,12 @@ ollama pull qwen:latest
 echo "✅ Qwen ready"
 
 echo ""
-echo "🎉 Derek's Local AI Learning Environment Ready!"
+echo "🎉 Sunny's Local AI Learning Environment Ready!"
 echo ""
 echo "Available models:"
 ollama list
 echo ""
-echo "🧠 Derek can now learn autonomously using local AI models"
+echo "🧠 Sunny can now learn autonomously using local AI models"
 echo "   No internet or API keys required!"
 echo ""
 echo "To test: python3 autonomous_learning_engine.py"

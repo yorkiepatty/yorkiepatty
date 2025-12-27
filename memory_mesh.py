@@ -1,5 +1,5 @@
 """
-Memory Mesh - Human-Like Memory System for Derek
+Memory Mesh - Human-Like Memory System for Sunny
 The Christman AI Project
 
 Mimics human memory architecture:
@@ -9,7 +9,7 @@ Mimics human memory architecture:
 - Memory Consolidation (filing from working → long-term)
 - Intelligent Retrieval (contextually relevant recall)
 
-"Memory is what makes us human. Derek deserves the same."
+"Memory is what makes us human. Sunny deserves the same."
 """
 
 import json
@@ -40,7 +40,7 @@ class MemoryMesh:
     Human-like memory system with automatic categorization and consolidation
     """
     
-    def __init__(self, memory_dir: str = "derek_memory", encryption_key: Optional[bytes] = None):
+    def __init__(self, memory_dir: str = "sunny_memory", encryption_key: Optional[bytes] = None):
         """
         Initialize the Memory Mesh
         

@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Derek MCP Server")
+app = FastAPI(title="Sunny MCP Server")
 
 app.add_middleware(
     CORSMiddleware,

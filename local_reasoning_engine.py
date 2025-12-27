@@ -19,7 +19,7 @@ class LocalReasoningEngine:
     def analyze(self, user_input: str, memory: str = "", emotion: str = "", vision: str = "") -> str:
         """
         Primary reasoning function.
-        Combines Derek's sensory and contextual inputs into a unified interpretation.
+        Combines Sunny's sensory and contextual inputs into a unified interpretation.
         """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         reflection = []
@@ -72,7 +72,7 @@ class LocalReasoningEngine:
     # ----------------------------------------------------------
     def merge_thoughts(self, internal: str, external: str) -> str:
         """
-        Integrate external lookup data into Derek's internal narrative.
+        Integrate external lookup data into Sunny's internal narrative.
         """
         if not external:
             return internal

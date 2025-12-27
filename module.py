@@ -1,4 +1,4 @@
-"""UI module registration for Derek Dashboard."""
+"""UI module registration for Sunny Dashboard."""
 
 from typing import Callable, Dict
 

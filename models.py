@@ -1,5 +1,5 @@
 """
-Data models for Derek's Learning Engine API
+Data models for Sunny's Learning Engine API
 """
 from pydantic import BaseModel, Field, validator
 from typing import Optional, Dict, List

@@ -1,6 +1,6 @@
 """
-Memory Mesh Bridge - Adapter for Derek Ultimate Voice
-Allows seamless integration of MemoryMesh with existing Derek code
+Memory Mesh Bridge - Adapter for Sunny Ultimate Voice
+Allows seamless integration of MemoryMesh with existing Sunny code
 """
 
 from memory_mesh import MemoryMesh
@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 class MemoryMeshBridge:
     """
-    Bridge adapter to make MemoryMesh compatible with existing Derek code
+    Bridge adapter to make MemoryMesh compatible with existing Sunny code
     Provides the same interface as old MemoryManager but with MemoryMesh power
     """
     
-    def __init__(self, memory_dir: str = "./derek_memory", encryption_key: Optional[bytes] = None):
+    def __init__(self, memory_dir: str = "./sunny_memory", encryption_key: Optional[bytes] = None):
         """
         Initialize MemoryMesh with bridge interface
         
@@ -134,7 +134,7 @@ class MemoryMeshBridge:
             return ""
     
     def get_memory_stats(self) -> Dict[str, Any]:
-        """Get statistics about Derek's memory"""
+        """Get statistics about Sunny's memory"""
         if not hasattr(self, 'mesh') or self.mesh is None:
             logger.error("MemoryMesh not initialized")
             return {}

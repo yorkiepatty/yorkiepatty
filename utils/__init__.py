@@ -1,5 +1,5 @@
 """
-Utilities for Derek's Learning Engine
+Utilities for Sunny's Learning Engine
 """
 from .logging import setup_logging, get_audit_logger, get_api_logger, get_learning_logger, log_user_action, sanitize_log_message, create_sanitized_logger
 

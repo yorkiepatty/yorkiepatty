@@ -28,7 +28,7 @@ def extract_from_urls(urls: list[str]) -> list[dict]:
 
 # --- Add this new part to the end of your script ---
 if __name__ == "__main__":
-    # 1. Create a list of websites for Derek to crawl
+    # 1. Create a list of websites for Sunny to crawl
     ai_research_sites = [
         "https://arxiv.org/list/cs.AI/recent",  # For latest AI research papers
         "https://www.technologyreview.com/artificial-intelligence/",

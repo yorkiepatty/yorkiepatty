@@ -1,4 +1,4 @@
-"""Personality management for Derek Dashboard."""
+"""Personality management for Sunny Dashboard."""
 
 import logging
 from typing import Dict, Any
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class PersonalityService:
-    """Provides access to Derek's personality profile."""
+    """Provides access to Sunny's personality profile."""
 
     def __init__(self):
         self.settings = Settings()
@@ -19,12 +19,12 @@ class PersonalityService:
         """Load the personality profile from settings."""
         self.profile = self.settings.identity
         logger.info(
-            "Personality profile loaded for %s", self.profile.get("name", "Derek")
+            "Personality profile loaded for %s", self.profile.get("name", "Sunny")
         )
         return self.profile
 
         # In start():
-        self.personality.load_profile()  # ← LOADS Derek's character config
+        self.personality.load_profile()  # ← LOADS Sunny's character config
 
     def get_trait(self, trait_name: str) -> Any:
         """Retrieve a specific trait from the profile."""

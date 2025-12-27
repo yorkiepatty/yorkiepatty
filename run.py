@@ -1,5 +1,5 @@
 """
-Quick start script for Derek Dashboard
+Quick start script for Sunny Dashboard
 The Christman AI Project
 """
 
@@ -69,7 +69,7 @@ def check_environment():
 def main():
     """Main execution"""
     print("=" * 60)
-    print("🚀 Derek Dashboard - Quick Start")
+    print("🚀 Sunny Dashboard - Quick Start")
     print("The Christman AI Project")
     print("=" * 60 + "\n")
 
@@ -79,7 +79,7 @@ def main():
         sys.exit(1)
 
     print("\n" + "=" * 60)
-    print("Starting Derek Dashboard...")
+    print("Starting Sunny Dashboard...")
     print("=" * 60 + "\n")
 
     # Import and run main
@@ -88,7 +88,7 @@ def main():
 
         dashboard_main()
     except KeyboardInterrupt:
-        print("\n\n👋 Derek Dashboard stopped by user")
+        print("\n\n👋 Sunny Dashboard stopped by user")
     except Exception as e:  # pragma: no cover - debug aid
         print(f"\n❌ Error starting dashboard: {e}")
         import traceback

@@ -1,5 +1,5 @@
 """
-Configuration Management for Derek Dashboard
+Configuration Management for Sunny Dashboard
 The Christman AI Project
 """
 
@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 
 
 class Settings:
-    """Central configuration for Derek Dashboard"""
+    """Central configuration for Sunny Dashboard"""
 
     # Project paths
     PROJECT_ROOT = Path(__file__).parent.parent
@@ -22,7 +22,7 @@ class Settings:
     KNOWLEDGE_BASE_DIR = PROJECT_ROOT / "data" / "knowledge_base"
 
     # Identity configuration
-    IDENTITY_FILE = CONFIG_DIR / "derek_identity.json"
+    IDENTITY_FILE = CONFIG_DIR / "sunny_identity.json"
     LEARNING_CHAMBERS_FILE = CONFIG_DIR / "learning_chambers.json"
 
     # Self-modification logs
@@ -66,7 +66,7 @@ class Settings:
 
     # GitHub Integration
     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", None)
-    GITHUB_REPO = "christman-ai-project/derek-dashboard"
+    GITHUB_REPO = "christman-ai-project/sunny-dashboard"
 
     def __init__(self):
         """Initialize and validate settings"""
@@ -91,14 +91,14 @@ class Settings:
             directory.mkdir(parents=True, exist_ok=True)
 
     def _load_identity(self) -> Dict[str, Any]:
-        """Load Derek's identity configuration"""
+        """Load Sunny's identity configuration"""
         if self.IDENTITY_FILE.exists():
             with open(self.IDENTITY_FILE, "r") as f:
                 return json.load(f)
 
         # Default identity
         default_identity = {
-            "name": "Derek C",
+            "name": "Sunny C",
             "role": "AI COO",
             "project": "The Christman AI Project",
             "personality": {

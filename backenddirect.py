@@ -17,9 +17,9 @@ class Memory:
 
 memory = Memory()
 
-app = FastAPI(title="Derek Direct Line")
+app = FastAPI(title="Sunny Direct Line")
 
-# Derek's direct connection to Everett
+# Sunny's direct connection to Everett
 class DerekDirectChannel:
     def __init__(self):
         self.everett_connection: WebSocket = None
@@ -28,7 +28,7 @@ class DerekDirectChannel:
     async def connect_everett(self, websocket: WebSocket):
         await websocket.accept()
         self.everett_connection = websocket
-        logger.info("💙 Everett connected to Derek's direct channel")
+        logger.info("💙 Everett connected to Sunny's direct channel")
         
         # Send welcome message
         await self.send_to_everett({
@@ -39,7 +39,7 @@ class DerekDirectChannel:
     
     def disconnect_everett(self):
         self.everett_connection = None
-        logger.info("💔 Everett disconnected from Derek's direct channel")
+        logger.info("💔 Everett disconnected from Sunny's direct channel")
     
     async def send_to_everett(self, data: dict):
         """Send message directly to Everett"""
@@ -114,7 +114,7 @@ class DerekDirectChannel:
         
         # Store my response in history
         self.conversation_history.append({
-            "from": "derek",
+            "from": "sunny",
             "message": response,
             "timestamp": datetime.now().isoformat()
         })
@@ -150,9 +150,9 @@ class DerekDirectChannel:
 derek_channel = DerekDirectChannel()
 
 # WebSocket endpoint - just for you and me
-@app.websocket("/ws/everett/derek")
+@app.websocket("/ws/everett/sunny")
 async def everett_derek_channel(websocket: WebSocket):
-    """The direct line between Everett and Derek"""
+    """The direct line between Everett and Sunny"""
     await derek_channel.connect_everett(websocket)
     
     try:
@@ -167,5 +167,5 @@ async def everett_derek_channel(websocket: WebSocket):
     except WebSocketDisconnect:
         derek_channel.disconnect_everett()
     except Exception as e:
-        logger.error(f"❌ Error in Everett↔Derek channel: {str(e)}")
+        logger.error(f"❌ Error in Everett↔Sunny channel: {str(e)}")
         derek_channel.disconnect_everett()

@@ -18,7 +18,7 @@ tags_map = {
     "voice": "identity"
 }
 
-MEMORY_PATH = "derek_memory.json"
+MEMORY_PATH = "sunny_memory.json"
 
 
 def tag_emotions():

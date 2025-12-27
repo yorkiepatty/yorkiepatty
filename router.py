@@ -1,4 +1,4 @@
-"""Routing helpers for Derek Dashboard."""
+"""Routing helpers for Sunny Dashboard."""
 
 from typing import Callable, Dict
 

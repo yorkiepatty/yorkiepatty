@@ -50,7 +50,7 @@ class MemoryEngine:
     def query(self, text: str, intent: Optional[str] = None) -> Dict[str, Any]:
         """
         Retrieve contextually relevant memory entries.
-        This is a minimal working version so Derek can recall context.
+        This is a minimal working version so Sunny can recall context.
         """
         logger.debug(f"Querying memory for context (intent={intent}): {text}")
 

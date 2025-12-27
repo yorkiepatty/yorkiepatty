@@ -1,4 +1,4 @@
-"""Foundation for Derek's autonomous reflection and planning."""
+"""Foundation for Sunny's autonomous reflection and planning."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ class ReflectivePlanner:
             f.write(json.dumps(entry) + "\n")
 
     def suggest_follow_ups(self) -> List[str]:
-        """Return lightweight next-step prompts Derek could pursue."""
+        """Return lightweight next-step prompts Sunny could pursue."""
 
         suggestions: List[str] = []
         profile = self.memory_engine.get_tone_profile()

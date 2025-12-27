@@ -1,7 +1,7 @@
 """
 Database Module
 ---------------
-Database abstraction layer for Derek's persistent storage.
+Database abstraction layer for Sunny's persistent storage.
 """
 
 import os
@@ -18,7 +18,7 @@ logger = logging.getLogger("database")
 class Database:
     """SQLite database wrapper with JSON support"""
     
-    def __init__(self, db_path: str = "./memory/derek.db"):
+    def __init__(self, db_path: str = "./memory/sunny.db"):
         """Initialize database connection"""
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -56,7 +56,7 @@ class Database:
         return dict(row) if row else None
     
     def create_tables(self):
-        """Create standard Derek database tables"""
+        """Create standard Sunny database tables"""
         logger.info("Creating database tables...")
         
         # Memory table

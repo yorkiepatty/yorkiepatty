@@ -1,8 +1,8 @@
 """
-Derek Vision Engine - Complete Visual Processing System
+Sunny Vision Engine - Complete Visual Processing System
 The Christman AI Project
 
-Enables Derek to see, understand, and process visual information
+Enables Sunny to see, understand, and process visual information
 """
 
 import cv2
@@ -30,10 +30,10 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 class VisionEngine:
-    """Derek's complete vision processing system"""
+    """Sunny's complete vision processing system"""
     
     def __init__(self, camera_index: int = 0):
-        """Initialize Derek's vision system"""
+        """Initialize Sunny's vision system"""
         self.camera_index = camera_index
         self.running = False
         self.thread = None
@@ -63,13 +63,13 @@ class VisionEngine:
                 min_detection_confidence=0.5
             )
         
-        logger.info("👁️ Derek Vision Engine initialized")
+        logger.info("👁️ Sunny Vision Engine initialized")
         logger.info(f"   Camera Index: {camera_index}")
         logger.info(f"   DeepFace Available: {DEEPFACE_AVAILABLE}")
         logger.info(f"   MediaPipe Available: {MEDIAPIPE_AVAILABLE}")
     
     def start(self):
-        """Start Derek's vision processing"""
+        """Start Sunny's vision processing"""
         if self.running:
             print("👁️ Vision engine already running.")
             return
@@ -77,25 +77,25 @@ class VisionEngine:
         self.running = True
         self.thread = threading.Thread(target=self._vision_loop, daemon=True)
         self.thread.start()
-        print("👁️ Derek's vision engine started - Derek can now see!")
+        print("👁️ Sunny's vision engine started - Sunny can now see!")
     
     def stop(self):
-        """Stop Derek's vision processing"""
+        """Stop Sunny's vision processing"""
         self.running = False
         if self.thread:
             self.thread.join()
-        print("👁️ Derek's vision engine stopped.")
+        print("👁️ Sunny's vision engine stopped.")
 
     def _vision_loop(self):
-        """Derek's main vision processing loop"""
+        """Sunny's main vision processing loop"""
         cap = cv2.VideoCapture(self.camera_index)
         if not cap.isOpened():
-            print("❌ Derek cannot access camera - vision will be limited")
+            print("❌ Sunny cannot access camera - vision will be limited")
             # Continue in simulation mode
             self._simulate_vision_loop()
             return
 
-        print("👁️ Derek is now watching through camera...")
+        print("👁️ Sunny is now watching through camera...")
         
         while self.running:
             ret, frame = cap.read()
@@ -103,7 +103,7 @@ class VisionEngine:
                 break
                 
             try:
-                # Process frame with Derek's enhanced vision
+                # Process frame with Sunny's enhanced vision
                 results = self._process_frame(frame)
                 
                 # Display vision information
@@ -115,26 +115,26 @@ class VisionEngine:
                 
                 self.processed_frames += 1
                 
-                # Show Derek's vision (optional)
-                cv2.imshow("Derek's Vision", frame)
+                # Show Sunny's vision (optional)
+                cv2.imshow("Sunny's Vision", frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
                     
             except Exception as e:
                 logger.error(f"👁️ Vision processing error: {e}")
                 cv2.putText(
-                    frame, "Derek's Vision: Processing...", (20, 40),
+                    frame, "Sunny's Vision: Processing...", (20, 40),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2
                 )
 
         cap.release()
         cv2.destroyAllWindows()
         self.running = False
-        print("👁️ Derek's camera vision ended")
+        print("👁️ Sunny's camera vision ended")
     
     def _simulate_vision_loop(self):
         """Simulate vision when no camera is available"""
-        print("👁️ Derek's vision running in simulation mode...")
+        print("👁️ Sunny's vision running in simulation mode...")
         frame_count = 0
         
         while self.running and frame_count < 100:  # Limit simulation
@@ -148,7 +148,7 @@ class VisionEngine:
             }
             
             if frame_count % 30 == 0:
-                print(f"👁️ Derek's simulated vision: {simulated_results}")
+                print(f"👁️ Sunny's simulated vision: {simulated_results}")
             
             self.processed_frames += 1
             frame_count += 1
@@ -158,10 +158,10 @@ class VisionEngine:
             time.sleep(0.1)
         
         self.running = False
-        print("👁️ Derek's simulated vision completed")
+        print("👁️ Sunny's simulated vision completed")
     
     def _process_frame(self, frame):
-        """Process a single frame with Derek's vision"""
+        """Process a single frame with Sunny's vision"""
         results = {
             "timestamp": datetime.now().isoformat(),
             "faces": [],
@@ -205,11 +205,11 @@ class VisionEngine:
         return results
     
     def _draw_vision_info(self, frame, results):
-        """Draw Derek's vision information on the frame"""
+        """Draw Sunny's vision information on the frame"""
         # Draw face count
         face_count = len(results.get("faces", []))
         cv2.putText(
-            frame, f"Derek sees: {face_count} face(s)", (20, 40),
+            frame, f"Sunny sees: {face_count} face(s)", (20, 40),
             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2
         )
         
@@ -235,7 +235,7 @@ class VisionEngine:
         )
     
     def _store_visual_memory(self, results):
-        """Store visual information in Derek's memory"""
+        """Store visual information in Sunny's memory"""
         self.visual_memory.append(results)
         
         # Limit memory to last 100 entries
@@ -243,7 +243,7 @@ class VisionEngine:
             self.visual_memory.pop(0)
     
     def get_vision_stats(self):
-        """Get Derek's vision statistics"""
+        """Get Sunny's vision statistics"""
         return {
             "frames_processed": self.processed_frames,
             "vision_active": self.running,
@@ -253,7 +253,7 @@ class VisionEngine:
         }
     
     def describe_last_seen(self):
-        """Get Derek's description of what he last saw"""
+        """Get Sunny's description of what he last saw"""
         if not self.visual_memory:
             return "I haven't seen anything yet."
         
@@ -272,27 +272,27 @@ class VisionEngine:
 derek_vision_engine = None
 
 def get_vision_engine(camera_index: int = 0) -> VisionEngine:
-    """Get Derek's vision engine instance"""
+    """Get Sunny's vision engine instance"""
     global derek_vision_engine
     if derek_vision_engine is None:
         derek_vision_engine = VisionEngine(camera_index)
     return derek_vision_engine
 
 def start_derek_vision(camera_index: int = 0):
-    """Start Derek's vision system"""
+    """Start Sunny's vision system"""
     engine = get_vision_engine(camera_index)
     engine.start()
     return engine
 
 def stop_derek_vision():
-    """Stop Derek's vision system"""
+    """Stop Sunny's vision system"""
     global derek_vision_engine
     if derek_vision_engine:
         derek_vision_engine.stop()
 
 # Test function
 if __name__ == "__main__":
-    print("👁️ Testing Derek's Vision Engine...")
+    print("👁️ Testing Sunny's Vision Engine...")
     vision = start_derek_vision()
     
     import time
@@ -302,10 +302,10 @@ if __name__ == "__main__":
     print(f"Vision stats: {stats}")
     
     description = vision.describe_last_seen()
-    print(f"Derek says: {description}")
+    print(f"Sunny says: {description}")
     
     stop_derek_vision()
-    print("👁️ Derek's vision test completed!")
+    print("👁️ Sunny's vision test completed!")
 
 # ==============================================================================
 # © 2025 Everett Nathaniel Christman & Misty Gail Christman

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Memory Mesh Integration with Derek
+Test Memory Mesh Integration with Sunny
 Verifies human-like memory system works correctly
 """
 
@@ -23,7 +23,7 @@ def test_memory_mesh_core():
     print("=" * 70)
     
     # Initialize
-    memory = MemoryMesh(memory_dir="./test_derek_memory")
+    memory = MemoryMesh(memory_dir="./test_sunny_memory")
     
     # Test 1: Store memories
     print("\n1️⃣  Testing memory storage...")
@@ -81,7 +81,7 @@ def test_memory_mesh_core():
     memory.save_memories()
     
     # Verify files exist
-    memory_dir = Path("./test_derek_memory")
+    memory_dir = Path("./test_sunny_memory")
     assert (memory_dir / "episodic_memory.json").exists(), "Episodic memory file should exist"
     assert (memory_dir / "semantic_memory.json").exists(), "Semantic memory file should exist"
     assert (memory_dir / "memory_metadata.json").exists(), "Metadata file should exist"
@@ -89,7 +89,7 @@ def test_memory_mesh_core():
     
     # Test 7: Load memories
     print("\n7️⃣  Testing memory loading...")
-    memory2 = MemoryMesh(memory_dir="./test_derek_memory")
+    memory2 = MemoryMesh(memory_dir="./test_sunny_memory")
     assert len(memory2.episodic_memory) > 0, "Should load episodic memories"
     print(f"   ✅ Loaded {len(memory2.episodic_memory)} episodic memories")
     
@@ -106,18 +106,18 @@ def test_memory_mesh_core():
 
 
 def test_memory_mesh_bridge():
-    """Test Memory Mesh Bridge (Derek compatibility layer)"""
+    """Test Memory Mesh Bridge (Sunny compatibility layer)"""
     print("=" * 70)
-    print("🧪 TEST 2: Memory Mesh Bridge (Derek Compatibility)")
+    print("🧪 TEST 2: Memory Mesh Bridge (Sunny Compatibility)")
     print("=" * 70)
     
     # Initialize bridge
-    bridge = MemoryMeshBridge(memory_dir="./test_derek_memory_bridge")
+    bridge = MemoryMeshBridge(memory_dir="./test_sunny_memory_bridge")
     
     # Test 1: Store with old interface
     print("\n1️⃣  Testing old MemoryManager interface...")
     bridge.store("user_name", "Nathaniel")
-    bridge.store("project_goal", "Derek learns from master AIs")
+    bridge.store("project_goal", "Sunny learns from master AIs")
     bridge.store("learning_approach", "Apprenticeship model until 85% confidence")
     print("   ✅ Old interface works")
     
@@ -138,13 +138,13 @@ def test_memory_mesh_bridge():
     # Test 4: Save with old interface
     print("\n4️⃣  Testing old save interface...")
     bridge.save()
-    memory_dir = Path("./test_derek_memory_bridge")
+    memory_dir = Path("./test_sunny_memory_bridge")
     assert (memory_dir / "episodic_memory.json").exists(), "Should save episodic memory"
     print("   ✅ Save works")
     
     # Test 5: Load with old interface
     print("\n5️⃣  Testing old load interface...")
-    bridge2 = MemoryMeshBridge(memory_dir="./test_derek_memory_bridge")
+    bridge2 = MemoryMeshBridge(memory_dir="./test_sunny_memory_bridge")
     bridge2.load()
     context2 = bridge2.retrieve_relevant("Nathaniel")
     assert "Nathaniel" in context2, "Should retrieve after reload"
@@ -250,65 +250,65 @@ def test_human_like_behavior():
 
 
 def test_derek_integration_scenario():
-    """Test realistic Derek conversation scenario"""
+    """Test realistic Sunny conversation scenario"""
     print("=" * 70)
-    print("🧪 TEST 4: Realistic Derek Conversation Scenario")
+    print("🧪 TEST 4: Realistic Sunny Conversation Scenario")
     print("=" * 70)
     
-    # Initialize Derek's memory
-    derek_memory = MemoryMeshBridge(memory_dir="./test_derek_conversation")
+    # Initialize Sunny's memory
+    sunny_memory = MemoryMeshBridge(memory_dir="./test_derek_conversation")
     
     # Simulate conversation sequence
-    print("\n📞 Simulating Derek conversation...\n")
+    print("\n📞 Simulating Sunny conversation...\n")
     
     # User introduces themselves
-    print("👤 User: Hi Derek, I'm Nathaniel, the creator of this project")
-    derek_memory.store(
+    print("👤 User: Hi Sunny, I'm Nathaniel, the creator of this project")
+    sunny_memory.store(
         "user_introduction",
         "User is Nathaniel, creator of The Christman AI Project"
     )
-    derek_memory.save()
+    sunny_memory.save()
     
-    # Derek responds and remembers
-    print("🤖 Derek: Nice to meet you, Nathaniel!")
-    derek_memory.store(
+    # Sunny responds and remembers
+    print("🤖 Sunny: Nice to meet you, Nathaniel!")
+    sunny_memory.store(
         "derek_greeting",
         "Greeted Nathaniel for first time"
     )
-    derek_memory.save()
+    sunny_memory.save()
     
     # User asks about a project
     print("\n👤 User: Tell me about AlphaVox")
-    context = derek_memory.retrieve_relevant("AlphaVox")
-    print(f"   🧠 Derek recalls: {context if context else 'No prior knowledge'}")
+    context = sunny_memory.retrieve_relevant("AlphaVox")
+    print(f"   🧠 Sunny recalls: {context if context else 'No prior knowledge'}")
     
-    derek_memory.store(
+    sunny_memory.store(
         "alphavox_discussion",
         "Discussed AlphaVox project with user"
     )
-    derek_memory.save()
+    sunny_memory.save()
     
-    # Later conversation - Derek should remember
+    # Later conversation - Sunny should remember
     print("\n👤 User: What's my name?")
-    context = derek_memory.retrieve_relevant("name creator Nathaniel")
-    print(f"   🧠 Derek recalls: {context[:100]}...")
-    assert "Nathaniel" in context, "Derek should remember user's name"
-    print("🤖 Derek: Your name is Nathaniel!")
+    context = sunny_memory.retrieve_relevant("name creator Nathaniel")
+    print(f"   🧠 Sunny recalls: {context[:100]}...")
+    assert "Nathaniel" in context, "Sunny should remember user's name"
+    print("🤖 Sunny: Your name is Nathaniel!")
     
     # User asks about past conversation
     print("\n👤 User: What did we talk about earlier?")
-    recent = derek_memory.get_recent_context(hours=1)
-    print(f"   🧠 Derek recalls recent context: {len(recent)} chars")
-    print("🤖 Derek: We discussed your introduction and AlphaVox")
+    recent = sunny_memory.get_recent_context(hours=1)
+    print(f"   🧠 Sunny recalls recent context: {len(recent)} chars")
+    print("🤖 Sunny: We discussed your introduction and AlphaVox")
     
     # Check memory stats
-    print("\n📊 Derek's Memory Status:")
-    stats = derek_memory.get_memory_stats()
+    print("\n📊 Sunny's Memory Status:")
+    stats = sunny_memory.get_memory_stats()
     for key, value in stats.items():
         if not isinstance(value, dict) and not isinstance(value, list):
             print(f"   {key}: {value}")
     
-    print("\n✅ TEST 4 PASSED: Derek can maintain conversation context!\n")
+    print("\n✅ TEST 4 PASSED: Sunny can maintain conversation context!\n")
     return True
 
 
@@ -317,8 +317,8 @@ def cleanup_test_directories():
     import shutil
     
     test_dirs = [
-        "./test_derek_memory",
-        "./test_derek_memory_bridge",
+        "./test_sunny_memory",
+        "./test_sunny_memory_bridge",
         "./test_human_memory",
         "./test_derek_conversation"
     ]
@@ -353,20 +353,20 @@ def main():
         print(f"✅ Core Memory Mesh: {'PASSED' if test1 else 'FAILED'}")
         print(f"✅ Bridge Compatibility: {'PASSED' if test2 else 'FAILED'}")
         print(f"✅ Human-Like Behaviors: {'PASSED' if test3 else 'FAILED'}")
-        print(f"✅ Derek Integration: {'PASSED' if test4 else 'FAILED'}")
+        print(f"✅ Sunny Integration: {'PASSED' if test4 else 'FAILED'}")
         print()
         
         if all([test1, test2, test3, test4]):
             print("🎉 ALL TESTS PASSED! Memory Mesh is production-ready!")
             print()
-            print("✅ Derek now has human-like memory:")
+            print("✅ Sunny now has human-like memory:")
             print("   - Working memory (current context)")
             print("   - Episodic memory (experiences)")
             print("   - Semantic memory (categorized knowledge)")
             print("   - Automatic consolidation (like sleep)")
             print("   - Intelligent retrieval (relevance scoring)")
             print()
-            print("🚀 Derek is ready to remember, learn, and grow!")
+            print("🚀 Sunny is ready to remember, learn, and grow!")
             return 0
         else:
             print("❌ Some tests failed. Review output above.")

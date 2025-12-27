@@ -1,7 +1,7 @@
 """
 AlphaVox - Advanced Learning Module
 -----------------------------------
-Enhanced learning capabilities for Derek/AlphaVox that continuously
+Enhanced learning capabilities for Sunny/AlphaVox that continuously
 educate the system and identify potential advancements.
 """
 

@@ -1,7 +1,7 @@
 """
 Services Module
 ---------------
-Service layer for Derek's web API and external integrations.
+Service layer for Sunny's web API and external integrations.
 Provides client wrappers for AI providers and external services.
 """
 
@@ -77,7 +77,7 @@ def ask_virtus(prompt: str) -> str:
 
 # Database service stub
 class DatabaseService:
-    """Database service for Derek's persistent storage"""
+    """Database service for Sunny's persistent storage"""
     def __init__(self):
         logger.info("DatabaseService initialized")
     

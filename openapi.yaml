@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Derek's Learning Engine API
+  title: Sunny's Learning Engine API
   description: |
-    HIPAA-compliant autonomous learning engine for Derek AI system.
+    HIPAA-compliant autonomous learning engine for Sunny AI system.
     Enables continuous learning across multiple domains including neurodivergency, 
     autism support, AI development, mathematics, physics, and neurology.
     
@@ -22,7 +22,7 @@ info:
 servers:
   - url: http://localhost:8000
     description: Local development server
-  - url: https://api.derek-learning.com
+  - url: https://api.sunny-learning.com
     description: Production server
 
 security:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Derek Module Audit Script
+Sunny Module Audit Script
 Checks which modules are available, which can be imported, and which are being used in main.py
 """
 
@@ -49,7 +49,7 @@ def get_imported_in_main():
     return sorted(list(set(imported)))
 
 def main():
-    print("🔍 Derek Module Audit Report")
+    print("🔍 Sunny Module Audit Report")
     print("=" * 80)
     
     # Get all modules

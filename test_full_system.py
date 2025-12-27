@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Derek AI Complete System Test
+Sunny AI Complete System Test
 Tests autonomous learning with API keys from .env
 """
 
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-print("🧠 Derek AI Complete System Test")
+print("🧠 Sunny AI Complete System Test")
 print("=" * 60)
 
 # Check API key configuration
@@ -23,21 +23,21 @@ print(f"   Anthropic: {'✅ Configured' if anthropic_key else '❌ Not set'}")
 print(f"   OpenAI: {'✅ Configured' if openai_key else '❌ Not set'}")
 print(f"   Perplexity: {'✅ Configured' if perplexity_key else '❌ Not set'}")
 
-# Test Derek initialization
-print(f"\n🤖 Initializing Derek...")
+# Test Sunny initialization
+print(f"\n🤖 Initializing Sunny...")
 try:
-    # Import after loading .env so Derek can detect API keys
+    # Import after loading .env so Sunny can detect API keys
     from autonomous_learning_engine import AutonomousLearningEngine
     
     engine = AutonomousLearningEngine()
-    print("✅ Derek initialized successfully")
+    print("✅ Sunny initialized successfully")
     
     # Show detected AI providers
     print(f"\n🎯 Detected AI Providers:")
-    print(f"   Primary Provider: {engine.derek.ai_provider}")
-    print(f"   Anthropic Client: {'✅' if engine.derek.anthropic_client else '❌'}")
-    print(f"   OpenAI Client: {'✅' if engine.derek.openai_client else '❌'}")
-    print(f"   Perplexity Client: {'✅' if engine.derek.perplexity else '❌'}")
+    print(f"   Primary Provider: {engine.sunny.ai_provider}")
+    print(f"   Anthropic Client: {'✅' if engine.sunny.anthropic_client else '❌'}")
+    print(f"   OpenAI Client: {'✅' if engine.sunny.openai_client else '❌'}")
+    print(f"   Perplexity Client: {'✅' if engine.sunny.perplexity else '❌'}")
     
     # Test learning on autism support strategies
     print(f"\n📚 Testing Enhanced Learning...")
@@ -83,7 +83,7 @@ try:
     print(f"   Learning Status: {'🟢 Active' if stats['learning_active'] else '⏸️ Paused'}")
     print(f"   Available Domains: {len(engine.knowledge_domains)}")
     
-    print(f"\n🎉 Derek's Enhanced Autonomous Learning System is OPERATIONAL!")
+    print(f"\n🎉 Sunny's Enhanced Autonomous Learning System is OPERATIONAL!")
     
     if anthropic_key or openai_key or perplexity_key:
         print(f"💫 Using premium AI providers for enhanced learning")

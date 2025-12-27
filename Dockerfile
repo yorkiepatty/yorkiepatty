@@ -31,11 +31,11 @@ ENV PYTHONUNBUFFERED=1
 RUN python3 -c "from cryptography.fernet import Fernet; print('ENCRYPTION_KEY=' + Fernet.generate_key().decode())" > .env.build
 
 # Create non-root user for security
-RUN groupadd -r derek && useradd -r -g derek derek && \
-    chown -R derek:derek /var/task
+RUN groupadd -r sunny && useradd -r -g sunny sunny && \
+    chown -R sunny:sunny /var/task
 
 # Switch to non-root user
-USER derek
+USER sunny
 
 # Expose port for ECS
 EXPOSE 8000

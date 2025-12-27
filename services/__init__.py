@@ -1,4 +1,4 @@
-"""Service layer for Derek Dashboard."""
+"""Service layer for Sunny Dashboard."""
 
 from .memory_service import MemoryService
 from .personality_service import PersonalityService

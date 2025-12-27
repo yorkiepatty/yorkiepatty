@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from brain import derek
+from brain import sunny
 import datetime
 import os
 import json
@@ -22,7 +22,7 @@ class CrawlInput(BaseModel):
 @router.post("/crawl_and_learn")
 async def crawl_and_learn(payload: CrawlInput):
     """Web crawl + learn + summarize."""
-    summary = derek._search_web(payload.query)
+    summary = sunny._search_web(payload.query)
     return {"summary": summary}
 
 
@@ -36,13 +36,13 @@ class Status(BaseModel):
     cognitive_load: int
 
 
-@router.post("/derek/think")
+@router.post("/sunny/think")
 async def derek_think(payload: UserInput):
     """
-    Route user input through Derek's brain and return the structured result.
+    Route user input through Sunny's brain and return the structured result.
     """
     input_text = payload.input_text
-    result = derek.think(input_text)
+    result = sunny.think(input_text)
     return result
 
 
@@ -63,7 +63,7 @@ async def speech_status():
 @router.get("/status", response_model=Status)
 async def status_check():
     """
-    Quick health check to see if Derek is running with status, mode, emotion.
+    Quick health check to see if Sunny is running with status, mode, emotion.
     """
     return Status(
         mode="architect",
@@ -95,11 +95,11 @@ async def get_trending_topics():
 @router.get("/memory/stats")
 async def get_memory_stats():
     """
-    Return basic stats from Derek's memory engine.
+    Return basic stats from Sunny's memory engine.
     """
-    if hasattr(derek, "memory_engine"):
+    if hasattr(sunny, "memory_engine"):
         try:
-            return {"total": derek.memory_engine.count()}
+            return {"total": sunny.memory_engine.count()}
         except Exception as e:
             return {"error": str(e)}
     return {"error": "Memory engine not initialized."}

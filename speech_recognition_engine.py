@@ -1,7 +1,7 @@
 """
 Speech Recognition Engine
 -------------------------
-Core speech recognition processing for Derek's voice interface.
+Core speech recognition processing for Sunny's voice interface.
 """
 
 import logging

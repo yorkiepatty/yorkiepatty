@@ -120,7 +120,7 @@ class PerplexityService:
             return {"error": f"Unexpected error: {str(e)}"}
 
     # -----------------------------------------------------------
-    # Helper Methods for Derek / Your System
+    # Helper Methods for Sunny / Your System
     # -----------------------------------------------------------
     def get_educational_content(self, topic: str) -> Dict[str, Any]:
         prompt = (
@@ -215,7 +215,7 @@ class PerplexityService:
         try:
             # Customize for TTS research
             tts_prompt = f"{prompt}\n\nSearch Hugging Face forums (discuss.huggingface.co) for discussions on real-time text-to-speech (TTS) models, focusing on accessibility for neurodiverse users, low-latency voice synthesis, and open-source options suitable for AlphaVox."
-            response = self.derek.perplexity.generate_content(prompt=tts_prompt)
+            response = self.sunny.perplexity.generate_content(prompt=tts_prompt)
             if isinstance(response, dict):
                 content = response.get('content', str(response))
             else:

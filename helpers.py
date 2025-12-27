@@ -1,4 +1,4 @@
-"""Helper utilities for Derek Dashboard."""
+"""Helper utilities for Sunny Dashboard."""
 
 import logging
 from typing import Dict, Any

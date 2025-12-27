@@ -108,7 +108,7 @@ def stop_learning():
 
 @app.route("/state")
 def state():
-    from derek_identity import get_avatar_state
+    from sunny_identity import get_avatar_state
 
     return jsonify({"mood": get_avatar_state()})
 

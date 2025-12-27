@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Simple test of Derek's autonomous learning
+Simple test of Sunny's autonomous learning
 """
 
-print("🧠 Testing Derek's Enhanced Learning System")
+print("🧠 Testing Sunny's Enhanced Learning System")
 print("=" * 50)
 
 try:
@@ -12,14 +12,14 @@ try:
     
     # Initialize engine
     engine = AutonomousLearningEngine()
-    print("✅ Successfully initialized Derek")
+    print("✅ Successfully initialized Sunny")
     
     # Check AI providers
     print(f"\n🤖 AI Provider Status:")
-    print(f"   Primary: {engine.derek.ai_provider}")
-    print(f"   Anthropic: {'✅' if engine.derek.anthropic_client else '❌'}")
-    print(f"   OpenAI: {'✅' if engine.derek.openai_client else '❌'}")
-    print(f"   Perplexity: {'✅' if engine.derek.perplexity else '❌'}")
+    print(f"   Primary: {engine.sunny.ai_provider}")
+    print(f"   Anthropic: {'✅' if engine.sunny.anthropic_client else '❌'}")
+    print(f"   OpenAI: {'✅' if engine.sunny.openai_client else '❌'}")
+    print(f"   Perplexity: {'✅' if engine.sunny.perplexity else '❌'}")
     
     # Test learning
     print(f"\n📚 Testing Learning Process...")
@@ -36,7 +36,7 @@ try:
         for i, concept in enumerate(knowledge['key_concepts'][:3], 1):
             print(f"   {i}. {concept}")
     
-    print(f"\n✅ Derek's autonomous learning is working!")
+    print(f"\n✅ Sunny's autonomous learning is working!")
     print(f"💡 Add API keys to .env file for enhanced AI capabilities")
     
 except Exception as e:

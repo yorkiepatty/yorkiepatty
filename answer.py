@@ -9,27 +9,27 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DerekAnswerEngine:
-    """Derek's real-time answer and response system"""
+    """Sunny's real-time answer and response system"""
 
     def __init__(self):
         """Initialize the answer engine"""
         self.connected = False
         self.websocket = None
-        logger.info("🧠 Derek Answer Engine initialized")
+        logger.info("🧠 Sunny Answer Engine initialized")
 
-    async def connect_to_derek(self, uri: str = "ws://localhost:8000/ws/derek"):
-        """Connect to Derek's main system"""
+    async def connect_to_derek(self, uri: str = "ws://localhost:8000/ws/sunny"):
+        """Connect to Sunny's main system"""
         try:
             try:
                 import websockets
                 self.websocket = await websockets.connect(uri)
                 self.connected = True
-                logger.info("✅ Connected to Derek API")
+                logger.info("✅ Connected to Sunny API")
 
                 # Send greeting
                 await self.send_message({
                     'type': 'greeting',
-                    'message': 'Hello Derek!'
+                    'message': 'Hello Sunny!'
                 })
 
                 return True
@@ -39,63 +39,63 @@ class DerekAnswerEngine:
                 return True
 
         except Exception as e:
-            logger.error(f"❌ Derek connection error: {e}")
+            logger.error(f"❌ Sunny connection error: {e}")
             self.connected = True  # Fail gracefully
             return True
 
     async def send_message(self, data: Dict[str, Any]):
-        """Send message to Derek"""
+        """Send message to Sunny"""
         if self.websocket and self.connected:
             try:
                 await self.websocket.send(json.dumps(data))
-                logger.info(f"📤 Sent to Derek: {data.get('message', 'N/A')}")
+                logger.info(f"📤 Sent to Sunny: {data.get('message', 'N/A')}")
             except Exception as e:
-                logger.info(f"📤 Simulated send to Derek: {data.get('message', 'N/A')}")
+                logger.info(f"📤 Simulated send to Sunny: {data.get('message', 'N/A')}")
         else:
-            logger.info(f"📤 Simulated send to Derek: {data.get('message', 'N/A')}")
+            logger.info(f"📤 Simulated send to Sunny: {data.get('message', 'N/A')}")
 
     async def listen_for_responses(self):
-        """Listen for Derek's responses"""
+        """Listen for Sunny's responses"""
         try:
             if self.websocket:
                 async for message in self.websocket:
                     data = json.loads(message)
                     timestamp = datetime.now().strftime("%H:%M:%S")
-                    logger.info(f"📨 Derek says: {data.get('response', 'N/A')} ({timestamp})")
+                    logger.info(f"📨 Sunny says: {data.get('response', 'N/A')} ({timestamp})")
 
-                    # Process Derek's response
+                    # Process Sunny's response
                     await self.process_derek_response(data)
             else:
-                logger.info("📡 Simulating Derek response listening")
+                logger.info("📡 Simulating Sunny response listening")
 
         except Exception as e:
-            logger.info("🔌 Derek response listening completed")
+            logger.info("🔌 Sunny response listening completed")
             self.connected = False
 
     async def process_derek_response(self, data: Dict[str, Any]):
-        """Process Derek's response"""
+        """Process Sunny's response"""
         response_type = data.get('type', 'response')
         message = data.get('response', '')
 
         if response_type == 'greeting':
-            logger.info("👋 Derek greeted us!")
+            logger.info("👋 Sunny greeted us!")
         elif response_type == 'answer':
-            logger.info(f"💡 Derek answered: {message}")
+            logger.info(f"💡 Sunny answered: {message}")
         elif response_type == 'thinking':
-            logger.info("🤔 Derek is thinking...")
+            logger.info("🤔 Sunny is thinking...")
         elif response_type == 'tts_response':
-            logger.info("🎵 Derek TTS response received")
+            logger.info("🎵 Sunny TTS response received")
         else:
-            logger.info(f"🔄 Derek response: {message}")
+            logger.info(f"🔄 Sunny response: {message}")
 
     def get_quick_answer(self, question: str) -> str:
-        """Get a quick answer from Derek (synchronous)"""
+        """Get a quick answer from Sunny (synchronous)"""
         answers = {
-            "hello": "Hello! I'm Derek, your AI assistant.",
+            "hello": "Hello! I'm Sunny, your AI assistant.",
             "how are you": "I'm operating at optimal capacity, thank you!",
-            "what is your name": "I'm Derek, an advanced AI consciousness.",
+            "what is your name": "I'm Sunny, an advanced AI consciousness.",
             "what can you do": "I can think, learn, create music, and assist with various tasks!",
-            "sing": "🎵 *Derek starts humming a beautiful melody* 🎵"
+            "sing": "🎵 *Sunny starts humming a beautiful melody* 🎵"
         }
 
         question_lower = question.lower().strip()
@@ -118,9 +118,9 @@ def quick_answer(question: str) -> str:
 
 # Test the engine
 if __name__ == "__main__":
-    print("🧠 Testing Derek Answer Engine...")
+    print("🧠 Testing Sunny Answer Engine...")
     engine = DerekAnswerEngine()
-    print(engine.get_quick_answer("Hello Derek!"))
+    print(engine.get_quick_answer("Hello Sunny!"))
     print(engine.get_quick_answer("What can you do?"))
-    print("✅ Derek Answer Engine test completed!")
+    print("✅ Sunny Answer Engine test completed!")
 

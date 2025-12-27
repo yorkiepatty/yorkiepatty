@@ -1,8 +1,8 @@
 """
-Autonomous Learning Engine - Derek's Self-Improvement System
+Autonomous Learning Engine - Sunny's Self-Improvement System
 The Christman AI Project
 
-Enables Derek to:
+Enables Sunny to:
 - Learn autonomously about any domain
 - Self-modify and create new code
 - Advance AI development through research
@@ -37,17 +37,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class Derek:
-    def __init__(self, memory_dir: str = "./derek_memory"):
+class Sunny:
+    def __init__(self, memory_dir: str = "./sunny_memory"):
         """
-        Initialize Derek with memory system
+        Initialize Sunny with memory system
         
         Args:
             memory_dir: Directory for memory storage
         """
         try:
             self.memory = MemoryMeshBridge(memory_dir=memory_dir)
-            logger.info("Derek initialized with MemoryMeshBridge")
+            logger.info("Sunny initialized with MemoryMeshBridge")
         except Exception as e:
             logger.error(f"Failed to initialize memory: {str(e)}")
             raise RuntimeError(f"Memory initialization failed: {str(e)}")
@@ -60,11 +60,11 @@ class Derek:
 
 class AutonomousLearningEngine:
     """
-    Derek's autonomous learning and self-modification system
+    Sunny's autonomous learning and self-modification system
     Enables continuous learning and self-improvement
     """
     
-    def __init__(self, knowledge_dir: str = "derek_knowledge"):
+    def __init__(self, knowledge_dir: str = "sunny_knowledge"):
         """
         Initialize the Autonomous Learning Engine
         
@@ -72,11 +72,11 @@ class AutonomousLearningEngine:
             knowledge_dir: Directory for storing learned knowledge
         """
         try:
-            self.derek = Derek()  # Initialize Derek with memory
-            logger.info("AutonomousLearningEngine initialized with Derek")
+            self.sunny = Sunny()  # Initialize Sunny with memory
+            logger.info("AutonomousLearningEngine initialized with Sunny")
         except Exception as e:
-            logger.error(f"Failed to initialize Derek: {str(e)}")
-            raise RuntimeError(f"Derek initialization failed: {str(e)}")
+            logger.error(f"Failed to initialize Sunny: {str(e)}")
+            raise RuntimeError(f"Sunny initialization failed: {str(e)}")
         
         self.knowledge_dir = Path(knowledge_dir)
         try:
@@ -223,7 +223,7 @@ class AutonomousLearningEngine:
     def start_autonomous_learning(self):
         """
         Start autonomous learning in background thread
-        Derek will continuously learn and improve
+        Sunny will continuously learn and improve
         """
         if self.learning_active:
             logger.warning("Learning already active")
@@ -326,11 +326,11 @@ class AutonomousLearningEngine:
         
         research_prompt = self._generate_research_prompt(domain, subtopic)
         
-        if hasattr(self.derek, 'anthropic_client') and self.derek.ai_provider == "anthropic":
+        if hasattr(self.sunny, 'anthropic_client') and self.sunny.ai_provider == "anthropic":
             knowledge = self._research_with_anthropic(research_prompt)
-        elif hasattr(self.derek, 'openai_client') and self.derek.ai_provider == "openai":
+        elif hasattr(self.sunny, 'openai_client') and self.sunny.ai_provider == "openai":
             knowledge = self._research_with_openai(research_prompt)
-        elif hasattr(self.derek, 'perplexity') and self.derek.use_web_search:
+        elif hasattr(self.sunny, 'perplexity') and self.sunny.use_web_search:
             knowledge = self._research_with_perplexity(research_prompt)
         else:
             knowledge = {"content": "No AI provider available for learning", "confidence": 0.0}
@@ -352,7 +352,7 @@ class AutonomousLearningEngine:
     
     def _generate_research_prompt(self, domain: str, subtopic: str) -> str:
         """Generate research prompt for learning"""
-        context = """You are Derek, an AI learning to better serve vulnerable populations.
+        context = """You are Sunny, an AI learning to better serve vulnerable populations.
 You're learning this topic to improve your capabilities and help people more effectively."""
         
         if domain == "neurodivergency" or domain == "autism":
@@ -426,7 +426,7 @@ Include:
     def _research_with_anthropic(self, prompt: str) -> Dict:
         """Research using Anthropic Claude"""
         try:
-            response = self.derek.anthropic_client.messages.create(
+            response = self.sunny.anthropic_client.messages.create(
                 model="claude-sonnet-4-5-20250929",
                 max_tokens=2000,
                 messages=[{"role": "user", "content": prompt}]
@@ -445,7 +445,7 @@ Include:
     def _research_with_openai(self, prompt: str) -> Dict:
         """Research using OpenAI GPT"""
         try:
-            response = self.derek.openai_client.chat.completions.create(
+            response = self.sunny.openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=2000
@@ -460,7 +460,7 @@ Include:
     def _research_with_perplexity(self, prompt: str) -> Dict:
         """Research using Perplexity AI"""
         try:
-            response = self.derek.perplexity.generate_content(prompt=prompt)
+            response = self.sunny.perplexity.generate_content(prompt=prompt)
             if isinstance(response, dict):
                 content = response.get('content', str(response))
             else:
@@ -501,9 +501,9 @@ Include:
     
     def _store_knowledge(self, topic: Dict, knowledge: Dict):
         """Store learned knowledge in knowledge base"""
-        if not hasattr(self.derek, 'memory') or self.derek.memory is None:
+        if not hasattr(self.sunny, 'memory') or self.sunny.memory is None:
             logger.error("Memory system not initialized - reinitializing...")
-            self.derek = Derek()  # Reinitialize Derek if memory is None
+            self.sunny = Sunny()  # Reinitialize Sunny if memory is None
         
         topic_key = f"{topic['domain']}.{topic['subtopic']}"
         self.knowledge_base[topic_key] = knowledge
@@ -511,11 +511,11 @@ Include:
         self.save_knowledge_base()
         
         try:
-            if hasattr(self.derek, 'memory') and self.derek.memory is not None and hasattr(self.derek.memory, 'store'):
+            if hasattr(self.sunny, 'memory') and self.sunny.memory is not None and hasattr(self.sunny.memory, 'store'):
                 # Create a comprehensive knowledge summary for memory storage
                 knowledge_summary = f"Domain: {topic['domain']}, Subtopic: {topic['subtopic']}, Content: {knowledge.get('content', '')[:150]}, Mastery: {knowledge.get('mastery', 0.5)}"
                 
-                self.derek.memory.store(
+                self.sunny.memory.store(
                     key=f"Learned about {topic['subtopic']}",
                     value=knowledge_summary
                 )
@@ -525,7 +525,7 @@ Include:
         except Exception as e:
             logger.error(f"Failed to store knowledge in memory mesh: {str(e)}")
             logger.warning(f"Continuing without memory mesh storage for: {topic_key}")
-            self.derek.memory.store(
+            self.sunny.memory.store(
                 key=f"Learned about {topic['subtopic']}",
                 value=f"{knowledge.get('content', '')[:200]}",
                 category="learning",
@@ -588,13 +588,13 @@ Include:
         logger.info(f"🔬 Generating code for {topic['subtopic']}...")
         
         improvement_prompt = f"""Based on your new knowledge about {topic['subtopic']}, 
-generate Python code that improves Derek's capabilities.
+generate Python code that improves Sunny's capabilities.
 
 Knowledge learned:
 {knowledge.get('content', '')[:500]}
 
 Generate a new module or improvement that:
-1. Enhances Derek's AI capabilities
+1. Enhances Sunny's AI capabilities
 2. Improves performance or functionality
 3. Adds new features for helping vulnerable populations
 4. Is safe and well-tested
@@ -609,8 +609,8 @@ Provide complete, working Python code with documentation."""
     def _generate_code_with_ai(self, prompt: str) -> Optional[str]:
         """Generate code using AI"""
         try:
-            if hasattr(self.derek, 'anthropic_client') and self.derek.ai_provider == "anthropic":
-                response = self.derek.anthropic_client.messages.create(
+            if hasattr(self.sunny, 'anthropic_client') and self.sunny.ai_provider == "anthropic":
+                response = self.sunny.anthropic_client.messages.create(
                     model="claude-sonnet-4-5-20250929",
                     max_tokens=3000,
                     messages=[{"role": "user", "content": prompt}]
@@ -632,7 +632,7 @@ Provide complete, working Python code with documentation."""
     
     def _integrate_generated_code(self, code: str, topic: Dict):
         """
-        Safely integrate generated code into Derek's system
+        Safely integrate generated code into Sunny's system
         """
         logger.info(f"🔬 Validating generated code...")
         
@@ -649,7 +649,7 @@ Provide complete, working Python code with documentation."""
         
         try:
             with open(module_path, 'w') as f:
-                f.write(f'"""\nGenerated by Derek\'s Autonomous Learning Engine\n')
+                f.write(f'"""\nGenerated by Sunny\'s Autonomous Learning Engine\n')
                 f.write(f'Topic: {topic["domain"]} - {topic["subtopic"]}\n')
                 f.write(f'Generated: {datetime.now().isoformat()}\n')
                 f.write(f'"""\n\n')
@@ -671,7 +671,7 @@ Provide complete, working Python code with documentation."""
                 "timestamp": datetime.now().isoformat()
             })
             
-            logger.info(f"✅ Derek generated new capability: {module_name}")
+            logger.info(f"✅ Sunny generated new capability: {module_name}")
         
         except Exception as e:
             logger.error(f"Error saving module: {str(e)}")
@@ -800,7 +800,7 @@ Provide complete, working Python code with documentation."""
         status = self.get_learning_status()
         
         logger.info("=" * 60)
-        logger.info("🎓 DEREK'S LEARNING PROGRESS REPORT")
+        logger.info("🎓 SUNNY'S LEARNING PROGRESS REPORT")
         logger.info("=" * 60)
         logger.info(f"Learning Status: {'🟢 ACTIVE' if status['learning_active'] else '⏸️ PAUSED'}")
         logger.info(f"Topics Learned: {status['learned_topics']}/{status['total_topics']} ({status['progress']:.1%})")

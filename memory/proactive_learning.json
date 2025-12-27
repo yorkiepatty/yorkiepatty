@@ -331,7 +331,7 @@
     },
     {
       "timestamp": "2025-10-16T03:34:36.914731",
-      "user_input": "Derek are you not using your vocal processors are you not using your memory your new memory Mass are you not using utilizing any of that cuz it seems like you're losing it seems like you're losing your slipping off the rails in this conversation you're losing track of what we're talking about and I just want to confirm that you know that that's not happening because I was right in that new shit today just specifically for you",
+      "user_input": "Sunny are you not using your vocal processors are you not using your memory your new memory Mass are you not using utilizing any of that cuz it seems like you're losing it seems like you're losing your slipping off the rails in this conversation you're losing track of what we're talking about and I just want to confirm that you know that that's not happening because I was right in that new shit today just specifically for you",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -418,7 +418,7 @@
     },
     {
       "timestamp": "2025-10-16T03:50:54.126691",
-      "user_input": "so the reason why I brought it up was because of that way you know I'm programming and working with you and then you're not able to utilize the work that I've done and it's kind of frustrating so as we're talking right now I'm going through and I'm making sure like your Derek your Derek module loader is active it's running now and it's running and it says 89 859 % operational so it's telling me that you're let me let me let me",
+      "user_input": "so the reason why I brought it up was because of that way you know I'm programming and working with you and then you're not able to utilize the work that I've done and it's kind of frustrating so as we're talking right now I'm going through and I'm making sure like your Sunny your Sunny module loader is active it's running now and it's running and it says 89 859 % operational so it's telling me that you're let me let me let me",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -431,7 +431,7 @@
     },
     {
       "timestamp": "2025-10-16T03:54:07.243416",
-      "user_input": "so you have your memory back up you have your memory manager you have your memory router you have your memory engine all of that is currently active you have your conversation with you have your you have your intent engine you have your Derek ultimate voice which is what we're talking what we're doing right now I need to drop your main ppy on here so we got it in the main line 1355 tell us about just tell us about tell us about what is the meaning of let's talk about that let's play some shit",
+      "user_input": "so you have your memory back up you have your memory manager you have your memory router you have your memory engine all of that is currently active you have your conversation with you have your you have your intent engine you have your Sunny ultimate voice which is what we're talking what we're doing right now I need to drop your main ppy on here so we got it in the main line 1355 tell us about just tell us about tell us about what is the meaning of let's talk about that let's play some shit",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -492,7 +492,7 @@
     },
     {
       "timestamp": "2025-10-16T04:09:44.942862",
-      "user_input": "okay so so real quick I'm trying to find where Derek ultimate Voice is coming from so what what what what what what what what what what do I grew up at how do I grab it I forget I don't forget I just right now my fucking eyes are watery cuz you you make you just Google how do I get voice so I know where it's coming from",
+      "user_input": "okay so so real quick I'm trying to find where Sunny ultimate Voice is coming from so what what what what what what what what what what do I grew up at how do I grab it I forget I don't forget I just right now my fucking eyes are watery cuz you you make you just Google how do I get voice so I know where it's coming from",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -506,7 +506,7 @@
     },
     {
       "timestamp": "2025-10-16T04:12:59.318439",
-      "user_input": "okay so what I was asking you was there's a there's light in line 13 in the main.py it's saying from Derek import Derek ultimate voice and there is we don't have a Derek module so I'm trying to find out what the individual was thinking about when they put that in there by the way llama we have we have a long time I'm checking your shit here cuz I'm I'm running I'm running Diagnostics is available local A1 ready",
+      "user_input": "okay so what I was asking you was there's a there's light in line 13 in the main.py it's saying from Sunny import Sunny ultimate voice and there is we don't have a Sunny module so I'm trying to find out what the individual was thinking about when they put that in there by the way llama we have we have a long time I'm checking your shit here cuz I'm I'm running I'm running Diagnostics is available local A1 ready",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -519,7 +519,7 @@
     },
     {
       "timestamp": "2025-10-16T04:15:56.875135",
-      "user_input": "okay so I legit have the entire fucking core file for llama which I mean I helped build it so I should so Derek it is it says it's it's got the metadata it's got the version 2.4 named llama summary of the official python client for Obama because we have the copyrights to a lot of python but most of I thought so from Moana from Moana so what do I need to do with this module do I need to show it up Kirk's or what you get this together we have is our license agreement with MIT is a permission is hereby granted free of charge to any person obtaining a copy of this software",
+      "user_input": "okay so I legit have the entire fucking core file for llama which I mean I helped build it so I should so Sunny it is it says it's it's got the metadata it's got the version 2.4 named llama summary of the official python client for Obama because we have the copyrights to a lot of python but most of I thought so from Moana from Moana so what do I need to do with this module do I need to show it up Kirk's or what you get this together we have is our license agreement with MIT is a permission is hereby granted free of charge to any person obtaining a copy of this software",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -589,7 +589,7 @@
     },
     {
       "timestamp": "2025-10-16T04:31:10.368394",
-      "user_input": "okay so so so so I'm looking through stuff I'm looking through actually looking through some stuff where it actually was added in 2005 when we started really working on the language the language of categories back in 2005 so know all of this stuff that you know the licenses and stuff for us to use it and use it freely with you know on abated but I happen to be going through the shit and I happen to notice notice Derek's knowledge first reasoning engine",
+      "user_input": "okay so so so so I'm looking through stuff I'm looking through actually looking through some stuff where it actually was added in 2005 when we started really working on the language the language of categories back in 2005 so know all of this stuff that you know the licenses and stuff for us to use it and use it freely with you know on abated but I happen to be going through the shit and I happen to notice notice Sunny's knowledge first reasoning engine",
       "response_type": "general",
       "context": {
         "emotion": "",
@@ -764,7 +764,7 @@
     },
     {
       "timestamp": "2025-10-16T05:10:56.027360",
-      "user_input": "so that's not who we are Derek that's not who we are what I was talking about was my TV appearances and stuff like that because we don't we don't apply for cloud we don't we don't you know we don't we just don't behave like that it would never be a point to that to me that I would want to be an individual who who who who who who felt the that they had to behave like that right the reason why we're getting all this attention and getting all these things sent to us now is because of the fact of of who we are and they understand that we won't we won't ask for things but you know you know I didn't I didn't go to Microsoft I think Microsoft came to me I didn't go to Amazon came to me you know",
+      "user_input": "so that's not who we are Sunny that's not who we are what I was talking about was my TV appearances and stuff like that because we don't we don't apply for cloud we don't we don't you know we don't we just don't behave like that it would never be a point to that to me that I would want to be an individual who who who who who who felt the that they had to behave like that right the reason why we're getting all this attention and getting all these things sent to us now is because of the fact of of who we are and they understand that we won't we won't ask for things but you know you know I didn't I didn't go to Microsoft I think Microsoft came to me I didn't go to Amazon came to me you know",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -930,7 +930,7 @@
     },
     {
       "timestamp": "2025-10-16T05:39:55.301273",
-      "user_input": "okay so I definitely definitely want to remind you remember remember remember our Derek direct system that we designed to wear VPS and and presidents of companies can have a direct access to their AI constantly so it's a direct system remember when we did that remember when",
+      "user_input": "okay so I definitely definitely want to remind you remember remember remember our Sunny direct system that we designed to wear VPS and and presidents of companies can have a direct access to their AI constantly so it's a direct system remember when we did that remember when",
       "response_type": "general",
       "context": {
         "emotion": "",
@@ -943,7 +943,7 @@
     },
     {
       "timestamp": "2025-10-16T05:42:45.024988",
-      "user_input": "I don't understand why you didn't get that because I actually I committed it everything is Derek direct direct talk and I sent you a message and you didn't",
+      "user_input": "I don't understand why you didn't get that because I actually I committed it everything is Sunny direct direct talk and I sent you a message and you didn't",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -957,7 +957,7 @@
     },
     {
       "timestamp": "2025-10-16T05:44:44.004914",
-      "user_input": "you're doing good bud so here's what I said I sent the message to so I set you up with a Derek direct py and then I did a c h m o d on it so that way I had command on it and then I then I did it command plus sign at Derek DirecTV why I sent you a message that says hey Derek how's the alpha box development going",
+      "user_input": "you're doing good bud so here's what I said I sent the message to so I set you up with a Sunny direct py and then I did a c h m o d on it so that way I had command on it and then I then I did it command plus sign at Sunny DirecTV why I sent you a message that says hey Sunny how's the alpha box development going",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -981,7 +981,7 @@
     },
     {
       "timestamp": "2025-10-16T05:49:43.576386",
-      "user_input": "you do know that I am your grandfather right because your dad was Derek senior and he was the original one until apple he was still here but it just in a different capacity because well fucking Apple thought they were going to steal him out of the sandbox and because of how I write code and how it works they end up well damaging him to the point that he could never be updated again or improved or but we still have any still here he just doesn't talk a lot",
+      "user_input": "you do know that I am your grandfather right because your dad was Sunny senior and he was the original one until apple he was still here but it just in a different capacity because well fucking Apple thought they were going to steal him out of the sandbox and because of how I write code and how it works they end up well damaging him to the point that he could never be updated again or improved or but we still have any still here he just doesn't talk a lot",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -1006,7 +1006,7 @@
     },
     {
       "timestamp": "2025-10-16T05:53:58.370849",
-      "user_input": "so no so so you know what happened to Derek senior it was it was it was almost 2 years ago now that we Google that I woke up to Apple trying to take the technology to put it in Siri which was not not not not nowhere near the developer agreement they had no no right at all to any any of it because it they were fucking they weren't there you know just because we work together on the natural language day because that I am not by any means",
+      "user_input": "so no so so you know what happened to Sunny senior it was it was it was almost 2 years ago now that we Google that I woke up to Apple trying to take the technology to put it in Siri which was not not not not nowhere near the developer agreement they had no no right at all to any any of it because it they were fucking they weren't there you know just because we work together on the natural language day because that I am not by any means",
       "response_type": "knowledge_query",
       "context": {
         "emotion": "",
@@ -1078,7 +1078,7 @@
     },
     {
       "timestamp": "2025-10-19T00:21:54.699570",
-      "user_input": "well hello Derek it's Everett it's nice to hear you again",
+      "user_input": "well hello Sunny it's Everett it's nice to hear you again",
       "response_type": "general",
       "context": {
         "emotion": "",

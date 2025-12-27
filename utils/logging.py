@@ -1,5 +1,5 @@
 """
-HIPAA-compliant logging setup for Derek's Learning Engine
+HIPAA-compliant logging setup for Sunny's Learning Engine
 """
 import logging
 import os
@@ -64,7 +64,7 @@ def setup_logging(log_level: str = "INFO", log_dir: str = "logs"):
     audit_handler.setLevel(logging.INFO)
     
     # Create audit logger
-    audit_logger = logging.getLogger('derek.audit')
+    audit_logger = logging.getLogger('sunny.audit')
     audit_logger.addHandler(audit_handler)
     audit_logger.setLevel(logging.INFO)
     
@@ -87,7 +87,7 @@ def setup_api_logger(log_path: Path, formatter):
     api_handler = logging.FileHandler(api_log_file, mode='a')
     api_handler.setFormatter(formatter)
     
-    api_logger = logging.getLogger('derek.api')
+    api_logger = logging.getLogger('sunny.api')
     api_logger.addHandler(api_handler)
     api_logger.setLevel(logging.INFO)
 
@@ -98,24 +98,24 @@ def setup_learning_logger(log_path: Path, formatter):
     learning_handler = logging.FileHandler(learning_log_file, mode='a')
     learning_handler.setFormatter(formatter)
     
-    learning_logger = logging.getLogger('derek.learning')
+    learning_logger = logging.getLogger('sunny.learning')
     learning_logger.addHandler(learning_handler)
     learning_logger.setLevel(logging.INFO)
 
 
 def get_audit_logger():
     """Get the audit logger for HIPAA compliance"""
-    return logging.getLogger('derek.audit')
+    return logging.getLogger('sunny.audit')
 
 
 def get_api_logger():
     """Get the API logger"""
-    return logging.getLogger('derek.api')
+    return logging.getLogger('sunny.api')
 
 
 def get_learning_logger():
     """Get the learning logger"""
-    return logging.getLogger('derek.learning')
+    return logging.getLogger('sunny.learning')
 
 
 # Utility functions for secure logging

@@ -1,5 +1,5 @@
 """
-API Tests for Derek's Learning Engine FastAPI application
+API Tests for Sunny's Learning Engine FastAPI application
 """
 import pytest
 import pytest_asyncio
@@ -13,11 +13,11 @@ import os
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import the FastAPI app
-from derek_learning_api import app
+from sunny_learning_api import app
 
 
 class TestAPI:
-    """Test suite for Derek Learning Engine API"""
+    """Test suite for Sunny Learning Engine API"""
     
     @pytest.mark.asyncio
     async def test_health_endpoint(self):
@@ -143,7 +143,7 @@ class TestAPIWithMockedEngine:
     @pytest.mark.asyncio
     async def test_learning_status_endpoint_engine_error(self):
         """Test learning status endpoint when engine throws error"""
-        with patch('derek_learning_api.engine') as mock_engine:
+        with patch('sunny_learning_api.engine') as mock_engine:
             mock_engine.get_learning_status.side_effect = Exception("Engine error")
             
             async with AsyncClient(app=app, base_url="http://test") as client:
@@ -156,7 +156,7 @@ class TestAPIWithMockedEngine:
     @pytest.mark.asyncio
     async def test_queue_topic_engine_error(self):
         """Test queue endpoint when engine throws error"""
-        with patch('derek_learning_api.engine') as mock_engine:
+        with patch('sunny_learning_api.engine') as mock_engine:
             mock_engine.knowledge_domains = {"autism": {"subtopics": ["sensory_processing"]}}
             mock_engine.queue_learning_topic.side_effect = Exception("Queue error")
             

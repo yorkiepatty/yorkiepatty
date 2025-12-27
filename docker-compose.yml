@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  derek-learning-engine:
+  sunny-learning-engine:
     build: 
       context: .
       dockerfile: Dockerfile
@@ -16,8 +16,8 @@ services:
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     volumes:
-      - ./derek_knowledge:/var/task/derek_knowledge
-      - ./derek_memory:/var/task/derek_memory
+      - ./sunny_knowledge:/var/task/sunny_knowledge
+      - ./sunny_memory:/var/task/sunny_memory
       - ./logs:/var/task/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -27,7 +27,7 @@ services:
       start_period: 40s
     restart: unless-stopped
     networks:
-      - derek-network
+      - sunny-network
 
   ollama:
     image: ollama/ollama:latest
@@ -38,12 +38,12 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0
     networks:
-      - derek-network
+      - sunny-network
     restart: unless-stopped
 
 volumes:
   ollama_data:
 
 networks:
-  derek-network:
+  sunny-network:
     driver: bridge

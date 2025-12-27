@@ -1,8 +1,8 @@
 """
-Derek Configuration Package
+Sunny Configuration Package
 The Christman AI Project
 
-Configuration management for Derek's consciousness system
+Configuration management for Sunny's consciousness system
 """
 
 from .settings import (

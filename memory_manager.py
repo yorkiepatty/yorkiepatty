@@ -11,7 +11,7 @@ guardian = JSONGuardian()
 
 
 class MemoryManager:
-    """Manager for Derek's long-term memory storage with persistent GitHub backup"""
+    """Manager for Sunny's long-term memory storage with persistent GitHub backup"""
     
     def __init__(self, memory_dir="./memory"):
         self.memory_dir = Path(memory_dir)
@@ -25,7 +25,7 @@ class MemoryManager:
     
     def load(self):
         """Load ALL memories from disk - both persistent and legacy files"""
-        print("🧠 Loading Derek's persistent memory...")
+        print("🧠 Loading Sunny's persistent memory...")
         
         # Load main persistent memory file
         if self.memory_file.exists():
@@ -105,7 +105,7 @@ class MemoryManager:
             )
             
             # Commit with timestamp
-            commit_msg = f"💾 Auto-backup: Derek's memory update ({datetime.now().strftime('%Y-%m-%d %H:%M')})"
+            commit_msg = f"💾 Auto-backup: Sunny's memory update ({datetime.now().strftime('%Y-%m-%d %H:%M')})"
             subprocess.run(
                 ['git', 'commit', '-m', commit_msg],
                 cwd=self.memory_dir.parent,
@@ -171,7 +171,7 @@ class MemoryManager:
         return " | ".join(unique_relevant[:5]) if unique_relevant else ""
     
     def get_memory_stats(self) -> Dict[str, Any]:
-        """Get statistics about Derek's memory"""
+        """Get statistics about Sunny's memory"""
         return {
             'long_term_memories': len(self.long_term_memory),
             'session_memories': len(self.memories),

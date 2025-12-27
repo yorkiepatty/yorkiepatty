@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Derek's memory persistence
+Test Sunny's memory persistence
 Verifies that memories are saved and can be retrieved across sessions
 """
 
@@ -17,7 +17,7 @@ from memory_manager import MemoryManager
 
 def test_memory_persistence():
     """Test that memories persist to disk and can be retrieved"""
-    print("🧪 Testing Derek's memory persistence...\n")
+    print("🧪 Testing Sunny's memory persistence...\n")
     
     # Test 1: Create and save memories
     print("1️⃣  Creating new memory instance...")
@@ -28,7 +28,7 @@ def test_memory_persistence():
     test_data = {
         "user_name": "Nathaniel",
         "project": "DerekC AI Assistant",
-        "goal": "Derek learns from master AIs until reaching 85% confidence",
+        "goal": "Sunny learns from master AIs until reaching 85% confidence",
         "priority": "Solid persistent memory with GitHub backup"
     }
     
@@ -76,7 +76,7 @@ def test_memory_persistence():
         print(f"   📊 {stat_key}: {stat_value}")
     
     print("\n✅ Memory persistence test PASSED!")
-    print("   Derek's memories are solid and will persist across sessions.")
+    print("   Sunny's memories are solid and will persist across sessions.")
     return True
 
 

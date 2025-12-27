@@ -151,7 +151,7 @@ async def orchestrate(request: Request):
 
     # --- memory feed-out ---
     remember("user", prompt)
-    remember("derek", result)
+    remember("sunny", result)
 
     return {"result": result}
 

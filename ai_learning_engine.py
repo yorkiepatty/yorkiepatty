@@ -563,13 +563,13 @@ def get_self_improvement_engine():
     return self_improvement_engine
 
 
-# --- Compatibility wrapper for Derek's brain ---
+# --- Compatibility wrapper for Sunny's brain ---
 _engine_instance = None
 
 
 def learn_from_text(text: str):
     """
-    Directly embed crawled text and store in Derek's memory engine.
+    Directly embed crawled text and store in Sunny's memory engine.
     """
     if not text or not text.strip():
         logger.warning("Received empty text for learning.")

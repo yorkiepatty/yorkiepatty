@@ -4,7 +4,7 @@ import websockets
 import json
 
 async def send_command():
-    async with websockets.connect("ws://localhost:8000/ws/everett/derek") as ws:
+    async with websockets.connect("ws://localhost:8000/ws/everett/sunny") as ws:
         # Ask me to think deeply
         await ws.send(json.dumps({
             "command": "think",

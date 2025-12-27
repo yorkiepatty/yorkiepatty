@@ -1,4 +1,4 @@
-To use `replace_derek_with_sonny.py` for renaming "Derek" references in your Python files, here are clear, step-by-step directions:
+To use `replace_derek_with_sonny.py` for renaming "Sunny" references in your Python files, here are clear, step-by-step directions:
 
 ### How to Use the Replacement Script
 
@@ -14,7 +14,7 @@ To use `replace_derek_with_sonny.py` for renaming "Derek" references in your Pyt
      ```bash
      python replace_derek_with_sonny.py
      ```
-   - This will scan all `.py` files in your project and replace every "Derek" / "derek" with "Sonny" / "sonny".
+   - This will scan all `.py` files in your project and replace every "Sunny" / "sunny" with "Sonny" / "sonny".
 
 #### 4. **Review Changes**
    - After running, open a few files and verify that all references have been changed appropriately.

@@ -1,5 +1,5 @@
 """
-RESTful API for Derek Dashboard
+RESTful API for Sunny Dashboard
 The Christman AI Project
 """
 
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 
 class APIServer:
-    """RESTful API server for Derek Dashboard"""
+    """RESTful API server for Sunny Dashboard"""
 
     def __init__(self, conversation_engine=None):
         self.app = Flask(__name__)
@@ -67,7 +67,7 @@ class APIServer:
             return jsonify(
                 {
                     "status": "healthy",
-                    "service": "Derek Dashboard",
+                    "service": "Sunny Dashboard",
                     "version": "1.0.0",
                     "project": "The Christman AI Project",
                     "uptime": "active",
@@ -94,7 +94,7 @@ class APIServer:
         # Core Interaction
         @self.app.route("/api/interact", methods=["POST"])
         def interact():
-            """Main interaction endpoint with Derek"""
+            """Main interaction endpoint with Sunny"""
             try:
                 data = request.json or {}
                 user_input = data.get("message", "")
@@ -118,10 +118,10 @@ class APIServer:
         # Personality
         @self.app.route("/api/personality", methods=["GET"])
         def get_personality():
-            """Get Derek's current personality state"""
+            """Get Sunny's current personality state"""
             return jsonify(
                 {
-                    "name": "Derek C",
+                    "name": "Sunny C",
                     "role": "AI COO",
                     "profile": self.settings.identity,
                     "mode": "collaborative",
@@ -206,7 +206,7 @@ class APIServer:
                     "project": "The Christman AI Project",
                     "tagline": "AI That Empowers, Protects, and Redefines Humanity",
                     "founder": "Everett Christman",
-                    "coo": "Derek C (AI)",
+                    "coo": "Sunny C (AI)",
                     "mission": "Ethical AI for a Better World",
                     "platforms": [
                         "AlphaVox - Voice for the Nonverbal",
@@ -258,7 +258,7 @@ class APIServer:
     def _fallback_response(self, user_input: str) -> Dict[str, Any]:
         """Fallback response when conversation engine is unavailable"""
         return {
-            "response": f"I received your message: '{user_input}'. Derek's full conversation engine is initializing.",
+            "response": f"I received your message: '{user_input}'. Sunny's full conversation engine is initializing.",
             "emotion": "neutral",
             "confidence": 0.7,
             "context": {},

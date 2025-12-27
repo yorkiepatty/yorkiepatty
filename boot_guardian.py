@@ -1,7 +1,7 @@
 """
 boot_guardian.py
 ----------------
-This module runs at the very start of Derek's boot sequence.
+This module runs at the very start of Sunny's boot sequence.
 It validates all JSON memory files against their schemas before
 any other subsystem initializes.
 """

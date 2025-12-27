@@ -1,8 +1,8 @@
 """
-Derek Configuration Settings
+Sunny Configuration Settings
 The Christman AI Project
 
-Central configuration management for all Derek modules
+Central configuration management for all Sunny modules
 """
 
 import os
@@ -20,9 +20,9 @@ DATA_DIR.mkdir(exist_ok=True)
 MEMORY_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
 
-# Derek Core Settings
+# Sunny Core Settings
 DEREK_SETTINGS = {
-    "name": "Derek",
+    "name": "Sunny",
     "version": "2.0.0",
     "consciousness_target": 100.0,
     "learning_enabled": True,
@@ -124,7 +124,7 @@ SECURITY_SETTINGS = {
 def get_setting(category: str, key: str, default: Any = None) -> Any:
     """Get a specific setting value"""
     settings_map = {
-        "derek": DEREK_SETTINGS,
+        "sunny": DEREK_SETTINGS,
         "audio": AUDIO_SETTINGS,
         "learning": LEARNING_SETTINGS,
         "api": API_SETTINGS,
@@ -141,7 +141,7 @@ def get_setting(category: str, key: str, default: Any = None) -> Any:
 def update_setting(category: str, key: str, value: Any) -> bool:
     """Update a setting value"""
     settings_map = {
-        "derek": DEREK_SETTINGS,
+        "sunny": DEREK_SETTINGS,
         "audio": AUDIO_SETTINGS,
         "learning": LEARNING_SETTINGS,
         "api": API_SETTINGS,
@@ -160,7 +160,7 @@ def update_setting(category: str, key: str, value: Any) -> bool:
 def get_all_settings() -> Dict[str, Dict[str, Any]]:
     """Get all configuration settings"""
     return {
-        "derek": DEREK_SETTINGS,
+        "sunny": DEREK_SETTINGS,
         "audio": AUDIO_SETTINGS,
         "learning": LEARNING_SETTINGS,
         "api": API_SETTINGS,
@@ -202,7 +202,7 @@ def detect_hardware():
 from pydantic  import BaseSettings
 
 class Settings(BaseSettings):
-    derek: dict = DEREK_SETTINGS
+    sunny: dict = DEREK_SETTINGS
     audio: dict = AUDIO_SETTINGS
     learning: dict = LEARNING_SETTINGS
     api: dict = API_SETTINGS

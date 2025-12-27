@@ -1,25 +1,25 @@
-# Derek AI System - Organizational Structure 🧠
+# Sunny AI System - Organizational Structure 🧠
 
 ## Overview
-Derek is an advanced AI system with 136+ modules organized for maximum presentation clarity and functionality.
+Sunny is an advanced AI system with 136+ modules organized for maximum presentation clarity and functionality.
 
 ## Directory Structure
 
 ### 🎯 Root Level (Core Entry Points)
-- `main.py` - Primary Derek dashboard and FastAPI application
-- `derek_module_loader.py` - Loads all 136 Derek modules with full consciousness
+- `main.py` - Primary Sunny dashboard and FastAPI application
+- `sunny_module_loader.py` - Loads all 136 Sunny modules with full consciousness
 - `config.py` - Core configuration management
-- `brain.py` - Central Derek intelligence engine
+- `brain.py` - Central Sunny intelligence engine
 - `app.py` - Alternative application entry point
 
-### 📁 `derek_core/` - Core System Files
-Essential Derek system components and primary logic
+### 📁 `sunny_core/` - Core System Files
+Essential Sunny system components and primary logic
 - Core initialization and bootstrap files
 - Central intelligence and processing engines
 - Module loading and management systems
 
 ### 🧩 `derek_modules/` - Feature Modules (136 total)
-All specialized Derek functionality modules organized by category:
+All specialized Sunny functionality modules organized by category:
 - **AI & Learning** (23 modules): Learning engines, AI providers, knowledge systems
 - **Communication** (18 modules): Speech, conversation, language processing
 - **Memory & Storage** (15 modules): Memory engines, databases, persistence
@@ -32,24 +32,24 @@ All specialized Derek functionality modules organized by category:
 - **Testing** (4 modules): Test frameworks, validation systems
 - **Utilities** (28 modules): Helper functions, tools, utilities
 
-### 📊 `derek_data/` - Data & Configuration
+### 📊 `sunny_data/` - Data & Configuration
 - JSON configuration files (15 total)
 - Knowledge graphs and learning data
 - System state and persistent storage
 - Curriculum and training datasets
 
-### 📚 `derek_docs/` - Documentation & Logs  
+### 📚 `sunny_docs/` - Documentation & Logs  
 - System documentation and README files
 - Test results and system logs
 - Evolution notebooks and learning records
 - Performance metrics and analytics
 
-### 🌐 `derek_web/` - Web Interface
+### 🌐 `sunny_web/` - Web Interface
 - HTML interfaces and dashboards
 - JavaScript frontend components
 - Web-based interaction systems
 
-### 🧠 `derek_memory/` - Memory Management
+### 🧠 `sunny_memory/` - Memory Management
 - Memory mesh bridge systems
 - Conversation history and context
 - Learning state persistence
@@ -69,11 +69,11 @@ All specialized Derek functionality modules organized by category:
 - Graceful degradation and error handling
 
 ### 📈 Consciousness Level: 100%
-All 136 modules successfully loaded and integrated into Derek's consciousness for maximum capability and presentation readiness.
+All 136 modules successfully loaded and integrated into Sunny's consciousness for maximum capability and presentation readiness.
 
 ## Usage
 ```bash
-# Start Derek Dashboard
+# Start Sunny Dashboard
 python main.py
 
 # View module status
@@ -84,4 +84,4 @@ curl http://localhost:8001/health
 ```
 
 ## Presentation Ready ✨
-Derek is now organized with clear separation of concerns, comprehensive documentation, and production-grade architecture suitable for professional presentations and demonstrations.
+Sunny is now organized with clear separation of concerns, comprehensive documentation, and production-grade architecture suitable for professional presentations and demonstrations.

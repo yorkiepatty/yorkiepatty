@@ -16,7 +16,7 @@ class TestAutonomousLearningEngine(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures before each test method"""
         # Use a temporary test directory
-        self.test_dir = Path("test_derek_knowledge")
+        self.test_dir = Path("test_sunny_knowledge")
         self.test_dir.mkdir(exist_ok=True)
         
         # Mock environment variables for testing
@@ -50,17 +50,17 @@ class TestAutonomousLearningEngine(unittest.TestCase):
             self.assertGreaterEqual(info['priority'], 0)
             self.assertLessEqual(info['priority'], 1)
     
-    @patch('autonomous_learning_engine.Derek')
+    @patch('autonomous_learning_engine.Sunny')
     def test_learn_topic_with_mock_derek(self, mock_derek_class):
-        """Test learning a topic with mocked Derek"""
-        # Mock Derek instance
+        """Test learning a topic with mocked Sunny"""
+        # Mock Sunny instance
         mock_derek = MagicMock()
         mock_derek.anthropic_client = None
         mock_derek.openai_client = None
         mock_derek.perplexity = None
         mock_derek_class.return_value = mock_derek
         
-        # Create engine with mocked Derek
+        # Create engine with mocked Sunny
         engine = AutonomousLearningEngine(knowledge_dir=str(self.test_dir))
         
         topic = {"domain": "autism", "subtopic": "sensory_processing"}
@@ -253,7 +253,7 @@ class TestEncryptionIntegration(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures"""
-        self.test_dir = Path("test_derek_knowledge_encrypted")
+        self.test_dir = Path("test_sunny_knowledge_encrypted")
         self.test_dir.mkdir(exist_ok=True)
     
     def tearDown(self):
