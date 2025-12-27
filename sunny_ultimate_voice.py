@@ -479,8 +479,15 @@ class SunnyUltimateVoice:
     
     def _initialize_speech_recognition(self):
         """Initialize speech recognition with optimal settings for natural conversation"""
-        self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        try:
+            self.recognizer = sr.Recognizer()
+            self.microphone = sr.Microphone()
+        except (AttributeError, OSError) as e:
+            print(f"⚠️  PyAudio not available - running in text-only mode")
+            print(f"   (Install PyAudio for voice input: pip install pyaudio)")
+            self.recognizer = None
+            self.microphone = None
+            return
         
         # Enhanced settings to avoid cutting off natural speech
         self.recognizer.energy_threshold = 3000  # Lower threshold for better sensitivity
