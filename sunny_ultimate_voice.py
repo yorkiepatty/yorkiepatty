@@ -2382,9 +2382,11 @@ Provide clean, well-commented, production-ready code with explanations."""
     def _load_conversation_memory(self):
         """Load conversation history from memory_store.json and convert format"""
         try:
+            print(f"🧠 Looking for memory at: {self.conversation_memory_file.absolute()}")
             if self.conversation_memory_file.exists():
                 with open(self.conversation_memory_file, 'r') as f:
                     stored_memory = json.load(f)
+                print(f"🧠 Found {len(stored_memory)} entries in memory file")
 
                 # Convert old format {input, output} to Claude format {role, content}
                 # Don't include timestamps in active conversation_history
@@ -2444,6 +2446,7 @@ Provide clean, well-commented, production-ready code with explanations."""
             self.conversation_memory_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.conversation_memory_file, 'w') as f:
                 json.dump(stored_memory, f, indent=2)
+            print(f"💾 Saved {len(stored_memory)} conversations to memory")
         except Exception as e:
             print(f"⚠️  Could not save conversation memory: {e}")
     
