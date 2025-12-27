@@ -61,7 +61,7 @@ namex==0.1.0
 networkx==3.4.2
 nltk==3.9.2
 numba==0.62.1
-numpy==1.26.4
+numpy>=2.0,<2.3
 ollama==0.6.0
 openai==2.6.0
 opencv-python==4.12.0.88
