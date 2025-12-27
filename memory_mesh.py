@@ -57,7 +57,22 @@ class MemoryMesh:
             logger.error(f"Failed to initialize memory directory: {e}")
             raise RuntimeError(f"Cannot initialize MemoryMesh: {e}")
         
-        self.encryption_key = encryption_key or Fernet.generate_key()
+        # Load or generate encryption key - MUST persist across sessions
+        key_file = self.memory_dir / ".encryption_key"
+        if encryption_key:
+            self.encryption_key = encryption_key
+        elif key_file.exists():
+            # Load existing key
+            with open(key_file, 'rb') as f:
+                self.encryption_key = f.read()
+            logger.info("🔑 Loaded existing encryption key")
+        else:
+            # Generate new key and save it
+            self.encryption_key = Fernet.generate_key()
+            with open(key_file, 'wb') as f:
+                f.write(self.encryption_key)
+            logger.info("🔑 Generated and saved new encryption key")
+
         self.cipher = Fernet(self.encryption_key) if self.encryption_key else None
         self.working_memory = []
         self.working_memory_limit = 7
