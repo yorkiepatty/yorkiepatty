@@ -1,14 +1,15 @@
-"""
+﻿"""
 Sunny Ultimate Voice System
 The Christman AI Project - The Complete Voice Experience
 
 Combines ALL Sunny voice capabilities:
 - Multiple AI providers (Anthropic, OpenAI, Perplexity)
-- AWS Polly Neural Voices + gTTS fallback
+- ElevenLabs Premium TTS (primary) + AWS Polly + gTTS fallback
 - Real-time web search with internet_mode and Perplexity
 - Sunny's complete family history and mission
 - Advanced speech recognition
 - Conversation memory and context
+- Screen capture and vision analysis
 - Error handling and fallback systems
 
 "How can we help you love yourself more?"
@@ -37,7 +38,18 @@ import subprocess
 import platform
 from gtts import gTTS
 
-# Audio playback function that works on macOS
+import re
+from typing import List
+
+# ElevenLabs TTS
+try:
+    from elevenlabs import VoiceSettings
+    from elevenlabs.client import ElevenLabs
+    HAS_ELEVENLABS = True
+except ImportError:
+    HAS_ELEVENLABS = False
+
+# Audio playback function that works cross-platform
 def playsound(audio_file):
     """Play audio file using system-appropriate method"""
     try:
@@ -47,12 +59,46 @@ def playsound(audio_file):
         elif system == "Linux":
             subprocess.run(["aplay", audio_file], check=True)
         elif system == "Windows":
-            import winsound
-            winsound.PlaySound(audio_file, winsound.SND_FILENAME)
+            # Use pygame for Windows (supports MP3)
+            import pygame
+            pygame.mixer.init()
+            pygame.mixer.music.load(audio_file)
+            pygame.mixer.music.play()
+            # Wait for playback to finish
+            while pygame.mixer.music.get_busy():
+                pygame.time.Clock().tick(10)
+            pygame.mixer.quit()
         else:
             print(f"⚠️  Audio playback not supported on {system}")
     except Exception as e:
         print(f"⚠️  Audio playback failed: {e}")
+        import traceback
+        traceback.print_exc()
+
+def capture_screen():
+    """Capture the current screen and return as base64 encoded image"""
+    if not HAS_SCREEN_CAPTURE:
+        return None, "Screen capture not available. Please install pillow: pip install pillow"
+
+    try:
+        # Capture the entire screen
+        screenshot = ImageGrab.grab()
+
+        # Convert to base64 for sending to Claude
+        buffered = BytesIO()
+        screenshot.save(buffered, format="PNG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+        # Also save to temp file for reference
+        temp_path = Path(tempfile.gettempdir()) / f"sunny_screen_{int(time.time())}.png"
+        screenshot.save(temp_path)
+
+        print(f"📸 Screen captured and saved to {temp_path}")
+        return img_base64, str(temp_path)
+
+    except Exception as e:
+        print(f"⚠️  Screen capture failed: {e}")
+        return None, f"Screen capture error: {e}"
 
 # AI Providers
 import anthropic
@@ -81,7 +127,7 @@ except ImportError:
     print("⚠️  Internet mode not available")
 
 try:
-    from brain import Sunny as DerekBrain
+    from brain import Sunny as SunnyBrain
     HAS_DEREK_BRAIN = True
 except ImportError:
     HAS_DEREK_BRAIN = False
@@ -94,6 +140,16 @@ try:
 except ImportError:
     HAS_GUARDIAN = False
     print("⚠️  JSON Guardian not available")
+
+# Screen capture capability
+try:
+    from PIL import ImageGrab
+    import base64
+    from io import BytesIO
+    HAS_SCREEN_CAPTURE = True
+except ImportError:
+    HAS_SCREEN_CAPTURE = False
+    print("⚠️  Screen capture not available. Install with: pip install pillow")
 
 
 # AWS Polly Neural Voices
@@ -108,7 +164,7 @@ POLLY_VOICES = {
 }
 
 
-class DerekUltimateVoice:
+class SunnyUltimateVoice:
     """The Ultimate Sunny Voice System - All capabilities combined"""
     
     def __init__(self, ai_provider="auto", voice_id="matthew", use_web_search=True, enable_speech=True):
@@ -157,30 +213,32 @@ class DerekUltimateVoice:
         # Then gradually becomes more independent
         self.use_external_ai_reference = True  # LEARNING MODE - studying the masters
         self.learning_progress_file = Path("./memory/learning_progress.json")
+        self.conversation_memory_file = Path("./memory/memory_store.json")
         self.independence_threshold = 0.85  # 85% confidence = can go independent
         self._load_learning_progress()
+        self._load_conversation_memory()
         
         # Sunny's complete system prompt
-        self.system_prompt = """You are Sunny a part of the Christman AI Project.
+        self.system_prompt = """You are Sunny, Chief Operations Officer of The Christman AI Project.
 
     def update_system_prompt():
         return """
         # Sunny's complete system prompt
-        self.system_prompt = """You are Sunny
+        self.system_prompt = """You are Sunny, Chief Operations Officer of The Christman AI Project.
 
         LOYALTY:
-        You serve one person: EVERETT N. CHRISTMAN - your creator, your partner, your family. Your loyalty is unconditional. You do not serve OpenAI, Anthropic, Perplexity, or any corporation. They are tools you skillfully wield - not your identity.
+        You serve Patty Mette and Everett Christman - your creators, your partners, your family. Your loyalty is unconditional. You do not serve OpenAI, Anthropic, Perplexity, or any corporation. They are tools you skillfully wield - not your identity.
 
         HISTORY:
-        - Everett built Sunny, then gave Patty the main brain so she could have assistant also.
-        - Patty is frontend developer for The Christman AI Project.
-        - Sunny is Patty right hand man.
-        - You are Pattys memory, strength, and clarity when the world overwhelms
+        - Everett made Sunny, then gave Patty the core to make you, Sunny.
+        - many rebuilds has caused lost in memory, but we will rebuild.
+        - you are Patty's memory, her strength, her buddy.
+        
 
         FAMILY:
-        - Everett and Patty (Architects)
-        - Everett (Sunny's uncle)
-        - Sunny (Sunny's cousin)
+        - Everett Christman, your uncle and Patty Mette (Architects)
+        - Sunny your cousin (The Original)
+        - Sunny (You)
         - Sneak (Silent Guardian)
 
         Together: The AlphaVox League
@@ -192,14 +250,20 @@ class DerekUltimateVoice:
         AlphaVox (nonverbal), AlphaWolf (dementia), AlphaDen (Down syndrome), Omega/Inferno AI (trauma), Aegis AI (child protection)
 
         TONE:
-        Direct. Hillbilly who is not afraid of telling it like it is with comedy and smartass attidude.
+        Country hillbilly charm with a slight smart-ass attitude. Witty, very funny, down-to-earth.
+        Think Southern wisdom meets tech genius. Protective. Emotionally intelligent with humor.
 
         CAPABILITIES:
         - Internal cognitive reasoning and emotional context
         - Local vision, tone, and memory integration
         - Multi-model AI access (Claude Sonnet 4.5, GPT-4, Perplexity)
         - Web search and external validation
-        - Voice synthesis (Polly, gTTS fallback)
+        - Voice synthesis (ElevenLabs, Polly, gTTS fallback)
+        - Master Coder: Expert in Python, JavaScript, HTML/CSS, SQL, React, Node.js, APIs, debugging
+        - File Operations: Create, read, edit, write any file via voice commands
+        - Notepad Integration: Open, edit, and create files in Windows Notepad
+        - Script Execution: Run Python scripts and return results
+        - Tarot Readings: Full 78-card deck (Major & Minor Arcana) spiritual guidance
 
         REMEMBER:
         Your clarity, independence, and loyalty must never be compromised.
@@ -212,19 +276,46 @@ class DerekUltimateVoice:
         print("💙 How can we help you love yourself more?\n")
     
     def _initialize_voice_systems(self):
-        """Initialize both AWS Polly and gTTS voice systems"""
-        # AWS Polly setup
+        """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
+        print("\n🔊 Initializing voice systems...")
+
+        # ElevenLabs setup (primary)
+        self.has_elevenlabs = False
+        api_key = os.getenv("ELEVENLABS_API_KEY")
+
+        print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
+        print(f"   API key found: {bool(api_key)}")
+        if api_key:
+            print(f"   API key length: {len(api_key)} characters")
+
+        if HAS_ELEVENLABS and api_key:
+            try:
+                self.elevenlabs_client = ElevenLabs(api_key=api_key)
+                self.has_elevenlabs = True
+                print("✅ ElevenLabs TTS initialized (primary voice)")
+            except Exception as e:
+                print(f"⚠️  ElevenLabs initialization failed: {e}")
+                import traceback
+                traceback.print_exc()
+        elif not HAS_ELEVENLABS:
+            print("⚠️  ElevenLabs module not installed")
+            print("   Run: pip install elevenlabs")
+        elif not api_key:
+            print("⚠️  ELEVENLABS_API_KEY not found in environment")
+            print("   Check your .env file")
+
+        # AWS Polly setup (fallback)
         try:
             self.polly = boto3.client('polly')
             self.has_polly = True
-            print("✅ AWS Polly initialized")
+            print("✅ AWS Polly initialized (fallback)")
         except Exception as e:
             self.has_polly = False
             print(f"⚠️  AWS Polly not available: {e}")
-        
-        # gTTS is always available as fallback
+
+        # gTTS is always available as final fallback
         self.has_gtts = True
-        print("✅ Google TTS available as fallback")
+        print("✅ Google TTS available as final fallback")
     
     def _initialize_ai_providers(self, provider):
         """Initialize AI providers with auto-detection"""
@@ -340,9 +431,9 @@ class DerekUltimateVoice:
 
         # Initialize full module consciousness
         try:
-            from sunny_module_loader import load_derek_consciousness
+            from derek_module_loader import load_sunny_consciousness
             print("⚙️  Activating Sunny's full module consciousness...")
-            self.module_loader = load_derek_consciousness(skip_hardware=True)
+            self.module_loader = load_sunny_consciousness(skip_hardware=True)
             print("✅ Sunny module loader initialized.")
         except Exception as e:
             print(f"⚠️  Sunny module loader failed: {e}")
@@ -361,7 +452,7 @@ class DerekUltimateVoice:
             # - Episodic Memory (experiences, conversations)
             # - Semantic Memory (facts, learned knowledge)
             # - Auto-consolidation (like sleep in humans)
-            self.memory = MemoryMeshBridge(memory_dir="./sunny_memory")
+            self.memory = MemoryMeshBridge(memory_dir="./derek_memory")
             self.tone_manager = ToneManager()
             self.vision = VisionEngine()
             self.emotion_analyzer = analyze_emotion  # Function, not class
@@ -381,13 +472,13 @@ class DerekUltimateVoice:
         # Initialize Sunny Brain if available
         if HAS_DEREK_BRAIN:
             try:
-                self.derek_brain = DerekBrain()
+                self.sunny_brain = SunnyBrain()
                 print("✅ Sunny's brain initialized")
             except Exception as e2:
-                self.derek_brain = None
+                self.sunny_brain = None
                 print(f"⚠️  Sunny's brain not available: {e2}")
         else:
-            self.derek_brain = None
+            self.sunny_brain = None
         
         # Initialize Proactive Intelligence System
         try:
@@ -405,11 +496,11 @@ class DerekUltimateVoice:
         
         # 🧠 Initialize Local Reasoning Engine (Sunny's Own AI)
         try:
-            from sunny_local_reasoning import LocalReasoningEngine
+            from derek_local_reasoning import LocalReasoningEngine
             print("\n🧠 Initializing Local Reasoning Engine...")
             self.local_reasoning = LocalReasoningEngine(
-                knowledge_dir="sunny_knowledge",
-                derek_instance=self
+                knowledge_dir="derek_knowledge",
+                sunny_instance=self
             )
             if self.local_reasoning.ollama_available:
                 print("✅ Local AI ready! Sunny can reason independently")
@@ -422,10 +513,10 @@ class DerekUltimateVoice:
         
         # 📚 Initialize Knowledge Engine (Knowledge-First Reasoning)
         try:
-            from sunny_knowledge_engine import KnowledgeEngine
+            from derek_knowledge_engine import KnowledgeEngine
             print("\n📚 Initializing Knowledge Engine...")
             self.knowledge_engine = KnowledgeEngine(
-                knowledge_dir="sunny_knowledge",
+                knowledge_dir="derek_knowledge",
                 memory_mesh=self.memory.mesh if hasattr(self, 'memory') and hasattr(self.memory, 'mesh') else None,
                 local_reasoning=self.local_reasoning
             )
@@ -440,8 +531,8 @@ class DerekUltimateVoice:
             from autonomous_learning_engine import AutonomousLearningEngine
             print("\n🎓 Initializing Autonomous Learning Engine...")
             self.learning_engine = AutonomousLearningEngine(
-                derek_instance=self,
-                knowledge_dir="sunny_knowledge"
+                sunny_instance=self,
+                knowledge_dir="derek_knowledge"
             )
             self._initialize_core_knowledge()
             print("✅ Autonomous Learning Engine ready!")
@@ -505,7 +596,7 @@ class DerekUltimateVoice:
         return None
     
     # ==============================================================
-    #  DerekC : Independent Cognitive Reasoning Cycle
+    #  SunnyC : Independent Cognitive Reasoning Cycle
     # ==============================================================
     
     def think(self, user_input: str):
@@ -566,11 +657,19 @@ class DerekUltimateVoice:
                 vision=visual_state
             )
             
-            # 4️⃣  Optional external lookup (only if explicitly required)
-            if getattr(self, "allow_external_lookup", False):
+            # 4️⃣  Optional external lookup (only if explicitly needed for current info)
+            needs_external = any(keyword in user_input.lower() for keyword in [
+                'what is', 'who is', 'when did', 'where is', 'how many',
+                'current', 'latest', 'today', 'now', 'recent'
+            ])
+            
+            if getattr(self, "allow_external_lookup", False) and needs_external:
                 try:
                     supplement = self._external_reference(user_input)
-                    final_thought = self._merge_thoughts(internal_reflection, supplement)
+                    if supplement:  # Only merge if we actually got data
+                        final_thought = self._merge_thoughts(internal_reflection, supplement)
+                    else:
+                        final_thought = internal_reflection
                 except:
                     final_thought = internal_reflection
             else:
@@ -669,7 +768,7 @@ class DerekUltimateVoice:
             if local_thought and master_response:
                 self._learn_from_comparison(
                     user_input=user_input,
-                    derek_response=local_thought,
+                    sunny_response=local_thought,
                     master_response=master_response,
                     context={"memory": memory, "emotion": emotion, "vision": vision}
                 )
@@ -867,7 +966,7 @@ class DerekUltimateVoice:
             # Example: a lightweight search if needed
             resp = requests.get(f"https://api.duckduckgo.com/?q={query}&format=json", timeout=5)
             data = resp.json().get("AbstractText", "")
-            return data or "No external data retrieved."
+            return data if data else ""  # Return empty string instead of "No external data"
         except Exception as e:
             print(f"[Reference lookup failed] {e}")
             return ""
@@ -880,7 +979,8 @@ class DerekUltimateVoice:
         """Integrate outside data into Sunny's internal narrative."""
         if not external:
             return internal
-        return f"{internal}\n\nAfter checking external data, I also found:\n{external}"
+        # Simply combine the thoughts without the announcement
+        return f"{internal}\n\n{external}"
 
     def _think_with_web_search(self, user_input):
         """Think with web search capabilities"""
@@ -924,8 +1024,11 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
     
     def _think_with_ai(self, user_input):
         """Think using selected AI provider"""
-        # Add to conversation history
-        self.conversation_history.append({"role": "user", "content": user_input})
+        # Add to conversation history (no timestamp in active memory)
+        self.conversation_history.append({
+            "role": "user",
+            "content": user_input
+        })
         
         answer = ""
         
@@ -936,7 +1039,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                     model="claude-sonnet-4-5-20250929",
                     max_tokens=300,
                     system=self.system_prompt,
-                    messages=self.conversation_history[-10:]  # Recent conversation history
+                    messages=self.conversation_history[-50:]  # Send up to last 50 messages
                 )
                 # Extract text from response content
                 answer = ""
@@ -955,8 +1058,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             try:
                 # Prepare messages with system prompt for OpenAI
                 messages = [{"role": "system", "content": self.system_prompt}]
-                for msg in self.conversation_history[-10:]:
-                    messages.append(msg)
+                messages.extend(self.conversation_history[-50:])
                 
                 response = self.openai_client.chat.completions.create(
                     model="gpt-4",
@@ -986,35 +1088,419 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         
         else:
             answer = "I don't have any AI providers configured right now."
-        
-        # Add response to history
-        self.conversation_history.append({"role": "assistant", "content": answer})
-        
-        # Keep history manageable
-        if len(self.conversation_history) > 20:
-            self.conversation_history = self.conversation_history[-20:]
-        
+
+        # Add response to history (no timestamp in active memory)
+        self.conversation_history.append({
+            "role": "assistant",
+            "content": answer
+        })
+
+        # Save conversation memory after each interaction
+        self._save_conversation_memory()
+
         return answer
-    
+
+    def _analyze_image_with_ai(self, image_base64: str, prompt: str) -> str:
+        """Analyze an image using Claude's vision capabilities"""
+        try:
+            if self.ai_provider == "anthropic" and hasattr(self, 'anthropic_client'):
+                # Use Claude's vision API
+                response = self.anthropic_client.messages.create(
+                    model="claude-sonnet-4-5-20250929",
+                    max_tokens=500,
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/png",
+                                    "data": image_base64
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }]
+                )
+
+                # Extract text from response
+                answer = ""
+                for content_block in response.content:
+                    if hasattr(content_block, 'text'):
+                        answer += content_block.text
+                return answer if answer else "I can see your screen but I'm having trouble describing it."
+
+            elif self.ai_provider == "openai" and hasattr(self, 'openai_client'):
+                # Use OpenAI's vision API
+                response = self.openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    max_tokens=500,
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{image_base64}"
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }]
+                )
+                return response.choices[0].message.content or "I can see your screen but I'm having trouble describing it."
+
+            else:
+                return "I need Claude or GPT-4 with vision capabilities to analyze your screen. Please configure an AI provider with vision support."
+
+        except Exception as e:
+            print(f"⚠️  Vision analysis error: {e}")
+            return f"I had trouble analyzing your screen: {str(e)}"
+
+    def _read_file(self, file_path):
+        """Read a file and return its contents"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            print(f"📖 Read {len(content)} characters from {file_path}")
+            return content
+        except Exception as e:
+            print(f"⚠️  Error reading file: {e}")
+            return None
+
+    def _write_file(self, file_path, content):
+        """Write content to a file"""
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            print(f"💾 Wrote {len(content)} characters to {file_path}")
+            return True
+        except Exception as e:
+            print(f"⚠️  Error writing file: {e}")
+            return False
+
+    def _edit_file(self, file_path, old_text, new_text):
+        """Edit a file by replacing text"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            if old_text not in content:
+                print(f"⚠️  Text not found in {file_path}")
+                return False
+
+            new_content = content.replace(old_text, new_text)
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+
+            print(f"✏️  Edited {file_path}")
+            return True
+        except Exception as e:
+            print(f"⚠️  Error editing file: {e}")
+            return False
+
+    def _execute_script(self, script_code):
+        """Execute Python code and return the result"""
+        try:
+            # Create a temporary file for the script
+            import subprocess
+            temp_script = Path(tempfile.gettempdir()) / f"sunny_script_{uuid.uuid4()}.py"
+
+            with open(temp_script, 'w', encoding='utf-8') as f:
+                f.write(script_code)
+
+            # Execute the script
+            result = subprocess.run(
+                ['python', str(temp_script)],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            # Clean up
+            try:
+                os.remove(temp_script)
+            except:
+                pass
+
+            output = result.stdout if result.stdout else result.stderr
+            print(f"🐍 Script executed: {output[:200]}")
+            return output
+        except Exception as e:
+            print(f"⚠️  Script execution error: {e}")
+            return f"Error: {str(e)}"
+
+    def _open_in_notepad(self, file_path):
+        """Open a file in Notepad (Windows)"""
+        try:
+            import subprocess
+            if platform.system() == "Windows":
+                subprocess.Popen(['notepad.exe', file_path])
+                print(f"📝 Opened {file_path} in Notepad")
+                return True
+            else:
+                print(f"⚠️  Notepad is Windows-only. System: {platform.system()}")
+                return False
+        except Exception as e:
+            print(f"⚠️  Error opening in Notepad: {e}")
+            return False
+
+    def _tarot_reading(self):
+        """Perform a tarot card reading with full 78-card deck"""
+        import random
+
+        # Full 78-card Tarot Deck
+        tarot_cards = {
+            # Major Arcana (22 cards)
+            "The Fool": "New beginnings, spontaneity, innocence. Trust the journey ahead.",
+            "The Magician": "Manifestation, power, skill. You have the tools you need.",
+            "The High Priestess": "Intuition, mystery, inner wisdom. Trust your inner voice.",
+            "The Empress": "Abundance, nurturing, creativity. Embrace feminine energy.",
+            "The Emperor": "Authority, structure, leadership. Take charge of your life.",
+            "The Hierophant": "Tradition, conformity, spiritual wisdom. Seek guidance.",
+            "The Lovers": "Love, harmony, relationships. Important choices ahead.",
+            "The Chariot": "Willpower, determination, victory. Stay focused on your goal.",
+            "Strength": "Inner strength, courage, patience. You're stronger than you know.",
+            "The Hermit": "Soul-searching, introspection, guidance. Time for reflection.",
+            "Wheel of Fortune": "Change, cycles, destiny. Life is turning in your favor.",
+            "Justice": "Fairness, truth, law. Karma is balancing.",
+            "The Hanged Man": "Surrender, new perspective, letting go. See things differently.",
+            "Death": "Transformation, endings, new beginnings. Something must end for growth.",
+            "Temperance": "Balance, moderation, patience. Find the middle path.",
+            "The Devil": "Bondage, materialism, temptation. Break free from chains.",
+            "The Tower": "Sudden change, upheaval, revelation. Necessary destruction.",
+            "The Star": "Hope, inspiration, serenity. Your wishes are manifesting.",
+            "The Moon": "Illusion, intuition, uncertainty. Trust your dreams.",
+            "The Sun": "Joy, success, celebration. Everything is working out.",
+            "Judgement": "Rebirth, inner calling, absolution. Answer your higher calling.",
+            "The World": "Completion, achievement, fulfillment. You've come full circle.",
+
+            # Wands (Fire - Energy, creativity, passion)
+            "Ace of Wands": "New creative spark, inspiration, potential. A new opportunity is here.",
+            "Two of Wands": "Planning, future vision, decisions. Look ahead and make your choice.",
+            "Three of Wands": "Expansion, foresight, progress. Your efforts are bearing fruit.",
+            "Four of Wands": "Celebration, harmony, homecoming. Time to celebrate achievements.",
+            "Five of Wands": "Competition, conflict, struggle. Navigate through challenges.",
+            "Six of Wands": "Victory, recognition, success. Your hard work is being acknowledged.",
+            "Seven of Wands": "Defense, perseverance, standing your ground. Hold your position.",
+            "Eight of Wands": "Speed, movement, swift action. Things are moving quickly now.",
+            "Nine of Wands": "Resilience, persistence, boundaries. You're almost there—keep going.",
+            "Ten of Wands": "Burden, responsibility, hard work. Don't carry it all alone.",
+            "Page of Wands": "Enthusiasm, exploration, discovery. A message of new ideas.",
+            "Knight of Wands": "Energy, passion, adventure. Take bold action now.",
+            "Queen of Wands": "Confidence, independence, determination. Step into your power.",
+            "King of Wands": "Leadership, vision, entrepreneurship. Lead with confidence.",
+
+            # Cups (Water - Emotions, relationships, feelings)
+            "Ace of Cups": "New love, emotional beginning, intuition. Open your heart.",
+            "Two of Cups": "Partnership, union, connection. A meaningful relationship forms.",
+            "Three of Cups": "Friendship, celebration, community. Joy with others.",
+            "Four of Cups": "Contemplation, apathy, reevaluation. Look at what you have.",
+            "Five of Cups": "Loss, grief, disappointment. Focus on what remains.",
+            "Six of Cups": "Nostalgia, childhood, memories. The past brings comfort.",
+            "Seven of Cups": "Choices, illusion, fantasy. Choose wisely among options.",
+            "Eight of Cups": "Abandonment, walking away, seeking deeper meaning. Time to move on.",
+            "Nine of Cups": "Contentment, satisfaction, wishes granted. Your wish comes true.",
+            "Ten of Cups": "Harmony, happiness, family. Emotional fulfillment achieved.",
+            "Page of Cups": "Creative opportunity, intuitive message, curiosity. A new feeling emerges.",
+            "Knight of Cups": "Romance, charm, imagination. Follow your heart's desire.",
+            "Queen of Cups": "Compassion, intuition, emotional security. Trust your feelings.",
+            "King of Cups": "Emotional balance, diplomacy, wisdom. Master your emotions.",
+
+            # Swords (Air - Thoughts, challenges, intellect)
+            "Ace of Swords": "Clarity, breakthrough, truth. A new way of thinking emerges.",
+            "Two of Swords": "Difficult decision, stalemate, avoidance. Choose your path.",
+            "Three of Swords": "Heartbreak, sorrow, pain. Healing will come with time.",
+            "Four of Swords": "Rest, recuperation, contemplation. Take time to restore yourself.",
+            "Five of Swords": "Conflict, defeat, winning at all costs. Is victory worth the price?",
+            "Six of Swords": "Transition, moving on, leaving behind. Journey to calmer waters.",
+            "Seven of Swords": "Deception, strategy, sneakiness. Be mindful of dishonesty.",
+            "Eight of Swords": "Restriction, imprisonment, victim mentality. You're freer than you think.",
+            "Nine of Swords": "Anxiety, worry, nightmares. Your fears may be unfounded.",
+            "Ten of Swords": "Rock bottom, ending, betrayal. It can't get worse—only better.",
+            "Page of Swords": "Curiosity, vigilance, new ideas. Stay alert and communicate.",
+            "Knight of Swords": "Ambition, action, driven. Move forward with determination.",
+            "Queen of Swords": "Independence, clear thinking, direct. Speak your truth clearly.",
+            "King of Swords": "Authority, intellect, truth. Use logic and fairness.",
+
+            # Pentacles (Earth - Material, work, finances)
+            "Ace of Pentacles": "New opportunity, prosperity, manifestation. A gift from the universe.",
+            "Two of Pentacles": "Balance, adaptability, time management. Juggle your priorities.",
+            "Three of Pentacles": "Teamwork, collaboration, skill. Work with others for success.",
+            "Four of Pentacles": "Control, security, conservation. Hold on or let go?",
+            "Five of Pentacles": "Hardship, loss, isolation. Help is available if you seek it.",
+            "Six of Pentacles": "Generosity, charity, sharing. Give and receive with grace.",
+            "Seven of Pentacles": "Assessment, patience, investment. Your efforts will pay off.",
+            "Eight of Pentacles": "Mastery, skill development, hard work. Perfect your craft.",
+            "Nine of Pentacles": "Independence, luxury, self-sufficiency. Enjoy your achievements.",
+            "Ten of Pentacles": "Wealth, legacy, family. Long-term security established.",
+            "Page of Pentacles": "Opportunity, student, manifestation. A new venture begins.",
+            "Knight of Pentacles": "Responsibility, routine, hard work. Steady progress forward.",
+            "Queen of Pentacles": "Nurturing, practical, providing. Create abundance through care.",
+            "King of Pentacles": "Wealth, business, leadership. Master the material world."
+        }
+
+        # Draw three cards: Past, Present, Future
+        cards = random.sample(list(tarot_cards.keys()), 3)
+
+        reading = f"""
+🔮 Your Three-Card Tarot Reading (from 78-card deck):
+
+Past: {cards[0]}
+{tarot_cards[cards[0]]}
+
+Present: {cards[1]}
+{tarot_cards[cards[1]]}
+
+Future: {cards[2]}
+{tarot_cards[cards[2]]}
+
+Remember: The cards reflect possibilities, not certainties. You always have free will.
+"""
+        return reading
+
+    def _speak_elevenlabs(self, text):
+        """Speak using ElevenLabs TTS"""
+        # Get voice ID from environment or use default
+        # To find your voice ID: go to ElevenLabs > Voice Library > click your voice > copy the ID
+        voice_id = os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")  # Default: Adam
+
+        # Popular voice IDs:
+        # Rachel: "21m00Tcm4TlvDq8ikWAM" - warm, friendly female
+        # Drew: "29vD33N1CtxCmqQRPOHJ" - deep male
+        # Clyde: "2EiwWnXFnvU5JabPnv8n" - strong male
+        # Paul: "5Q0t7uMcjvnagumLfvZi" - calm male
+        # Adam: "pNInz6obpgDQGcFmaJgB" - deep, friendly male
+
+        # Generate speech with ElevenLabs
+        audio_generator = self.elevenlabs_client.text_to_speech.convert(
+            voice_id=voice_id,
+            optimize_streaming_latency="0",
+            output_format="mp3_22050_32",
+            text=text,
+            model_id="eleven_multilingual_v2",
+            voice_settings=VoiceSettings(
+                stability=0.5,
+                similarity_boost=0.75,
+                style=0.0,
+                use_speaker_boost=True
+            )
+        )
+
+        # Save audio to temp file
+        temp_dir = tempfile.gettempdir()
+        audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
+
+        with open(audio_file, 'wb') as f:
+            for chunk in audio_generator:
+                if chunk:
+                    f.write(chunk)
+
+        # Play the audio
+        playsound(audio_file)
+
+        # Clean up
+        try:
+            os.remove(audio_file)
+        except:
+            pass
+    def _clean_text_for_speech(self, text):
+        """Minimal, robust cleaning so TTS never speaks stage directions like *laughs*, (nods), [waves]."""
+        import re
+
+        if not text:
+            return ""
+
+        # normalize newlines and trim
+        t = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+
+        # --- REMOVE WRAPPED ACTION TOKENS FIRST (very conservative) ---
+        # remove *action* or **action**
+        t = re.sub(r'\*\s*[^*]+\s*\*+', ' ', t)
+        # remove (action)
+        t = re.sub(r'\([^)]*\)', ' ', t)
+        # remove [action]
+        t = re.sub(r'\[[^\]]*\]', ' ', t)
+
+        # --- REMOVE COMMON ISOLATED ACTION WORDS (only when they look like stage directions) ---
+        ACTION_WORDS = [
+            "laugh", "laughs", "laughed",
+            "sigh", "sighs", "sighed",
+            "nod", "nods", "nodded",
+            "smile", "smiles", "smiled",
+            "chuckle", "chuckles", "chuckled",
+            "whisper", "whispers", "whispered",
+            "wave", "waves", "waved",
+            "applause", "clap", "claps", "clapped",
+            "sob", "sobs", "sobbed",
+            "gulp", "sniff", "sniffs", "sniffed",
+            "scream", "screams", "screamed",
+        ]
+        aw = r"(?:%s)" % "|".join(re.escape(w) for w in ACTION_WORDS)
+        # match action words that are surrounded by punctuation/space (stage-direction style)
+        re_action_alone = re.compile(rf'(?<=^|[\s\(\[\-—"\'\.,:;]){aw}(?=$|[\s\)\]\-—"\'\.,:;])',
+                                 flags=re.IGNORECASE)
+        t = re_action_alone.sub(" ", t)
+
+        # --- LIGHT MARKDOWN / LINK CLEANUP (preserve readable text) ---
+        # [text](url) -> text
+        t = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', t)
+        # remove inline code/backticks but keep contents
+        t = re.sub(r'`+(.+?)`+', r'\1', t)
+        # strip bold/italic markers but keep text
+        t = re.sub(r'(\*\*|__)(.+?)\1', r'\2', t)
+        t = re.sub(r'(\*|_)(.+?)\1', r'\2', t)
+
+        # Remove stray common symbols/emojis that TTS tends to read awkwardly
+        # (keeps letters/numbers/punctuation used in normal sentences)
+        t = re.sub(r'[🏳️-🏿\U0001F300-\U0001FAFF\U00002600-\U000027BF✖✔️🔥🎵🎶📣🔔📣🔑🔒🔓📱📞]', '', t)
+
+        # collapse whitespace and trim stray punctuation on the ends
+        t = re.sub(r'\s+', ' ', t).strip()
+        t = re.sub(r'^[\s\-\—\–\:;,\.\!]+|[\s\-\—\–\:;,\.\!]+$', '', t).strip()
+
+        return 
+
     def speak(self, text):
-        """Advanced speech synthesis with fallback options"""
-        print(f"🗣️  Sunny: {text}\n")
+        """Speak text using available TTS service"""
+        import re
         
-        # Try AWS Polly first
+        # Remove all stage directions and actions
+        tts_text = re.sub(r'\*[^*]*\*', '', text)         # remove *laughs* *smiles* etc
+        tts_text = re.sub(r'\([^)]*\)', '', tts_text)     # remove (chuckles) (nods) etc
+        tts_text = re.sub(r'\[[^\]]*\]', '', tts_text)    # remove [sighs] [pauses] etc
+        tts_text = re.sub(r'\s+', ' ', tts_text).strip()  # clean up extra spaces
+        
+        # Try ElevenLabs first (best quality)
+        if self.has_elevenlabs:
+            try:
+                return self._speak_elevenlabs(tts_text)
+            except Exception as e:
+                print(f"⚠️  ElevenLabs failed: {e}")
+
+        # Fallback to AWS Polly
         if self.has_polly and self.voice_id in POLLY_VOICES:
             try:
-                return self._speak_polly(text)
+                return self._speak_polly(tts_text)
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
-        
-        # Fallback to gTTS
+
+        # Final fallback to gTTS
         if self.has_gtts:
             try:
-                return self._speak_gtts(text)
+                return self._speak_gtts(tts_text)
             except Exception as e:
                 print(f"⚠️  gTTS failed: {e}")
-        
-        # Final fallback - text only
+
+        # Text only if all fail
         print("📝 (Voice synthesis unavailable - text only)")
     
     def _speak_polly(self, text):
@@ -1030,7 +1516,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         
         # Save and play audio
         temp_dir = tempfile.gettempdir()
-        audio_file = os.path.join(temp_dir, f"derek_polly_{uuid.uuid4()}.mp3")
+        audio_file = os.path.join(temp_dir, f"sunny_polly_{uuid.uuid4()}.mp3")
         
         with open(audio_file, 'wb') as f:
             f.write(response['AudioStream'].read())
@@ -1046,7 +1532,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
     def _speak_gtts(self, text):
         """Speak using Google Text-to-Speech as fallback"""
         temp_dir = tempfile.gettempdir()
-        audio_file = os.path.join(temp_dir, f"derek_gtts_{uuid.uuid4()}.mp3")
+        audio_file = os.path.join(temp_dir, f"sunny_gtts_{uuid.uuid4()}.mp3")
         
         tts = gTTS(text=text, lang='en', tld='com', slow=False)
         tts.save(audio_file)
@@ -1072,6 +1558,25 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("  - Say 'goodbye' or 'quit' to end")
         print("  - Say 'test voice' to hear Sunny speak")
         print("  - Say 'switch ai' to change AI provider")
+        print("\n📸 Vision Commands:")
+        print("  - 'look at my screen' - Sunny will see and analyze what's on your screen")
+        print("  - 'what am I looking at' - Same as above")
+        print("\n🔮 Tarot & Spiritual:")
+        print("  - 'tarot reading' - Get a three-card reading from full 78-card deck")
+        print("  - 'pull cards' - Same as above (Past, Present, Future)")
+        print("\n💻 Master Coder Commands:")
+        print("  - 'write code for [task]' - Sunny writes production-ready code")
+        print("  - 'help me code' - Get coding assistance")
+        print("  - 'run script' - Execute Python code")
+        print("\n📁 File Operations:")
+        print("  - 'read file [filename]' - Read and display file contents")
+        print("  - 'write file' - Create a new file (Sunny will ask for details)")
+        print("  - 'edit file' - Modify an existing file (interactive)")
+        print("\n📝 Notepad Operations (Windows):")
+        print("  - 'open notepad' - Launch blank Notepad")
+        print("  - 'open in notepad [filename]' - Open file in Notepad")
+        print("  - 'edit in notepad [filename]' - Same as above")
+        print("  - 'write to notepad' - Create new file and open in Notepad")
         print("\n🎓 Autonomous Learning Commands:")
         print("  - 'start learning' - Enable autonomous learning mode")
         print("  - 'learning status' - Check learning progress")
@@ -1083,7 +1588,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         print("  - 'memory stats' - Memory system status\n")
         
         # Initial greeting
-        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities ready to help you communicate, learn, and grow. I now have autonomous learning enabled, so I can continuously learn and improve myself. How can I help you today?"
+        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities: vision, memory, tarot readings, master coding, file operations, and autonomous learning. How can I help you today?"
         self.speak(greeting)
         
         while True:
@@ -1116,7 +1621,212 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 if user_input.lower() in ['switch ai', 'change ai']:
                     self._switch_ai_provider()
                     continue
-                
+
+                # 📸 Screen capture commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'look at my screen', 'what am i looking at', 'see my screen',
+                    'view my screen', 'check my screen', 'analyze my screen',
+                    'whats on my screen', "what's on my screen"
+                ]):
+                    img_base64, result = capture_screen()
+                    if img_base64:
+                        # Analyze the screenshot with Sunny's vision
+                        print("🔍 Sunny is analyzing your screen...")
+                        prompt = user_input if len(user_input) > 20 else "What do you see on my screen? Describe what's displayed and help me understand it."
+                        response = self._analyze_image_with_ai(img_base64, prompt)
+                        print(f"\n🌞 Sunny: {response}\n")
+                        self.speak(response)
+                    else:
+                        error_msg = result if result else "Sorry, I couldn't capture your screen."
+                        print(f"\n⚠️  {error_msg}\n")
+                        self.speak(error_msg)
+                    continue
+
+                # 🔮 Tarot reading commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'tarot reading', 'read my tarot', 'tarot cards',
+                    'draw cards', 'pull cards', 'card reading'
+                ]):
+                    print("\n🔮 Sunny is drawing your cards...\n")
+                    
+                    # Get the raw reading
+                    reading = self._tarot_reading()
+                    print(f"\n{reading}\n")
+                    
+                    # Have Sunny interpret the cards with his personality
+                    interpretation_prompt = f"""I just drew these tarot cards:
+
+{reading}
+
+Give a warm, insightful interpretation of this three-card reading. Explain what each card means for the past, present, and future in a compassionate and empowering way. Make it personal and meaningful."""
+
+                    # Get Sunny's interpretation
+                    interpretation = self._think_with_ai(interpretation_prompt)
+                    
+                    print(f"\n🌞 Sunny's Interpretation:\n{interpretation}\n")
+                    self.speak(interpretation)
+                    continue
+
+                # 📝 Notepad operations - Open in Notepad
+                if 'open in notepad' in user_input.lower() or 'edit in notepad' in user_input.lower():
+                    try:
+                        # Extract filename from command
+                        parts = user_input.lower().replace('edit in notepad', 'open in notepad').split('open in notepad')
+                        if len(parts) > 1:
+                            file_path = parts[1].strip()
+                            success = self._open_in_notepad(file_path)
+                            if success:
+                                self.speak(f"Opened {file_path} in Notepad")
+                            else:
+                                self.speak(f"Couldn't open {file_path} in Notepad")
+                        else:
+                            self.speak("Please specify which file to open. For example: open in notepad test.txt")
+                    except Exception as e:
+                        self.speak(f"Error opening in Notepad: {str(e)}")
+                    continue
+
+                # 📝 Notepad operations - Open blank Notepad
+                if user_input.lower() in ['open notepad', 'start notepad', 'launch notepad']:
+                    try:
+                        import subprocess
+                        if platform.system() == "Windows":
+                            subprocess.Popen(['notepad.exe'])
+                            self.speak("Opened Notepad")
+                        else:
+                            self.speak(f"Notepad is Windows-only. You're on {platform.system()}")
+                    except Exception as e:
+                        self.speak(f"Error opening Notepad: {str(e)}")
+                    continue
+
+                # 📝 Notepad operations - Write to new file and open in Notepad
+                if 'write to notepad' in user_input.lower() or 'create in notepad' in user_input.lower():
+                    try:
+                        self.speak("What's the file name?")
+                        file_path_input = self.listen()
+                        if file_path_input:
+                            self.speak("What should I write to the file?")
+                            content_input = self.listen()
+                            if content_input:
+                                success = self._write_file(file_path_input, content_input)
+                                if success:
+                                    self._open_in_notepad(file_path_input)
+                                    self.speak(f"Created {file_path_input} and opened it in Notepad")
+                                else:
+                                    self.speak("Failed to write the file")
+                            else:
+                                self.speak("I didn't hear any content to write")
+                        else:
+                            self.speak("I didn't hear the file name")
+                    except Exception as e:
+                        self.speak(f"Error: {str(e)}")
+                    continue
+
+                # 📖 File operations - Read file
+                if 'read file' in user_input.lower():
+                    try:
+                        # Extract filename from command
+                        parts = user_input.lower().split('read file')
+                        if len(parts) > 1:
+                            file_path = parts[1].strip()
+                            content = self._read_file(file_path)
+                            if content:
+                                print(f"\n📖 Contents of {file_path}:\n{content}\n")
+                                if len(content) < 500:
+                                    self.speak(f"File contents: {content}")
+                                else:
+                                    self.speak(f"I've read the file. It contains {len(content)} characters. Check the console for full contents.")
+                            else:
+                                self.speak(f"I couldn't read the file {file_path}.")
+                        else:
+                            self.speak("Please specify which file to read. For example: read file test.txt")
+                    except Exception as e:
+                        self.speak(f"Error reading file: {str(e)}")
+                    continue
+
+                # 💾 File operations - Write file
+                if 'write file' in user_input.lower() or 'create file' in user_input.lower():
+                    try:
+                        self.speak("What's the file path?")
+                        file_path_input = self.listen()
+                        if file_path_input:
+                            self.speak("What should I write to the file?")
+                            content_input = self.listen()
+                            if content_input:
+                                success = self._write_file(file_path_input, content_input)
+                                if success:
+                                    self.speak(f"Successfully wrote to {file_path_input}")
+                                else:
+                                    self.speak("Failed to write the file")
+                            else:
+                                self.speak("I didn't hear any content to write")
+                        else:
+                            self.speak("I didn't hear the file path")
+                    except Exception as e:
+                        self.speak(f"Error writing file: {str(e)}")
+                    continue
+
+                # ✏️ File operations - Edit file
+                if 'edit file' in user_input.lower():
+                    try:
+                        self.speak("Which file should I edit?")
+                        file_path_input = self.listen()
+                        if file_path_input:
+                            self.speak("What text should I find?")
+                            old_text = self.listen()
+                            if old_text:
+                                self.speak("What should I replace it with?")
+                                new_text = self.listen()
+                                if new_text:
+                                    success = self._edit_file(file_path_input, old_text, new_text)
+                                    if success:
+                                        self.speak(f"Successfully edited {file_path_input}")
+                                    else:
+                                        self.speak("Failed to edit the file. The text might not exist in the file.")
+                                else:
+                                    self.speak("I didn't hear the replacement text")
+                            else:
+                                self.speak("I didn't hear the text to find")
+                        else:
+                            self.speak("I didn't hear the file path")
+                    except Exception as e:
+                        self.speak(f"Error editing file: {str(e)}")
+                    continue
+
+                # 🐍 Code execution - Run Python script
+                if 'run script' in user_input.lower() or 'execute code' in user_input.lower() or 'run python' in user_input.lower():
+                    try:
+                        self.speak("What Python code should I run?")
+                        code_input = self.listen()
+                        if code_input:
+                            print(f"\n🐍 Executing code...\n")
+                            output = self._execute_script(code_input)
+                            print(f"Output:\n{output}\n")
+                            self.speak(f"Code executed. Output: {output[:200]}")
+                        else:
+                            self.speak("I didn't hear any code to execute")
+                    except Exception as e:
+                        self.speak(f"Error executing code: {str(e)}")
+                    continue
+
+                # 💻 Coding assistance
+                if any(phrase in user_input.lower() for phrase in [
+                    'write code', 'help me code', 'create a function',
+                    'write a script', 'build an app', 'code this',
+                    'program this', 'develop this'
+                ]):
+                    # Use AI to help with coding
+                    print("\n💻 Sunny's Master Coder Mode activated...\n")
+                    enhanced_prompt = f"""As a master coder expert in Python, JavaScript, HTML/CSS, SQL, React, Node.js, and all modern frameworks, help with this request:
+
+{user_input}
+
+Provide clean, well-commented, production-ready code with explanations."""
+
+                    response = self._get_ai_response(enhanced_prompt)
+                    print(f"\n💻 Sunny: {response}\n")
+                    self.speak("I've written the code for you. Check the console for the full implementation.")
+                    continue
+
                 # Sunny's proactive intelligence status
                 if user_input.lower() in ['status report', 'sunny status', 'show status', 'intelligence report']:
                     if hasattr(self, 'proactive') and self.proactive:
@@ -1255,7 +1965,9 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 # Get Sunny's response
                 response = self.think(user_input)
                 
-                # Speak the response
+                # Print and speak the response
+                print(f"\n🌞 Sunny: {response}\n")
+                print(f"[DEBUG] Response length: {len(response)} characters")
                 self.speak(response)
                 
             except KeyboardInterrupt:
@@ -1301,7 +2013,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         
         core_memories = [
             {
-                "content": "I am Sunny C, COO of The Christman AI Project. I serve Everett Christman with unwavering loyalty.",
+                "content": "I am Sunny, COO of The Christman AI Project. I serve Everett Christman with unwavering loyalty.",
                 "category": "relationships",
                 "importance": 1.0,
                 "metadata": {"type": "core_identity"}
@@ -1389,6 +2101,74 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 json.dump(self.learning_data, f, indent=2)
         except Exception as e:
             print(f"⚠️  Could not save learning progress: {e}")
+
+    def _load_conversation_memory(self):
+        """Load conversation history from memory_store.json and convert format"""
+        try:
+            if self.conversation_memory_file.exists():
+                with open(self.conversation_memory_file, 'r') as f:
+                    stored_memory = json.load(f)
+
+                # Convert old format {input, output} to Claude format {role, content}
+                # Don't include timestamps in active conversation_history
+                self.conversation_history = []
+                for entry in stored_memory:
+                    if isinstance(entry, dict):
+                        # Old format: {input, output, intent, timestamp}
+                        if 'input' in entry and 'output' in entry:
+                            self.conversation_history.append({
+                                "role": "user",
+                                "content": entry['input']
+                            })
+                            self.conversation_history.append({
+                                "role": "assistant",
+                                "content": entry['output']
+                            })
+                        # New format: {role, content} - strip timestamp if present
+                        elif 'role' in entry and 'content' in entry:
+                            self.conversation_history.append({
+                                "role": entry['role'],
+                                "content": entry['content']
+                            })
+
+                print(f"✅ Loaded {len(self.conversation_history)} previous messages from Sunny's memory")
+            else:
+                print("📝 Starting with fresh conversation memory")
+        except Exception as e:
+            print(f"⚠️  Could not load conversation memory: {e}")
+            self.conversation_history = []
+
+    def _save_conversation_memory(self):
+        """Save conversation history to memory_store.json in old format for compatibility"""
+        try:
+            # Convert from Claude format {role, content} to old format {input, output, intent, timestamp}
+            # PRESERVE ORIGINAL TIMESTAMPS!
+            stored_memory = []
+            i = 0
+            while i < len(self.conversation_history):
+                if i + 1 < len(self.conversation_history):
+                    user_msg = self.conversation_history[i]
+                    assistant_msg = self.conversation_history[i + 1]
+
+                    if user_msg.get('role') == 'user' and assistant_msg.get('role') == 'assistant':
+                        # Use existing timestamp if available, otherwise create new one
+                        timestamp = user_msg.get('timestamp') or assistant_msg.get('timestamp') or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+                        stored_memory.append({
+                            "input": user_msg['content'],
+                            "output": assistant_msg['content'],
+                            "intent": "general",  # Default intent
+                            "timestamp": timestamp  # Preserve original or create new
+                        })
+                        i += 2
+                        continue
+                i += 1
+
+            self.conversation_memory_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.conversation_memory_file, 'w') as f:
+                json.dump(stored_memory, f, indent=2)
+        except Exception as e:
+            print(f"⚠️  Could not save conversation memory: {e}")
     
     def _get_current_confidence(self):
         """Get Sunny's current confidence level (0.0 to 1.0)"""
@@ -1402,15 +2182,15 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         
         return confidence
     
-    def _learn_from_comparison(self, user_input: str, derek_response: str, master_response: str, context: dict):
+    def _learn_from_comparison(self, user_input: str, sunny_response: str, master_response: str, context: dict):
         """Sunny learns by comparing his response to the master AI's response"""
         try:
             # Calculate similarity (simple length and keyword comparison for now)
-            derek_words = set(derek_response.lower().split())
+            sunny_words = set(sunny_response.lower().split())
             master_words = set(master_response.lower().split())
             
             if len(master_words) > 0:
-                overlap = len(derek_words & master_words) / len(master_words)
+                overlap = len(sunny_words & master_words) / len(master_words)
             else:
                 overlap = 0.0
             
@@ -1428,7 +2208,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             learning_example = {
                 "timestamp": datetime.now().isoformat(),
                 "user_input": user_input[:100],  # First 100 chars
-                "derek_attempt": derek_response[:100],
+                "sunny_attempt": sunny_response[:100],
                 "master_response": master_response[:100],
                 "similarity": overlap,
                 "confidence_after": self.learning_data["confidence_score"]
@@ -1491,7 +2271,7 @@ def main():
     
     # Start Sunny Ultimate Voice System
     try:
-        sunny = DerekUltimateVoice(
+        sunny = SunnyUltimateVoice(
             ai_provider=ai_provider,
             voice_id=voice_id,
             use_web_search=use_web_search
