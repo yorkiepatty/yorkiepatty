@@ -596,10 +596,10 @@ class SunnyUltimateVoice:
             self.recognizer = sr.Recognizer()
             self.microphone = sr.Microphone()
 
-            # Enhanced settings
+            # Enhanced settings - more patient listening
             self.recognizer.energy_threshold = 3000
             self.recognizer.dynamic_energy_threshold = True
-            self.recognizer.pause_threshold = 2.0
+            self.recognizer.pause_threshold = 4.0   # Wait 4 seconds of silence before processing
             self.recognizer.phrase_threshold = 0.2
             self.recognizer.non_speaking_duration = 0.8
 
