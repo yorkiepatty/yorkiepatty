@@ -38,6 +38,13 @@ import subprocess
 import platform
 from gtts import gTTS
 
+# pyttsx3 for male voice (uses system TTS engine)
+try:
+    import pyttsx3
+    HAS_PYTTSX3 = True
+except ImportError:
+    HAS_PYTTSX3 = False
+
 import re
 from typing import List
 
@@ -413,7 +420,7 @@ class SunnyUltimateVoice:
 
         if disable_elevenlabs:
             print("⚠️  ElevenLabs disabled via DISABLE_ELEVENLABS environment variable")
-            print("   Using gTTS (Google Text-to-Speech) instead")
+            print("   Using pyttsx3 (male voice) or gTTS as fallback")
         else:
             print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
             print(f"   API key found: {bool(api_key)}")
@@ -444,6 +451,44 @@ class SunnyUltimateVoice:
         except Exception as e:
             self.has_polly = False
             print(f"⚠️  AWS Polly not available: {e}")
+
+        # pyttsx3 for male voice (uses system TTS engine)
+        self.has_pyttsx3 = False
+        self.pyttsx3_engine = None
+        if HAS_PYTTSX3:
+            try:
+                self.pyttsx3_engine = pyttsx3.init()
+                voices = self.pyttsx3_engine.getProperty('voices')
+                # Find a male voice
+                male_voice = None
+                for voice in voices:
+                    # Check for male voice (David on Windows, or any voice with 'male' in name)
+                    if 'david' in voice.name.lower() or 'male' in voice.name.lower():
+                        male_voice = voice
+                        break
+                    # On Linux, look for male voices
+                    if 'english' in voice.name.lower() and voice.id != voices[0].id:
+                        male_voice = voice
+                        break
+
+                if male_voice:
+                    self.pyttsx3_engine.setProperty('voice', male_voice.id)
+                    print(f"✅ pyttsx3 male voice initialized: {male_voice.name}")
+                else:
+                    # Just use the second voice if available (often male)
+                    if len(voices) > 1:
+                        self.pyttsx3_engine.setProperty('voice', voices[1].id)
+                        print(f"✅ pyttsx3 voice initialized: {voices[1].name}")
+                    else:
+                        print("✅ pyttsx3 initialized (default voice)")
+
+                # Set a deeper/slower rate for more masculine sound
+                self.pyttsx3_engine.setProperty('rate', 150)  # Slightly slower
+                self.has_pyttsx3 = True
+            except Exception as e:
+                print(f"⚠️  pyttsx3 initialization failed: {e}")
+        else:
+            print("⚠️  pyttsx3 not installed (run: pip install pyttsx3)")
 
         # gTTS is always available as final fallback
         self.has_gtts = True
@@ -1801,7 +1846,14 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
 
-        # Final fallback to gTTS
+        # Fallback to pyttsx3 (male voice - system TTS engine)
+        if self.has_pyttsx3:
+            try:
+                return self._speak_pyttsx3(tts_text)
+            except Exception as e:
+                print(f"⚠️  pyttsx3 failed: {e}")
+
+        # Final fallback to gTTS (female voice)
         if self.has_gtts:
             try:
                 return self._speak_gtts(tts_text)
@@ -1836,7 +1888,15 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             os.remove(audio_file)
         except:
             pass
-    
+
+    def _speak_pyttsx3(self, text):
+        """Speak using pyttsx3 with male voice (system TTS engine)"""
+        if self.pyttsx3_engine:
+            self.pyttsx3_engine.say(text)
+            self.pyttsx3_engine.runAndWait()
+        else:
+            raise Exception("pyttsx3 engine not initialized")
+
     def _speak_gtts(self, text):
         """Speak using Google Text-to-Speech as fallback"""
         temp_dir = tempfile.gettempdir()
