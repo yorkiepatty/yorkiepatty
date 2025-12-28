@@ -427,7 +427,7 @@ class MemoryMesh:
                                 logger.error(f"Decryption failed for episodic memory: {e}")
                                 raise
                         self.episodic_memory = json.loads(data.decode())
-                
+
                 semantic_file = self.memory_dir / "semantic_memory.json"
                 if semantic_file.exists():
                     with open(semantic_file, 'rb') as f:
@@ -439,7 +439,7 @@ class MemoryMesh:
                                 logger.error(f"Decryption failed for semantic memory: {e}")
                                 raise
                         self.semantic_memory = json.loads(data.decode())
-                
+
                 metadata_file = self.memory_dir / "memory_metadata.json"
                 if metadata_file.exists():
                     with open(metadata_file, 'rb') as f:
@@ -454,11 +454,57 @@ class MemoryMesh:
                         self.memory_importance = metadata.get("importance", {})
                         self.memory_access_count = defaultdict(int, metadata.get("access_count", {}))
                         self.memory_last_access = metadata.get("last_access", {})
-                
+
+                # Also load from legacy memory_store.json files (conversation history)
+                self._load_legacy_memory_store()
+
                 logger.info("📂 Memories loaded from disk")
         except Exception as e:
             logger.error(f"⚠️ Error loading memories: {e}")
             raise
+
+    def _load_legacy_memory_store(self):
+        """Load memories from legacy memory_store.json files"""
+        # Check common locations for memory_store.json
+        script_dir = self.memory_dir.parent  # Go up from sunny_memory to main folder
+        legacy_paths = [
+            script_dir / "memory" / "memory_store.json",
+            script_dir / "sunny_data" / "memory_store.json",
+            script_dir / "memory_store.json",
+        ]
+
+        for legacy_file in legacy_paths:
+            if legacy_file.exists():
+                try:
+                    with open(legacy_file, 'r', encoding='utf-8') as f:
+                        legacy_data = json.load(f)
+
+                    if isinstance(legacy_data, list):
+                        loaded_count = 0
+                        for item in legacy_data:
+                            # Convert legacy format to episodic memory format
+                            if isinstance(item, dict) and 'input' in item and 'output' in item:
+                                memory_entry = {
+                                    "id": hashlib.md5(f"{item.get('input', '')}{item.get('timestamp', '')}".encode()).hexdigest()[:12],
+                                    "content": f"User: {item.get('input', '')} | Sunny: {item.get('output', '')}",
+                                    "category": "conversation",
+                                    "timestamp": item.get('timestamp', datetime.now().isoformat()),
+                                    "importance": 0.5,
+                                    "metadata": {
+                                        "intent": item.get('intent', 'general'),
+                                        "source": "legacy_memory_store"
+                                    }
+                                }
+                                # Avoid duplicates
+                                if not any(m.get('id') == memory_entry['id'] for m in self.episodic_memory):
+                                    self.episodic_memory.append(memory_entry)
+                                    loaded_count += 1
+
+                        if loaded_count > 0:
+                            print(f"📂 Loaded {loaded_count} memories from {legacy_file}")
+                            logger.info(f"Loaded {loaded_count} legacy memories from {legacy_file}")
+                except Exception as e:
+                    logger.warning(f"Could not load legacy memory from {legacy_file}: {e}")
     
     def get_stats(self) -> Dict:
         """Get memory system statistics"""
