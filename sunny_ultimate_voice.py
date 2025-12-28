@@ -1733,38 +1733,47 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         # Paul: "5Q0t7uMcjvnagumLfvZi" - calm male
         # Adam: "pNInz6obpgDQGcFmaJgB" - deep, friendly male
 
-        # Generate speech with ElevenLabs
-        audio_generator = self.elevenlabs_client.text_to_speech.convert(
-            voice_id=voice_id,
-            optimize_streaming_latency="0",
-            output_format="mp3_22050_32",
-            text=text,
-            model_id="eleven_multilingual_v2",
-            voice_settings=VoiceSettings(
-                stability=0.5,
-                similarity_boost=0.75,
-                style=0.0,
-                use_speaker_boost=True
-            )
-        )
-
-        # Save audio to temp file
-        temp_dir = tempfile.gettempdir()
-        audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
-
-        with open(audio_file, 'wb') as f:
-            for chunk in audio_generator:
-                if chunk:
-                    f.write(chunk)
-
-        # Play the audio
-        playsound(audio_file)
-
-        # Clean up
         try:
-            os.remove(audio_file)
-        except:
-            pass
+            # Generate speech with ElevenLabs
+            audio_generator = self.elevenlabs_client.text_to_speech.convert(
+                voice_id=voice_id,
+                optimize_streaming_latency="0",
+                output_format="mp3_22050_32",
+                text=text,
+                model_id="eleven_multilingual_v2",
+                voice_settings=VoiceSettings(
+                    stability=0.5,
+                    similarity_boost=0.75,
+                    style=0.0,
+                    use_speaker_boost=True
+                )
+            )
+
+            # Save audio to temp file
+            temp_dir = tempfile.gettempdir()
+            audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
+
+            with open(audio_file, 'wb') as f:
+                for chunk in audio_generator:
+                    if chunk:
+                        f.write(chunk)
+
+            # Play the audio
+            playsound(audio_file)
+
+            # Clean up
+            try:
+                os.remove(audio_file)
+            except:
+                pass
+
+        except Exception as e:
+            error_str = str(e).lower()
+            # Check for quota/credits errors and auto-disable ElevenLabs
+            if 'quota' in error_str or 'credits' in error_str or 'limit' in error_str or '401' in str(e):
+                print("⚠️  ElevenLabs quota exceeded - switching to pyttsx3/gTTS for this session")
+                self.has_elevenlabs = False  # Disable for rest of session
+            raise  # Re-raise to trigger fallback in speak()
     def _clean_text_for_speech(self, text):
         """Minimal, robust cleaning so TTS never speaks stage directions like *laughs*, (nods), [waves]."""
         import re
