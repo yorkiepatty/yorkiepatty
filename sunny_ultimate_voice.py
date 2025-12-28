@@ -2031,24 +2031,38 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("  - 'local ai status' - Check local AI availability")
         print("  - 'reasoning stats' - See knowledge-first statistics")
         print("  - 'install model llama' - Install local AI model")
-        print("  - 'memory stats' - Memory system status\n")
-        
+        print("  - 'memory stats' - Memory system status")
+        print("\n⌨️  Input Mode Commands:")
+        print("  - 'text mode' - Switch to typing (no voice input)")
+        print("  - 'voice mode' - Switch back to voice input\n")
+
+        # Input mode: "voice" or "text"
+        self.input_mode = "voice"
+
         # Initial greeting
         greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities: vision, memory, tarot readings, master coding, file operations, and autonomous learning. How can I help you today?"
         self.speak(greeting)
-        
+
         while True:
             try:
-                # Get user input (speech or text)
-                user_input = self.listen()
-                
-                # If speech recognition failed, offer text input
-                if user_input is None:
-                    print("💬 You can type your message instead:")
+                # Get user input based on current mode
+                if self.input_mode == "text":
+                    print("⌨️  Type your message (or 'voice mode' to switch back):")
                     try:
                         user_input = input("You: ").strip()
                     except (EOFError, KeyboardInterrupt):
                         break
+                else:
+                    # Voice mode
+                    user_input = self.listen()
+
+                    # If speech recognition failed, offer text input
+                    if user_input is None:
+                        print("💬 You can type your message instead:")
+                        try:
+                            user_input = input("You: ").strip()
+                        except (EOFError, KeyboardInterrupt):
+                            break
                 
                 if not user_input:
                     continue
@@ -2066,6 +2080,19 @@ Remember: The cards reflect possibilities, not certainties. You always have free
                 
                 if user_input.lower() in ['switch ai', 'change ai']:
                     self._switch_ai_provider()
+                    continue
+
+                # ⌨️ Input mode switching
+                if user_input.lower() in ['text mode', 'type mode', 'typing mode', 'keyboard mode']:
+                    self.input_mode = "text"
+                    print("⌨️  Switched to TEXT MODE - type your messages")
+                    self.speak("Switched to text mode. Type your messages and I'll respond.")
+                    continue
+
+                if user_input.lower() in ['voice mode', 'talk mode', 'speech mode', 'speak mode']:
+                    self.input_mode = "voice"
+                    print("🎤 Switched to VOICE MODE - speak your messages")
+                    self.speak("Switched to voice mode. I'm listening.")
                     continue
 
                 # 📸 Screen capture commands
