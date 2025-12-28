@@ -45,6 +45,14 @@ try:
 except ImportError:
     HAS_PYTTSX3 = False
 
+# edge-tts for high-quality Microsoft voices (free, no API key)
+try:
+    import edge_tts
+    import asyncio
+    HAS_EDGE_TTS = True
+except ImportError:
+    HAS_EDGE_TTS = False
+
 import re
 from typing import List
 
@@ -490,6 +498,16 @@ class SunnyUltimateVoice:
         else:
             print("⚠️  pyttsx3 not installed (run: pip install pyttsx3)")
 
+        # edge-tts for high-quality Microsoft voices (recommended fallback)
+        self.has_edge_tts = False
+        if HAS_EDGE_TTS:
+            self.has_edge_tts = True
+            # Guy is a natural-sounding American male voice
+            self.edge_voice = "en-US-GuyNeural"
+            print(f"✅ Edge TTS initialized (voice: {self.edge_voice})")
+        else:
+            print("⚠️  edge-tts not installed (run: pip install edge-tts)")
+
         # gTTS is always available as final fallback
         self.has_gtts = True
         print("✅ Google TTS available as final fallback")
@@ -665,7 +683,11 @@ class SunnyUltimateVoice:
             # - Episodic Memory (experiences, conversations)
             # - Semantic Memory (facts, learned knowledge)
             # - Auto-consolidation (like sleep in humans)
-            self.memory = MemoryMeshBridge(memory_dir="./sunny_memory")
+            # Use absolute path so memory persists regardless of working directory
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            memory_path = os.path.join(script_dir, "sunny_memory")
+            print(f"🧠 Memory directory: {memory_path}")
+            self.memory = MemoryMeshBridge(memory_dir=memory_path)
             self.tone_manager = ToneManager()
             self.vision = VisionEngine()
             self.emotion_analyzer = analyze_emotion  # Function, not class
@@ -1855,6 +1877,13 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
 
+        # Fallback to edge-tts (high-quality Microsoft male voice)
+        if self.has_edge_tts:
+            try:
+                return self._speak_edge_tts(tts_text)
+            except Exception as e:
+                print(f"⚠️  Edge TTS failed: {e}")
+
         # Fallback to pyttsx3 (male voice - system TTS engine)
         if self.has_pyttsx3:
             try:
@@ -1898,13 +1927,53 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         except:
             pass
 
+    def _speak_edge_tts(self, text):
+        """Speak using Microsoft Edge TTS (high-quality, free)"""
+        temp_dir = tempfile.gettempdir()
+        audio_file = os.path.join(temp_dir, f"sunny_edge_{uuid.uuid4()}.mp3")
+
+        # edge-tts is async, so we need to run it in an event loop
+        async def generate_speech():
+            communicate = edge_tts.Communicate(text, self.edge_voice)
+            await communicate.save(audio_file)
+
+        # Run the async function
+        asyncio.run(generate_speech())
+
+        # Play the audio
+        playsound(audio_file)
+
+        # Clean up
+        try:
+            os.remove(audio_file)
+        except:
+            pass
+
     def _speak_pyttsx3(self, text):
         """Speak using pyttsx3 with male voice (system TTS engine)"""
-        if self.pyttsx3_engine:
-            self.pyttsx3_engine.say(text)
-            self.pyttsx3_engine.runAndWait()
-        else:
-            raise Exception("pyttsx3 engine not initialized")
+        try:
+            # Create fresh engine each time to avoid hanging issues
+            engine = pyttsx3.init()
+            voices = engine.getProperty('voices')
+
+            # Find male voice
+            for voice in voices:
+                if 'david' in voice.name.lower() or 'male' in voice.name.lower():
+                    engine.setProperty('voice', voice.id)
+                    break
+            else:
+                # Use second voice if available (often male)
+                if len(voices) > 1:
+                    engine.setProperty('voice', voices[1].id)
+
+            engine.setProperty('rate', 150)
+            engine.say(text)
+            engine.runAndWait()
+            engine.stop()
+
+        except Exception as e:
+            print(f"⚠️  pyttsx3 error: {e}")
+            raise
 
     def _speak_gtts(self, text):
         """Speak using Google Text-to-Speech as fallback"""

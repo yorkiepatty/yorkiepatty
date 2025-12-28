@@ -96,7 +96,17 @@ class MemoryMesh:
         try:
             self.load_memories()
         except Exception as e:
+            error_msg = str(e).lower()
+            if 'decrypt' in error_msg or 'fernet' in error_msg or 'token' in error_msg:
+                print("=" * 60)
+                print("⚠️  MEMORY DECRYPTION FAILED!")
+                print("   This usually means the encryption key changed.")
+                print(f"   Key file: {self.memory_dir / '.encryption_key'}")
+                print("   Memory will be reset. Previous memories are lost.")
+                print("=" * 60)
             logger.warning(f"Failed to load memories, starting fresh: {e}")
+            print(f"⚠️  Memory load failed: {e}")
+            print("   Starting with fresh memory...")
             self.episodic_memory = []
             self.semantic_memory = {k: [] for k in self.semantic_memory}
             self.memory_importance = {}
