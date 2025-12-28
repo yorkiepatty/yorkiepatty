@@ -665,7 +665,11 @@ class SunnyUltimateVoice:
             # - Episodic Memory (experiences, conversations)
             # - Semantic Memory (facts, learned knowledge)
             # - Auto-consolidation (like sleep in humans)
-            self.memory = MemoryMeshBridge(memory_dir="./sunny_memory")
+            # Use absolute path so memory persists regardless of working directory
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            memory_path = os.path.join(script_dir, "sunny_memory")
+            print(f"🧠 Memory directory: {memory_path}")
+            self.memory = MemoryMeshBridge(memory_dir=memory_path)
             self.tone_manager = ToneManager()
             self.vision = VisionEngine()
             self.emotion_analyzer = analyze_emotion  # Function, not class
