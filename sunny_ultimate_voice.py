@@ -134,14 +134,14 @@ def start_keyboard_listener():
                     if key == keyboard.Key.esc or key == keyboard.Key.space:
                         interrupt_speech()
                         return False  # Stop listener temporarily
-                    # T key to switch to text mode
-                    if hasattr(key, 'char') and key.char and key.char.lower() == 't':
+                    # Q key to switch to text mode
+                    if hasattr(key, 'char') and key.char and key.char.lower() == 'q':
                         request_text_mode()
                         return False
                 except:
                     pass
 
-            print("🎧 Press ESC/SPACE to interrupt speech, T for text mode")
+            print("🎧 Press ESC/SPACE to interrupt speech, Q for text mode")
             while _keyboard_listener_running:
                 with keyboard.Listener(on_press=on_press) as listener:
                     listener.join()
@@ -156,7 +156,7 @@ def start_keyboard_listener():
     # Start listener in background thread
     listener_thread = threading.Thread(target=listen_for_interrupt, daemon=True)
     listener_thread.start()
-    print("✅ Keyboard shortcuts: ESC/SPACE=interrupt, T=text mode")
+    print("✅ Keyboard shortcuts: ESC/SPACE=interrupt, Q=text mode")
 
 def stop_keyboard_listener():
     """Stop the keyboard listener"""
