@@ -1905,31 +1905,28 @@ Remember: The cards reflect possibilities, not certainties. You always have free
     def _speak_pyttsx3(self, text):
         """Speak using pyttsx3 with male voice (system TTS engine)"""
         try:
-            if self.pyttsx3_engine:
-                self.pyttsx3_engine.say(text)
-                self.pyttsx3_engine.runAndWait()
+            # Create fresh engine each time to avoid hanging issues
+            engine = pyttsx3.init()
+            voices = engine.getProperty('voices')
+
+            # Find male voice
+            for voice in voices:
+                if 'david' in voice.name.lower() or 'male' in voice.name.lower():
+                    engine.setProperty('voice', voice.id)
+                    break
             else:
-                raise Exception("pyttsx3 engine not initialized")
+                # Use second voice if available (often male)
+                if len(voices) > 1:
+                    engine.setProperty('voice', voices[1].id)
+
+            engine.setProperty('rate', 150)
+            engine.say(text)
+            engine.runAndWait()
+            engine.stop()
+
         except Exception as e:
-            print(f"⚠️  pyttsx3 error: {e}, reinitializing...")
-            # Try to reinitialize the engine
-            try:
-                if self.pyttsx3_engine:
-                    self.pyttsx3_engine.stop()
-                self.pyttsx3_engine = pyttsx3.init()
-                voices = self.pyttsx3_engine.getProperty('voices')
-                # Find male voice again
-                for voice in voices:
-                    if 'david' in voice.name.lower() or 'male' in voice.name.lower():
-                        self.pyttsx3_engine.setProperty('voice', voice.id)
-                        break
-                self.pyttsx3_engine.setProperty('rate', 150)
-                # Try speaking again
-                self.pyttsx3_engine.say(text)
-                self.pyttsx3_engine.runAndWait()
-            except Exception as e2:
-                print(f"⚠️  pyttsx3 reinit failed: {e2}")
-                raise
+            print(f"⚠️  pyttsx3 error: {e}")
+            raise
 
     def _speak_gtts(self, text):
         """Speak using Google Text-to-Speech as fallback"""
