@@ -406,16 +406,21 @@ class SunnyUltimateVoice:
         """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
         print("\n🔊 Initializing voice systems...")
 
-        # ElevenLabs setup (primary)
+        # ElevenLabs setup (primary) - can be disabled with DISABLE_ELEVENLABS=1
         self.has_elevenlabs = False
         api_key = os.getenv("ELEVENLABS_API_KEY")
+        disable_elevenlabs = os.getenv("DISABLE_ELEVENLABS", "").lower() in ("1", "true", "yes")
 
-        print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
-        print(f"   API key found: {bool(api_key)}")
-        if api_key:
-            print(f"   API key length: {len(api_key)} characters")
+        if disable_elevenlabs:
+            print("⚠️  ElevenLabs disabled via DISABLE_ELEVENLABS environment variable")
+            print("   Using gTTS (Google Text-to-Speech) instead")
+        else:
+            print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
+            print(f"   API key found: {bool(api_key)}")
+            if api_key:
+                print(f"   API key length: {len(api_key)} characters")
 
-        if HAS_ELEVENLABS and api_key:
+        if not disable_elevenlabs and HAS_ELEVENLABS and api_key:
             try:
                 self.elevenlabs_client = ElevenLabs(api_key=api_key)
                 self.has_elevenlabs = True
