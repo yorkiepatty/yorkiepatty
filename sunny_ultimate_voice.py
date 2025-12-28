@@ -38,9 +38,22 @@ import speech_recognition as sr
 import subprocess
 import platform
 from gtts import gTTS
+<<<<<<< HEAD
 import sounddevice as sd
 import numpy as np
 import queue
+=======
+
+# pyttsx3 for male voice (uses system TTS engine)
+try:
+    import pyttsx3
+    HAS_PYTTSX3 = True
+except ImportError:
+    HAS_PYTTSX3 = False
+
+import re
+from typing import List
+>>>>>>> 591c1629a3c2e9b6f22814fca867328d4f3457f3
 
 # ElevenLabs TTS
 try:
@@ -293,16 +306,35 @@ class SunnyUltimateVoice:
         """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
         print("\n🔊 Initializing voice systems...")
 
+<<<<<<< HEAD
         # ElevenLabs setup (primary)
         self.elevenlabs = False
+=======
+        # ElevenLabs setup (primary) - can be disabled with DISABLE_ELEVENLABS=1
+        self.has_elevenlabs = False
+>>>>>>> 591c1629a3c2e9b6f22814fca867328d4f3457f3
         api_key = os.getenv("ELEVENLABS_API_KEY")
+        disable_elevenlabs = os.getenv("DISABLE_ELEVENLABS", "").lower() in ("1", "true", "yes")
 
+<<<<<<< HEAD
         print(f"   ELEVENLABS module: {ELEVENLABS}")
         print(f"   API key found: {bool(api_key)}")
         if api_key:
             print(f"   API key length: {len(api_key)} characters")
 
         if ELEVENLABS and api_key:
+=======
+        if disable_elevenlabs:
+            print("⚠️  ElevenLabs disabled via DISABLE_ELEVENLABS environment variable")
+            print("   Using pyttsx3 (male voice) or gTTS as fallback")
+        else:
+            print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
+            print(f"   API key found: {bool(api_key)}")
+            if api_key:
+                print(f"   API key length: {len(api_key)} characters")
+
+        if not disable_elevenlabs and HAS_ELEVENLABS and api_key:
+>>>>>>> 591c1629a3c2e9b6f22814fca867328d4f3457f3
             try:
                 self.elevenlabs_client = ElevenLabs(api_key=api_key)
                 self.elevenlabs = True
@@ -326,6 +358,44 @@ class SunnyUltimateVoice:
         except Exception as e:
             self.polly = False
             print(f"⚠️  AWS Polly not available: {e}")
+
+        # pyttsx3 for male voice (uses system TTS engine)
+        self.has_pyttsx3 = False
+        self.pyttsx3_engine = None
+        if HAS_PYTTSX3:
+            try:
+                self.pyttsx3_engine = pyttsx3.init()
+                voices = self.pyttsx3_engine.getProperty('voices')
+                # Find a male voice
+                male_voice = None
+                for voice in voices:
+                    # Check for male voice (David on Windows, or any voice with 'male' in name)
+                    if 'david' in voice.name.lower() or 'male' in voice.name.lower():
+                        male_voice = voice
+                        break
+                    # On Linux, look for male voices
+                    if 'english' in voice.name.lower() and voice.id != voices[0].id:
+                        male_voice = voice
+                        break
+
+                if male_voice:
+                    self.pyttsx3_engine.setProperty('voice', male_voice.id)
+                    print(f"✅ pyttsx3 male voice initialized: {male_voice.name}")
+                else:
+                    # Just use the second voice if available (often male)
+                    if len(voices) > 1:
+                        self.pyttsx3_engine.setProperty('voice', voices[1].id)
+                        print(f"✅ pyttsx3 voice initialized: {voices[1].name}")
+                    else:
+                        print("✅ pyttsx3 initialized (default voice)")
+
+                # Set a deeper/slower rate for more masculine sound
+                self.pyttsx3_engine.setProperty('rate', 150)  # Slightly slower
+                self.has_pyttsx3 = True
+            except Exception as e:
+                print(f"⚠️  pyttsx3 initialization failed: {e}")
+        else:
+            print("⚠️  pyttsx3 not installed (run: pip install pyttsx3)")
 
         # gTTS is always available as final fallback
         self.gtts = True
@@ -395,9 +465,18 @@ class SunnyUltimateVoice:
             # Use sounddevice instead of PyAudio
             self.microphone = SoundDeviceMicrophone()
 
+<<<<<<< HEAD
             # Enhanced settings to avoid cutting off natural speech
             self.recognizer.energy_threshold = 3000
             self.recognizer.dynamic_energy_threshold = True
+=======
+            # Enhanced settings - more patient listening
+            self.recognizer.energy_threshold = 3000
+            self.recognizer.dynamic_energy_threshold = True
+            self.recognizer.pause_threshold = 4.0   # Wait 4 seconds of silence before processing
+            self.recognizer.phrase_threshold = 0.2
+            self.recognizer.non_speaking_duration = 0.8
+>>>>>>> 591c1629a3c2e9b6f22814fca867328d4f3457f3
 
             print("✅ Microphone initialized with sounddevice")
             print("   Sunny is ready to listen!")
@@ -1424,39 +1503,54 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         # Paul: "5Q0t7uMcjvnagumLfvZi" - calm male
         # Adam: "pNInz6obpgDQGcFmaJgB" - deep, friendly male
 
-        # Generate speech with ElevenLabs
-        audio_generator = self.elevenlabs_client.text_to_speech.convert(
-            voice_id=voice_id,
-            optimize_streaming_latency="0",
-            output_format="mp3_22050_32",
-            text=text,
-            model_id="eleven_multilingual_v2",
-            voice_settings=VoiceSettings(
-                stability=0.5,
-                similarity_boost=0.75,
-                style=0.0,
-                use_speaker_boost=True
-            )
-        )
-
-        # Save audio to temp file
-        temp_dir = tempfile.gettempdir()
-        audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
-
-        with open(audio_file, 'wb') as f:
-            for chunk in audio_generator:
-                if chunk:
-                    f.write(chunk)
-
-        # Play the audio
-        playsound(audio_file)
-
-        # Clean up
         try:
+<<<<<<< HEAD
             os.remove(audio_file)
         except:
             pass
 
+=======
+            # Generate speech with ElevenLabs
+            audio_generator = self.elevenlabs_client.text_to_speech.convert(
+                voice_id=voice_id,
+                optimize_streaming_latency="0",
+                output_format="mp3_22050_32",
+                text=text,
+                model_id="eleven_multilingual_v2",
+                voice_settings=VoiceSettings(
+                    stability=0.5,
+                    similarity_boost=0.75,
+                    style=0.0,
+                    use_speaker_boost=True
+                )
+            )
+
+            # Save audio to temp file
+            temp_dir = tempfile.gettempdir()
+            audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
+
+            with open(audio_file, 'wb') as f:
+                for chunk in audio_generator:
+                    if chunk:
+                        f.write(chunk)
+
+            # Play the audio
+            playsound(audio_file)
+
+            # Clean up
+            try:
+                os.remove(audio_file)
+            except:
+                pass
+
+        except Exception as e:
+            error_str = str(e).lower()
+            # Check for quota/credits errors and auto-disable ElevenLabs
+            if 'quota' in error_str or 'credits' in error_str or 'limit' in error_str or '401' in str(e):
+                print("⚠️  ElevenLabs quota exceeded - switching to pyttsx3/gTTS for this session")
+                self.has_elevenlabs = False  # Disable for rest of session
+            raise  # Re-raise to trigger fallback in speak()
+>>>>>>> 591c1629a3c2e9b6f22814fca867328d4f3457f3
     def _clean_text_for_speech(self, text):
         """Clean text for natural speech - remove special characters, markdown, and actions"""
         import re
@@ -1513,8 +1607,20 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
 
+<<<<<<< HEAD
         # Final fallback to gTTS
         if self.gtts:
+=======
+        # Fallback to pyttsx3 (male voice - system TTS engine)
+        if self.has_pyttsx3:
+            try:
+                return self._speak_pyttsx3(tts_text)
+            except Exception as e:
+                print(f"⚠️  pyttsx3 failed: {e}")
+
+        # Final fallback to gTTS (female voice)
+        if self.has_gtts:
+>>>>>>> 591c1629a3c2e9b6f22814fca867328d4f3457f3
             try:
                 print("🎙️  Using Google TTS voice...")
                 return self._speak_gtts(clean_text)
@@ -1549,7 +1655,15 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             os.remove(audio_file)
         except:
             pass
-    
+
+    def _speak_pyttsx3(self, text):
+        """Speak using pyttsx3 with male voice (system TTS engine)"""
+        if self.pyttsx3_engine:
+            self.pyttsx3_engine.say(text)
+            self.pyttsx3_engine.runAndWait()
+        else:
+            raise Exception("pyttsx3 engine not initialized")
+
     def _speak_gtts(self, text):
         """Speak using Google Text-to-Speech as fallback"""
         temp_dir = tempfile.gettempdir()
