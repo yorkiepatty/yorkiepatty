@@ -99,9 +99,24 @@ def is_interrupted():
 
 # Keyboard listener for interrupt (ESC or SPACE to stop Sunny talking)
 _keyboard_listener_running = False
+_text_mode_requested = False  # Global flag for text mode toggle
+
+def request_text_mode():
+    """Request switch to text mode"""
+    global _text_mode_requested
+    _text_mode_requested = True
+    print("\n⌨️  TEXT MODE requested - press Enter to type")
+
+def check_text_mode_requested():
+    """Check and reset text mode request flag"""
+    global _text_mode_requested
+    if _text_mode_requested:
+        _text_mode_requested = False
+        return True
+    return False
 
 def start_keyboard_listener():
-    """Start listening for ESC or SPACE key to interrupt speech"""
+    """Start listening for keyboard shortcuts"""
     global _keyboard_listener_running
     if _keyboard_listener_running:
         return
@@ -115,13 +130,18 @@ def start_keyboard_listener():
 
             def on_press(key):
                 try:
+                    # ESC or SPACE to interrupt speech
                     if key == keyboard.Key.esc or key == keyboard.Key.space:
                         interrupt_speech()
                         return False  # Stop listener temporarily
+                    # T key to switch to text mode
+                    if hasattr(key, 'char') and key.char and key.char.lower() == 't':
+                        request_text_mode()
+                        return False
                 except:
                     pass
 
-            print("🎧 Press ESC or SPACE to interrupt Sunny while speaking")
+            print("🎧 Press ESC/SPACE to interrupt speech, T for text mode")
             while _keyboard_listener_running:
                 with keyboard.Listener(on_press=on_press) as listener:
                     listener.join()
@@ -136,7 +156,7 @@ def start_keyboard_listener():
     # Start listener in background thread
     listener_thread = threading.Thread(target=listen_for_interrupt, daemon=True)
     listener_thread.start()
-    print("✅ Keyboard interrupt listener started (ESC or SPACE to stop speech)")
+    print("✅ Keyboard shortcuts: ESC/SPACE=interrupt, T=text mode")
 
 def stop_keyboard_listener():
     """Stop the keyboard listener"""
@@ -2045,6 +2065,11 @@ Remember: The cards reflect possibilities, not certainties. You always have free
 
         while True:
             try:
+                # Check if T key was pressed to switch to text mode
+                if check_text_mode_requested():
+                    self.input_mode = "text"
+                    print("⌨️  Switched to TEXT MODE")
+
                 # Get user input based on current mode
                 if self.input_mode == "text":
                     print("⌨️  Type your message (or 'voice mode' to switch back):")
@@ -2053,11 +2078,20 @@ Remember: The cards reflect possibilities, not certainties. You always have free
                     except (EOFError, KeyboardInterrupt):
                         break
                 else:
-                    # Voice mode
+                    # Voice mode - check for T key during listening too
                     user_input = self.listen()
 
+                    # Check again after listen (T may have been pressed)
+                    if check_text_mode_requested():
+                        self.input_mode = "text"
+                        print("⌨️  Switched to TEXT MODE")
+                        print("⌨️  Type your message:")
+                        try:
+                            user_input = input("You: ").strip()
+                        except (EOFError, KeyboardInterrupt):
+                            break
                     # If speech recognition failed, offer text input
-                    if user_input is None:
+                    elif user_input is None:
                         print("💬 You can type your message instead:")
                         try:
                             user_input = input("You: ").strip()
