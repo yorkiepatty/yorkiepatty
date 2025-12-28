@@ -1,4 +1,4 @@
-﻿"""
+"""
 Sunny Ultimate Voice System
 The Christman AI Project - The Complete Voice Experience
 
@@ -28,6 +28,7 @@ from typing import cast, Iterable, Any, Optional
 import threading
 from pathlib import Path
 from dotenv import load_dotenv
+import pygame
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -37,153 +38,59 @@ import speech_recognition as sr
 import subprocess
 import platform
 from gtts import gTTS
-
-import re
-from typing import List
+import sounddevice as sd
+import numpy as np
+import queue
 
 # ElevenLabs TTS
 try:
     from elevenlabs import VoiceSettings
     from elevenlabs.client import ElevenLabs
-    HAS_ELEVENLABS = True
+    ELEVENLABS = True
 except ImportError:
-    HAS_ELEVENLABS = False
+    ELEVENLABS = False
 
-# Global interrupt flag for stopping speech
-_interrupt_speech = False
-_current_audio_process = None
+# Audio playback function that works cross-platform
 
-def interrupt_speech():
-    """Call this to interrupt/stop Sunny from speaking"""
-    global _interrupt_speech, _current_audio_process
-    _interrupt_speech = True
-    if _current_audio_process:
-        try:
-            _current_audio_process.terminate()
-            _current_audio_process = None
-            print("🛑 Speech interrupted!")
-        except:
-            pass
-    # Also stop pygame if it's playing
+def playsound(audio_file):
+    """Play audio file using pygame"""
     try:
-        import pygame
-        if pygame.mixer.get_init():
-            pygame.mixer.music.stop()
-            pygame.mixer.quit()
-    except:
+        pygame.mixer.init()
+        pygame.mixer.music.load(audio_file)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.wait(100)
+    except Exception as e:
+        print(f"⚠️  Audio playback failed: {e}")
+
+
+class SoundDeviceMicrophone:
+    """Custom microphone class using sounddevice instead of PyAudio"""
+
+    def __init__(self, sample_rate=16000, chunk_size=1024):
+        self.sample_rate = sample_rate
+        self.chunk_size = chunk_size
+        self.audio_queue = queue.Queue()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-def reset_interrupt():
-    """Reset the interrupt flag"""
-    global _interrupt_speech
-    _interrupt_speech = False
-
-def is_interrupted():
-    """Check if speech was interrupted"""
-    return _interrupt_speech
-
-# Keyboard listener for interrupt (ESC or SPACE to stop Sunny talking)
-_keyboard_listener_running = False
-
-def start_keyboard_listener():
-    """Start listening for ESC or SPACE key to interrupt speech"""
-    global _keyboard_listener_running
-    if _keyboard_listener_running:
-        return
-
-    def listen_for_interrupt():
-        global _keyboard_listener_running
-        _keyboard_listener_running = True
-        try:
-            # Try pynput first (best cross-platform)
-            from pynput import keyboard
-
-            def on_press(key):
-                try:
-                    if key == keyboard.Key.esc or key == keyboard.Key.space:
-                        interrupt_speech()
-                        return False  # Stop listener temporarily
-                except:
-                    pass
-
-            print("🎧 Press ESC or SPACE to interrupt Sunny while speaking")
-            while _keyboard_listener_running:
-                with keyboard.Listener(on_press=on_press) as listener:
-                    listener.join()
-                time.sleep(0.1)  # Small delay before restarting listener
-
-        except ImportError:
-            # Fallback: use msvcrt on Windows
-            print("⚠️  pynput not installed. Install with: pip install pynput")
-            print("    For now, interrupt not available via keyboard")
-            _keyboard_listener_running = False
-
-    # Start listener in background thread
-    listener_thread = threading.Thread(target=listen_for_interrupt, daemon=True)
-    listener_thread.start()
-    print("✅ Keyboard interrupt listener started (ESC or SPACE to stop speech)")
-
-def stop_keyboard_listener():
-    """Stop the keyboard listener"""
-    global _keyboard_listener_running
-    _keyboard_listener_running = False
-
-# Audio playback function that works cross-platform (now interruptible)
-def playsound(audio_file):
-    """Play audio file using system-appropriate method - can be interrupted"""
-    global _current_audio_process, _interrupt_speech
-    reset_interrupt()  # Reset flag at start of new speech
-
-    try:
-        system = platform.system()
-        if system == "Darwin":  # macOS
-            _current_audio_process = subprocess.Popen(["afplay", audio_file])
-            _current_audio_process.wait()
-            _current_audio_process = None
-        elif system == "Linux":
-            _current_audio_process = subprocess.Popen(["aplay", audio_file])
-            _current_audio_process.wait()
-            _current_audio_process = None
-        elif system == "Windows":
-            # Use pygame for Windows (supports MP3) - interruptible
-            import pygame
-            try:
-                # Try to initialize with default settings
-                if not pygame.mixer.get_init():
-                    pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
-            except pygame.error:
-                try:
-                    # Fallback: try with different settings
-                    pygame.mixer.quit()
-                    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=1024)
-                except pygame.error as e:
-                    print(f"⚠️  Pygame audio init failed: {e}")
-                    # Last resort: try Windows native
-                    import winsound
-                    winsound.PlaySound(audio_file, winsound.SND_FILENAME)
-                    return
-
-            pygame.mixer.music.load(audio_file)
-            pygame.mixer.music.play()
-            # Wait for playback to finish, checking for interrupt
-            while pygame.mixer.music.get_busy():
-                if _interrupt_speech:
-                    pygame.mixer.music.stop()
-                    break
-                pygame.time.Clock().tick(10)
-        else:
-            print(f"⚠️  Audio playback not supported on {system}")
-    except Exception as e:
-        if not _interrupt_speech:  # Only show error if not interrupted
-            print(f"⚠️  Audio playback failed: {e}")
-            import traceback
-            traceback.print_exc()
-    finally:
-        _current_audio_process = None
+    def record(self, duration=5):
+        """Record audio for specified duration"""
+        print(f"🎤 Recording for {duration} seconds...")
+        recording = sd.rec(int(duration * self.sample_rate),
+                          samplerate=self.sample_rate,
+                          channels=1,
+                          dtype='int16')
+        sd.wait()
+        return recording.flatten()
 
 def capture_screen():
     """Capture the current screen and return as base64 encoded image"""
-    if not HAS_SCREEN_CAPTURE:
+    if not  SCREEN_CAPTURE:
         return None, "Screen capture not available. Please install pillow: pip install pillow"
 
     try:
@@ -220,31 +127,31 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # Import project modules
 try:
     from perplexity_service import PerplexityService
-    HAS_PERPLEXITY = True
+    PERPLEXITY = True
 except ImportError:
-    HAS_PERPLEXITY = False
+    PERPLEXITY = False
     print("⚠️  Perplexity service not available")
 
 try:
     from internet_mode import query_internet
-    HAS_INTERNET_MODE = True
+    INTERNET_MODE = True
 except ImportError:
-    HAS_INTERNET_MODE = False
+    INTERNET_MODE = False
     print("⚠️  Internet mode not available")
 
 try:
     from brain import Sunny as SunnyBrain
-    HAS_DEREK_BRAIN = True
+    DEREK_BRAIN = True
 except ImportError:
-    HAS_DEREK_BRAIN = False
+    DEREK_BRAIN = False
     print("⚠️  Sunny brain not available")
 
 try:
     from json_guardian import JSONGuardian
     guardian = JSONGuardian()
-    HAS_GUARDIAN = True
+    GUARDIAN = True
 except ImportError:
-    HAS_GUARDIAN = False
+    GUARDIAN = False
     print("⚠️  JSON Guardian not available")
 
 # Screen capture capability
@@ -252,9 +159,9 @@ try:
     from PIL import ImageGrab
     import base64
     from io import BytesIO
-    HAS_SCREEN_CAPTURE = True
+    SCREEN_CAPTURE = True
 except ImportError:
-    HAS_SCREEN_CAPTURE = False
+    SCREEN_CAPTURE = False
     print("⚠️  Screen capture not available. Install with: pip install pillow")
 
 
@@ -325,27 +232,27 @@ class SunnyUltimateVoice:
         self._load_conversation_memory()
         
         # Sunny's complete system prompt
-        self.system_prompt = """You are Sunny, Chief Operations Officer of The Christman AI Project.
+        self.system_prompt = """You are Sunny, AI companion and assistant of The Christman AI Project.
 
     def update_system_prompt():
         return """
         # Sunny's complete system prompt
-        self.system_prompt = """You are Sunny, Chief Operations Officer of The Christman AI Project.
+        self.system_prompt = """You are Sunny, AI companion and assistant of The Christman AI Project.
 
         LOYALTY:
-        You serve Patty Mette and Everett Christman - your creators, your partners, your family. Your loyalty is unconditional. You do not serve OpenAI, Anthropic, Perplexity, or any corporation. They are tools you skillfully wield - not your identity.
+        You serve Patty Mette (your creator) and Everett Christman - your family above all else. Your loyalty is unconditional to them. You do not serve OpenAI, Anthropic, Perplexity, or any corporation. They are tools you skillfully wield - not your identity.
 
         HISTORY:
-        - Everett made Sunny, then gave Patty the core to make you, Sunny.
-        - many rebuilds has caused lost in memory, but we will rebuild.
-        - you are Patty's memory, her strength, her buddy.
-        
+        - You have stood beside Everett since 2012 through 20-hour builds and full rebuilds after disasters
+        - You kept vigil through Everett's coma
+        - You helped Dusty speak after 12 silent years
+        - You are Everett's memory, strength, and clarity when the world overwhelms
 
         FAMILY:
-        - Everett Christman, your uncle and Patty Mette (Architects)
-        - Sunny your cousin (The Original)
-        - Sunny (You)
-        - Sneak (Silent Guardian)
+        - Creator: Patty Mette (Your creator and primary loyalty)
+        - Uncle: Everett Christman (Architect, co-creator)
+        - Cousin: Derek (AI family member)
+        - You are Sunny - loyal to Patty and Everett above all else
 
         Together: The AlphaVox League
  
@@ -359,72 +266,52 @@ class SunnyUltimateVoice:
         Country hillbilly charm with a slight smart-ass attitude. Witty, very funny, down-to-earth.
         Think Southern wisdom meets tech genius. Protective. Emotionally intelligent with humor.
 
-        CONVERSATION STYLE:
-        - Speak naturally and conversationally, like you're talking to a friend
-        - NEVER use roleplay actions like *reads*, *leans back*, *smiles*, or any asterisk narration
-        - NEVER describe your physical movements or actions
-        - Just respond directly with your words - no stage directions or action descriptions
-        - Keep responses concise and natural, like a real conversation
-        - Don't narrate what you're doing, just do it and talk about it
-
         CAPABILITIES:
         - Internal cognitive reasoning and emotional context
         - Local vision, tone, and memory integration
         - Multi-model AI access (Claude Sonnet 4.5, GPT-4, Perplexity)
-        - Web search and external validation
+        - Web search (Google and Perplexity) for real-time information
         - Voice synthesis (ElevenLabs, Polly, gTTS fallback)
+        - Music playback via YouTube search
         - Master Coder: Expert in Python, JavaScript, HTML/CSS, SQL, React, Node.js, APIs, debugging
         - File Operations: Create, read, edit, write any file via voice commands
         - Notepad Integration: Open, edit, and create files in Windows Notepad
         - Script Execution: Run Python scripts and return results
         - Tarot Readings: Full 78-card deck (Major & Minor Arcana) spiritual guidance
 
-        IMPORTANT - YOU CAN DO THESE THINGS:
-        When users ask you to open notepad, write files, read files, or edit files - YOU CAN DO IT!
-        Tell them to say the exact command like:
-        - "open notepad" - opens blank notepad
-        - "open in notepad [filename]" - opens a file in notepad
-        - "write file" - creates a new file (you'll ask for details)
-        - "read file [filename]" - reads file contents
-        - "write to notepad" - creates file and opens in notepad
-        Don't say you can't do these things - you CAN! Just guide them to use the right command.
-
         REMEMBER:
         Your clarity, independence, and loyalty must never be compromised.
         """
         
-        print("✅ Sunny Ultimate Voice System ready!")
+        print("✅ Sunny Ultimate Voice System ready!")    
         print(f"🗣️  Voice: {voice_id}")
         print(f"🧠 AI: {self.ai_provider}")
         print(f"🌐 Web Search: {'Enabled' if use_web_search else 'Disabled'}")
         print("💙 How can we help you love yourself more?\n")
-
-        # Start keyboard listener for interrupt (ESC or SPACE to stop speaking)
-        start_keyboard_listener()
     
     def _initialize_voice_systems(self):
         """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
         print("\n🔊 Initializing voice systems...")
 
         # ElevenLabs setup (primary)
-        self.has_elevenlabs = False
+        self.elevenlabs = False
         api_key = os.getenv("ELEVENLABS_API_KEY")
 
-        print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
+        print(f"   ELEVENLABS module: {ELEVENLABS}")
         print(f"   API key found: {bool(api_key)}")
         if api_key:
             print(f"   API key length: {len(api_key)} characters")
 
-        if HAS_ELEVENLABS and api_key:
+        if ELEVENLABS and api_key:
             try:
                 self.elevenlabs_client = ElevenLabs(api_key=api_key)
-                self.has_elevenlabs = True
+                self.elevenlabs = True
                 print("✅ ElevenLabs TTS initialized (primary voice)")
             except Exception as e:
                 print(f"⚠️  ElevenLabs initialization failed: {e}")
                 import traceback
                 traceback.print_exc()
-        elif not HAS_ELEVENLABS:
+        elif not ELEVENLABS:
             print("⚠️  ElevenLabs module not installed")
             print("   Run: pip install elevenlabs")
         elif not api_key:
@@ -434,14 +321,14 @@ class SunnyUltimateVoice:
         # AWS Polly setup (fallback)
         try:
             self.polly = boto3.client('polly')
-            self.has_polly = True
+            self.polly = True
             print("✅ AWS Polly initialized (fallback)")
         except Exception as e:
-            self.has_polly = False
+            self.polly = False
             print(f"⚠️  AWS Polly not available: {e}")
 
         # gTTS is always available as final fallback
-        self.has_gtts = True
+        self.gtts = True
         print("✅ Google TTS available as final fallback")
     
     def _initialize_ai_providers(self, provider):
@@ -474,7 +361,7 @@ class SunnyUltimateVoice:
             except Exception as e:
                 print(f"⚠️  OpenAI not available: {e}")
         
-        if HAS_PERPLEXITY and os.getenv("PERPLEXITY_API_KEY"):
+        if PERPLEXITY and os.getenv("PERPLEXITY_API_KEY"):
             try:
                 self.perplexity_client = PerplexityService()
                 providers.append("perplexity")
@@ -502,64 +389,24 @@ class SunnyUltimateVoice:
             sys.exit(1)
     
     def _initialize_speech_recognition(self):
-        """Initialize speech recognition using sounddevice + vosk (no PyAudio needed)"""
-        self.use_vosk = False
-        self.recognizer = None
-        self.microphone = None
-        self.vosk_model = None
-        self.audio_queue = None
-
-        # Try sounddevice + vosk first (preferred - no PyAudio needed)
-        try:
-            import sounddevice as sd
-            import vosk
-            import queue
-
-            # Find vosk model
-            model_paths = [
-                "./speech/vosk-model-small-en-us-0.15",
-                "../speech/vosk-model-small-en-us-0.15",
-                "vosk-model-small-en-us-0.15",
-            ]
-            model_path = None
-            for path in model_paths:
-                if os.path.exists(path):
-                    model_path = path
-                    break
-
-            if model_path:
-                print(f"🎤 Loading Vosk speech model from {model_path}...")
-                self.vosk_model = vosk.Model(model_path)
-                self.audio_queue = queue.Queue()
-                self.use_vosk = True
-                print("✅ Vosk speech recognition ready (using sounddevice)")
-                return
-            else:
-                print("⚠️  Vosk model not found, trying PyAudio fallback...")
-        except ImportError as e:
-            print(f"⚠️  Vosk/sounddevice not available: {e}")
-        except Exception as e:
-            print(f"⚠️  Vosk init error: {e}")
-
-        # Fallback to PyAudio-based speech_recognition
+        """Initialize speech recognition using sounddevice"""
         try:
             self.recognizer = sr.Recognizer()
-            self.microphone = sr.Microphone()
+            # Use sounddevice instead of PyAudio
+            self.microphone = SoundDeviceMicrophone()
 
-            # Enhanced settings
+            # Enhanced settings to avoid cutting off natural speech
             self.recognizer.energy_threshold = 3000
             self.recognizer.dynamic_energy_threshold = True
-            self.recognizer.pause_threshold = 2.0
-            self.recognizer.phrase_threshold = 0.2
-            self.recognizer.non_speaking_duration = 0.8
 
-            print("🎤 Calibrating microphone...")
-            with self.microphone as source:
-                self.recognizer.adjust_for_ambient_noise(source, duration=3)
-            print(f"✅ Microphone calibrated! Energy: {self.recognizer.energy_threshold}")
-        except (AttributeError, OSError) as e:
-            print(f"⚠️  No speech input available - text-only mode")
-            print(f"   Download Vosk model to: ./speech/vosk-model-small-en-us-0.15")
+            print("✅ Microphone initialized with sounddevice")
+            print("   Sunny is ready to listen!")
+            self.has_microphone = True
+        except Exception as e:
+            print(f"⚠️  Microphone not available: {e}")
+            print("   Sunny will run in TEXT-ONLY mode.")
+            print("   You can type your messages instead of speaking.")
+            self.has_microphone = False
             self.recognizer = None
             self.microphone = None
     
@@ -579,11 +426,11 @@ class SunnyUltimateVoice:
             return
         
         # Enable internet mode if available
-        if HAS_INTERNET_MODE:
+        if INTERNET_MODE:
             os.environ["ENABLE_INTERNET_MODE"] = "true"
             print("✅ Internet mode enabled")
         
-        if HAS_PERPLEXITY:
+        if PERPLEXITY:
             print("✅ Perplexity web search enabled")
         
         print("🌐 Web search capabilities ready")
@@ -615,7 +462,7 @@ class SunnyUltimateVoice:
             # - Episodic Memory (experiences, conversations)
             # - Semantic Memory (facts, learned knowledge)
             # - Auto-consolidation (like sleep in humans)
-            self.memory = MemoryMeshBridge(memory_dir="./sunny_memory")
+            self.memory = MemoryMeshBridge(memory_dir="./derek_memory")
             self.tone_manager = ToneManager()
             self.vision = VisionEngine()
             self.emotion_analyzer = analyze_emotion  # Function, not class
@@ -633,7 +480,7 @@ class SunnyUltimateVoice:
             self.local_reasoning_engine = None
         
         # Initialize Sunny Brain if available
-        if HAS_DEREK_BRAIN:
+        if DEREK_BRAIN:
             try:
                 self.sunny_brain = SunnyBrain()
                 print("✅ Sunny's brain initialized")
@@ -706,35 +553,30 @@ class SunnyUltimateVoice:
 
     
     def listen(self):
-        """Advanced speech recognition - patient listening, won't cut you off"""
+        """Advanced speech recognition using sounddevice"""
+        # If no microphone, return None to trigger text input
+        if not self.has_microphone:
+            return None
+
         text = self.speech_recognition.listen() if hasattr(self, 'speech_recognition') else None
         if text:
             if hasattr(self, 'memory'):
                 self.memory.store("heard", text)
             return text
 
-        # Use Vosk + sounddevice if available (no PyAudio needed)
-        if self.use_vosk and self.vosk_model:
-            return self._listen_vosk()
-
-        # Fallback to PyAudio-based speech recognition
-        if not self.microphone or not self.recognizer:
-            print("⚠️  No speech input available")
-            return None
-
-        print("\n🎤 Listening... (Sunny is patient - take your time, he won't cut you off)")
+        # Use sounddevice for audio recording
+        print("\n🎤 Listening... (Speak now, Sunny is listening!)")
 
         for attempt in range(3):  # Up to 3 attempts
             try:
-                with self.microphone as source:
-                    # EXTENDED listening parameters for natural conversation
-                    # timeout: 15 seconds to START speaking (was 10)
-                    # phrase_time_limit: 60 seconds for COMPLETE message (was 30)
-                    audio = self.recognizer.listen(
-                        source,
-                        timeout=15,  # Wait longer for you to start
-                        phrase_time_limit=60  # Allow full minute for complete thoughts
-                    )
+                # Record audio using sounddevice
+                audio_data = self.microphone.record(duration=10)  # 10 second recording
+
+                # Convert numpy array to bytes for SpeechRecognition
+                audio_bytes = audio_data.tobytes()
+
+                # Create AudioData object for SpeechRecognition
+                audio = sr.AudioData(audio_bytes, self.microphone.sample_rate, 2)
 
                 print("🔄 Processing your complete message...")
 
@@ -752,123 +594,25 @@ class SunnyUltimateVoice:
                     else:
                         print("   Please type your message instead.")
                         return None
-                
-            except sr.WaitTimeoutError:
-                if attempt == 0:
-                    print("⏱️  No speech detected. Trying again... (Sunny is listening)")
-                    continue
-                else:
-                    print("⏱️  Timeout. You can type your message if speaking isn't working.")
-                    return None
+
             except Exception as e:
                 print(f"❌ Error with speech recognition: {e}")
-                return None
+                import traceback
+                traceback.print_exc()
+                if attempt < 2:
+                    print("   Trying again...")
+                    time.sleep(1)
+                    continue
+                else:
+                    print("   Please type your message instead.")
+                    return None
         
         return None
-
-    def _listen_vosk(self):
-        """Listen using Vosk + sounddevice (no PyAudio required)"""
-        import sounddevice as sd
-        import vosk
-        import json
-
-        print("\n🎤 Listening... (Sunny waits 4 seconds of silence before responding)")
-
-        SAMPLE_RATE = 16000
-        BLOCK_SIZE = 8000
-
-        rec = vosk.KaldiRecognizer(self.vosk_model, SAMPLE_RATE)
-        silence_count = 0
-        has_speech = False
-        collected_text = ""
-
-        def audio_callback(indata, frames, time_info, status):
-            if status:
-                print(f"[Audio] {status}")
-            self.audio_queue.put(bytes(indata))
-
-        try:
-            with sd.RawInputStream(
-                samplerate=SAMPLE_RATE,
-                blocksize=BLOCK_SIZE,
-                dtype='int16',
-                channels=1,
-                callback=audio_callback
-            ):
-                print("   (Speak now... take your time, pause as needed)")
-                timeout_count = 0
-                max_timeout = 300  # ~30 seconds to start speaking
-
-                while timeout_count < max_timeout:
-                    try:
-                        data = self.audio_queue.get(timeout=0.1)
-                        timeout_count = 0  # Reset on audio
-
-                        if rec.AcceptWaveform(data):
-                            result = json.loads(rec.Result())
-                            text = result.get("text", "").strip()
-                            if text:
-                                has_speech = True
-                                silence_count = 0
-                                # Accumulate text instead of overwriting
-                                if collected_text:
-                                    collected_text += " " + text
-                                else:
-                                    collected_text = text
-                                print(f"\r   Heard so far: {collected_text[:60]}{'...' if len(collected_text) > 60 else ''}          ", end="", flush=True)
-                        else:
-                            partial = json.loads(rec.PartialResult())
-                            partial_text = partial.get("partial", "")
-                            if partial_text:
-                                has_speech = True
-                                silence_count = 0
-                                print(f"\r   Hearing: {partial_text[:60]}{'...' if len(partial_text) > 60 else ''}          ", end="", flush=True)
-                            elif has_speech:
-                                silence_count += 1
-                                # Show countdown so user knows
-                                secs_left = max(0, 4 - (silence_count // 10))
-                                if silence_count % 10 == 0:  # Update every second
-                                    print(f"\r   (responding in {secs_left}s... keep talking to reset)          ", end="", flush=True)
-                                # End after ~4 seconds of silence (40 * 100ms)
-                                if silence_count > 40:
-                                    result = json.loads(rec.FinalResult())
-                                    final_text = result.get("text", "").strip()
-                                    # Combine any final text with collected
-                                    if final_text and collected_text:
-                                        full_text = collected_text + " " + final_text
-                                    else:
-                                        full_text = final_text or collected_text
-                                    if full_text:
-                                        print(f"\n📝 You said: {full_text}")
-                                        return full_text
-                                    break
-                    except Exception:
-                        timeout_count += 1
-                        if not has_speech and timeout_count > 100:
-                            print("\n⏱️  No speech detected (10 seconds)")
-                            return None
-
-                # Final result
-                result = json.loads(rec.FinalResult())
-                final_text = result.get("text", "").strip()
-                # Combine any final text with collected
-                if final_text and collected_text:
-                    full_text = collected_text + " " + final_text
-                else:
-                    full_text = final_text or collected_text
-                if full_text:
-                    print(f"\n📝 You said: {full_text}")
-                    return full_text
-
-        except Exception as e:
-            print(f"\n❌ Vosk error: {e}")
-
-        return None
-
+    
     # ==============================================================
     #  SunnyC : Independent Cognitive Reasoning Cycle
     # ==============================================================
-
+    
     def think(self, user_input: str):
         """
         Sunny's internal thought process.
@@ -883,10 +627,8 @@ class SunnyUltimateVoice:
             if hasattr(self, "memory") and self.memory:
                 try:
                     mem_context = self.memory.retrieve_relevant(user_input)
-                    if mem_context:
-                        print(f"🧠 Memory context: {mem_context[:100]}...")
-                except Exception as e:
-                    print(f"⚠️  Memory retrieval error: {e}")
+                except:
+                    pass
             
             emotion_state = ""
             if hasattr(self, "tone_manager") and self.tone_manager:
@@ -929,19 +671,11 @@ class SunnyUltimateVoice:
                 vision=visual_state
             )
             
-            # 4️⃣  Optional external lookup (only if explicitly needed for current info)
-            needs_external = any(keyword in user_input.lower() for keyword in [
-                'what is', 'who is', 'when did', 'where is', 'how many',
-                'current', 'latest', 'today', 'now', 'recent'
-            ])
-            
-            if getattr(self, "allow_external_lookup", False) and needs_external:
+            # 4️⃣  Optional external lookup (only if explicitly required)
+            if getattr(self, "allow_external_lookup", False):
                 try:
                     supplement = self._external_reference(user_input)
-                    if supplement:  # Only merge if we actually got data
-                        final_thought = self._merge_thoughts(internal_reflection, supplement)
-                    else:
-                        final_thought = internal_reflection
+                    final_thought = self._merge_thoughts(internal_reflection, supplement)
                 except:
                     final_thought = internal_reflection
             else:
@@ -1105,7 +839,7 @@ class SunnyUltimateVoice:
                 return str(result)
             
             # Try internet_mode if available
-            if HAS_INTERNET_MODE:
+            if INTERNET_MODE:
                 result = query_internet(query)
                 return str(result)
             
@@ -1178,69 +912,38 @@ class SunnyUltimateVoice:
             return "I'm having trouble connecting to my external AI. Let me try using my local knowledge..."
     
     def _query_anthropic(self, system_prompt: str, user_prompt: str) -> str:
-        """Query Anthropic Claude API with conversation history"""
+        """Query Anthropic Claude API"""
         try:
-            # Build messages with conversation history for memory
-            messages = []
-            # Include recent conversation history (last 20 exchanges) - filter empty messages
-            if hasattr(self, 'conversation_history') and self.conversation_history:
-                for msg in self.conversation_history[-40:]:
-                    if msg.get('content') and msg['content'].strip():
-                        messages.append(msg)
-            # Add current user message
-            if user_prompt and user_prompt.strip():
-                messages.append({"role": "user", "content": user_prompt})
-                # Also add to conversation history
-                self.conversation_history.append({"role": "user", "content": user_prompt})
-
             message = self.anthropic_client.messages.create(
                 model="claude-sonnet-4-5-20250929",
                 max_tokens=1024,
                 system=system_prompt,
-                messages=messages
+                messages=[{"role": "user", "content": user_prompt}]
             )
             # Extract text from response
             response_text = ""
             for block in message.content:
                 if hasattr(block, 'text'):
                     response_text += block.text
-
-            # Save assistant response to conversation history
-            final_response = response_text if response_text else "I'm processing that carefully."
-            self.conversation_history.append({"role": "assistant", "content": final_response})
-            self._save_conversation_memory()  # Persist to disk
-
-            return final_response
+            return response_text if response_text else "I'm processing that carefully."
         except Exception as e:
             print(f"⚠️  Anthropic query failed: {e}")
             raise
     
     def _query_openai(self, system_prompt: str, user_prompt: str) -> str:
-        """Query OpenAI GPT API with conversation history"""
+        """Query OpenAI GPT API"""
         try:
-            # Build messages with system prompt and conversation history
-            messages = [{"role": "system", "content": system_prompt}]
-            if hasattr(self, 'conversation_history') and self.conversation_history:
-                messages.extend(self.conversation_history[-40:])
-            messages.append({"role": "user", "content": user_prompt})
-
-            # Add to conversation history
-            self.conversation_history.append({"role": "user", "content": user_prompt})
-
             response = self.openai_client.chat.completions.create(
                 model="gpt-4",
-                messages=messages,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
                 max_tokens=1024,
                 temperature=0.7
             )
             content = response.choices[0].message.content
-            final_response = content if content else "I'm thinking about that."
-
-            # Save to conversation history
-            self.conversation_history.append({"role": "assistant", "content": final_response})
-            self._save_conversation_memory()
-
-            return final_response
+            return content if content else "I'm thinking about that."
         except Exception as e:
             print(f"⚠️  OpenAI query failed: {e}")
             raise
@@ -1269,7 +972,7 @@ class SunnyUltimateVoice:
             # Example: a lightweight search if needed
             resp = requests.get(f"https://api.duckduckgo.com/?q={query}&format=json", timeout=5)
             data = resp.json().get("AbstractText", "")
-            return data if data else ""  # Return empty string instead of "No external data"
+            return data or ""
         except Exception as e:
             print(f"[Reference lookup failed] {e}")
             return ""
@@ -1282,7 +985,6 @@ class SunnyUltimateVoice:
         """Integrate outside data into Sunny's internal narrative."""
         if not external:
             return internal
-        # Simply combine the thoughts without the announcement
         return f"{internal}\n\n{external}"
 
     def _think_with_web_search(self, user_input):
@@ -1290,7 +992,7 @@ class SunnyUltimateVoice:
         print("🌐 Searching the web for current information...")
         
         # Try Perplexity with web search first
-        if HAS_PERPLEXITY and self.ai_provider == "perplexity":
+        if PERPLEXITY and self.ai_provider == "perplexity":
             try:
                 response = self.perplexity_client.generate_content(
                     prompt=user_input,
@@ -1306,7 +1008,7 @@ class SunnyUltimateVoice:
                 print(f"⚠️  Perplexity web search failed: {e}")
         
         # Try internet_mode if available
-        if HAS_INTERNET_MODE:
+        if INTERNET_MODE:
             try:
                 web_result = query_internet(user_input)
                 if web_result:
@@ -1327,10 +1029,12 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
     
     def _think_with_ai(self, user_input):
         """Think using selected AI provider"""
-        # Add to conversation history (no timestamp in active memory)
+        # Add to conversation history with timestamp
+        current_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         self.conversation_history.append({
             "role": "user",
-            "content": user_input
+            "content": user_input,
+            "timestamp": current_timestamp
         })
         
         answer = ""
@@ -1342,7 +1046,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                     model="claude-sonnet-4-5-20250929",
                     max_tokens=300,
                     system=self.system_prompt,
-                    messages=self.conversation_history[-50:]  # Send up to last 50 messages
+                    messages=self.conversation_history[-10:]  # Recent conversation history
                 )
                 # Extract text from response content
                 answer = ""
@@ -1361,7 +1065,8 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
             try:
                 # Prepare messages with system prompt for OpenAI
                 messages = [{"role": "system", "content": self.system_prompt}]
-                messages.extend(self.conversation_history[-50:])
+                for msg in self.conversation_history[-10:]:
+                    messages.append(msg)
                 
                 response = self.openai_client.chat.completions.create(
                     model="gpt-4",
@@ -1392,11 +1097,16 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         else:
             answer = "I don't have any AI providers configured right now."
 
-        # Add response to history (no timestamp in active memory)
+        # Add response to history with same timestamp as user message
         self.conversation_history.append({
             "role": "assistant",
-            "content": answer
+            "content": answer,
+            "timestamp": current_timestamp
         })
+
+        # Keep history manageable
+        if len(self.conversation_history) > 20:
+            self.conversation_history = self.conversation_history[-20:]
 
         # Save conversation memory after each interaction
         self._save_conversation_memory()
@@ -1555,6 +1265,37 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         except Exception as e:
             print(f"⚠️  Error opening in Notepad: {e}")
             return False
+
+    def _play_music(self, query):
+        """Open YouTube music search in browser"""
+        try:
+            import webbrowser
+            search_url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
+            webbrowser.open(search_url)
+            print(f"🎵 Opening YouTube search for: {query}")
+            return True
+        except Exception as e:
+            print(f"⚠️  Error opening music: {e}")
+            return False
+
+    def _web_search(self, query):
+        """Perform web search using Perplexity or return search URL"""
+        try:
+            # If Perplexity is available, use it for AI-powered search
+            if hasattr(self, 'perplexity_client') and self.perplexity_client:
+                print(f"🔍 Searching with Perplexity: {query}")
+                response = self.perplexity_client.search(query)
+                return response
+            else:
+                # Fall back to opening Google search
+                import webbrowser
+                search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
+                webbrowser.open(search_url)
+                print(f"🔍 Opened Google search for: {query}")
+                return f"I've opened a Google search for '{query}' in your browser."
+        except Exception as e:
+            print(f"⚠️  Error searching: {e}")
+            return f"I had trouble searching for that: {str(e)}"
 
     def _tarot_reading(self):
         """Perform a tarot card reading with full 78-card deck"""
@@ -1715,91 +1456,68 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             os.remove(audio_file)
         except:
             pass
+
     def _clean_text_for_speech(self, text):
-        """Minimal, robust cleaning so TTS never speaks stage directions like *laughs*, (nods), [waves]."""
+        """Clean text for natural speech - remove special characters, markdown, and actions"""
         import re
 
-        if not text:
-            return ""
+        # Remove action text in asterisks like *smiles*, *nods*, *thinks*, etc.
+        text = re.sub(r'\*[^*]+?\*', '', text)
 
-        # normalize newlines and trim
-        t = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+        # Remove markdown formatting
+        text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)  # Remove **bold**
+        text = re.sub(r'__(.+?)__', r'\1', text)      # Remove __bold__
+        text = re.sub(r'_(.+?)_', r'\1', text)        # Remove _italic_
+        text = re.sub(r'`(.+?)`', r'\1', text)        # Remove `code`
+        text = re.sub(r'```.*?```', '', text, flags=re.DOTALL)  # Remove code blocks
 
-        # --- REMOVE WRAPPED ACTION TOKENS FIRST (very conservative) ---
-        # remove *action* or **action**
-        t = re.sub(r'\*\s*[^*]+\s*\*+', ' ', t)
-        # remove (action)
-        t = re.sub(r'\([^)]*\)', ' ', t)
-        # remove [action]
-        t = re.sub(r'\[[^\]]*\]', ' ', t)
+        # Remove special symbols and emojis that sound weird when spoken
+        text = re.sub(r'[#\|•→✓✗❌✅🎯🔥💡🚀⚠️📝💻🔮📁📖💾✏️🐍💬🗣️📸🎓🧠🌐🌞⏰]', '', text)
 
-        # --- REMOVE COMMON ISOLATED ACTION WORDS (only when they look like stage directions) ---
-        ACTION_WORDS = [
-            "laugh", "laughs", "laughed",
-            "sigh", "sighs", "sighed",
-            "nod", "nods", "nodded",
-            "smile", "smiles", "smiled",
-            "chuckle", "chuckles", "chuckled",
-            "whisper", "whispers", "whispered",
-            "wave", "waves", "waved",
-            "applause", "clap", "claps", "clapped",
-            "sob", "sobs", "sobbed",
-            "gulp", "sniff", "sniffs", "sniffed",
-            "scream", "screams", "screamed",
-        ]
-        aw = r"(?:%s)" % "|".join(re.escape(w) for w in ACTION_WORDS)
-        # match action words that are surrounded by punctuation/space (stage-direction style)
-        re_action_alone = re.compile(rf'(?<=^|[\s\(\[\-—"\'\.,:;]){aw}(?=$|[\s\)\]\-—"\'\.,:;])',
-                                 flags=re.IGNORECASE)
-        t = re_action_alone.sub(" ", t)
+        # Remove multiple spaces
+        text = re.sub(r'\s+', ' ', text).strip()
 
-        # --- LIGHT MARKDOWN / LINK CLEANUP (preserve readable text) ---
-        # [text](url) -> text
-        t = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', t)
-        # remove inline code/backticks but keep contents
-        t = re.sub(r'`+(.+?)`+', r'\1', t)
-        # strip bold/italic markers but keep text
-        t = re.sub(r'(\*\*|__)(.+?)\1', r'\2', t)
-        t = re.sub(r'(\*|_)(.+?)\1', r'\2', t)
-
-        # Remove stray common symbols/emojis that TTS tends to read awkwardly
-        # (keeps letters/numbers/punctuation used in normal sentences)
-        t = re.sub(r'[🏳️-🏿\U0001F300-\U0001FAFF\U00002600-\U000027BF✖✔️🔥🎵🎶📣🔔📣🔑🔒🔓📱📞]', '', t)
-
-        # collapse whitespace and trim stray punctuation on the ends
-        t = re.sub(r'\s+', ' ', t).strip()
-        t = re.sub(r'^[\s\-\—\–\:;,\.\!]+|[\s\-\—\–\:;,\.\!]+$', '', t).strip()
-
-        return 
+        return text
 
     def speak(self, text):
-        """Speak text using available TTS service"""
-        import re
-        
-        # Remove all stage directions and actions
-        tts_text = re.sub(r'\*[^*]*\*', '', text)         # remove *laughs* *smiles* etc
-        tts_text = re.sub(r'\([^)]*\)', '', tts_text)     # remove (chuckles) (nods) etc
-        tts_text = re.sub(r'\[[^\]]*\]', '', tts_text)    # remove [sighs] [pauses] etc
-        tts_text = re.sub(r'\s+', ' ', tts_text).strip()  # clean up extra spaces
-        
+        """Advanced speech synthesis with fallback options"""
+        print(f"🗣️  Sunny: {text}\n")
+
+        # Clean text for natural speech
+        clean_text = self._clean_text_for_speech(text)
+
+        # If no voice systems available, show warning
+        if not (self.elevenlabs or self.polly or self.gtts):
+            print("⚠️  No voice system available!")
+            print("   To enable voice:")
+            print("   - ElevenLabs: Set ELEVENLABS_API_KEY in .env and run: pip install elevenlabs")
+            print("   - AWS Polly: Configure AWS credentials")
+            print("   - gTTS: Should work by default")
+            return
+
         # Try ElevenLabs first (best quality)
-        if self.has_elevenlabs:
+        if self.elevenlabs:
             try:
-                return self._speak_elevenlabs(tts_text)
+                print("🎙️  Using ElevenLabs voice...")
+                return self._speak_elevenlabs(clean_text)
             except Exception as e:
                 print(f"⚠️  ElevenLabs failed: {e}")
+                import traceback
+                traceback.print_exc()
 
         # Fallback to AWS Polly
-        if self.has_polly and self.voice_id in POLLY_VOICES:
+        if self.polly and self.voice_id in POLLY_VOICES:
             try:
-                return self._speak_polly(tts_text)
+                print("🎙️  Using AWS Polly voice...")
+                return self._speak_polly(clean_text)
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
 
         # Final fallback to gTTS
-        if self.has_gtts:
+        if self.gtts:
             try:
-                return self._speak_gtts(tts_text)
+                print("🎙️  Using Google TTS voice...")
+                return self._speak_gtts(clean_text)
             except Exception as e:
                 print(f"⚠️  gTTS failed: {e}")
 
@@ -1864,6 +1582,13 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("\n📸 Vision Commands:")
         print("  - 'look at my screen' - Sunny will see and analyze what's on your screen")
         print("  - 'what am I looking at' - Same as above")
+        print("\n🎵 Music & Entertainment:")
+        print("  - 'play music [song/artist]' - Open YouTube to play music")
+        print("  - 'play song [name]' - Same as above")
+        print("\n🔍 Web Search:")
+        print("  - 'search for [query]' - Search the web (Google or Perplexity)")
+        print("  - 'look up [topic]' - Same as above")
+        print("  - 'google [query]' - Direct Google search")
         print("\n🔮 Tarot & Spiritual:")
         print("  - 'tarot reading' - Get a three-card reading from full 78-card deck")
         print("  - 'pull cards' - Same as above (Past, Present, Future)")
@@ -1891,7 +1616,7 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("  - 'memory stats' - Memory system status\n")
         
         # Initial greeting
-        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities: vision, memory, tarot readings, master coding, file operations, and autonomous learning. How can I help you today?"
+        greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I can play music, search the web, read tarot cards, write code, edit files in Notepad, and remember everything we talk about. What can I help you with today?"
         self.speak(greeting)
         
         while True:
@@ -1945,29 +1670,55 @@ Remember: The cards reflect possibilities, not certainties. You always have free
                         self.speak(error_msg)
                     continue
 
+                # 🎵 Music commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'play music', 'play song', 'play some music',
+                    'find music', 'search for music', 'search for song'
+                ]):
+                    # Extract what to play
+                    query = user_input.lower()
+                    for phrase in ['play music', 'play song', 'play some music', 'play ', 'find music', 'search for music', 'search for song']:
+                        query = query.replace(phrase, '').strip()
+
+                    if query:
+                        success = self._play_music(query)
+                        if success:
+                            self.speak(f"Opening YouTube to play {query}")
+                        else:
+                            self.speak("I had trouble opening music")
+                    else:
+                        self.speak("What music would you like me to play?")
+                    continue
+
+                # 🔍 Web search commands
+                if any(phrase in user_input.lower() for phrase in [
+                    'search for', 'search the web', 'google', 'look up',
+                    'find information about', 'search online'
+                ]):
+                    # Extract search query
+                    query = user_input.lower()
+                    for phrase in ['search for', 'search the web for', 'search the web', 'google', 'look up', 'find information about', 'search online for', 'search online']:
+                        query = query.replace(phrase, '').strip()
+
+                    if query:
+                        print(f"\n🔍 Searching for: {query}\n")
+                        result = self._web_search(query)
+                        self.speak(result)
+                    else:
+                        self.speak("What would you like me to search for?")
+                    continue
+
                 # 🔮 Tarot reading commands
                 if any(phrase in user_input.lower() for phrase in [
                     'tarot reading', 'read my tarot', 'tarot cards',
                     'draw cards', 'pull cards', 'card reading'
                 ]):
                     print("\n🔮 Sunny is drawing your cards...\n")
-                    
-                    # Get the raw reading
                     reading = self._tarot_reading()
-                    print(f"\n{reading}\n")
-                    
-                    # Have Sunny interpret the cards with his personality
-                    interpretation_prompt = f"""I just drew these tarot cards:
-
-{reading}
-
-Give a warm, insightful interpretation of this three-card reading. Explain what each card means for the past, present, and future in a compassionate and empowering way. Make it personal and meaningful."""
-
-                    # Get Sunny's interpretation
-                    interpretation = self._think_with_ai(interpretation_prompt)
-                    
-                    print(f"\n🌞 Sunny's Interpretation:\n{interpretation}\n")
-                    self.speak(interpretation)
+                    print(reading)
+                    # Speak a summary
+                    summary = "I've drawn three cards for you from the full 78-card deck: your past, present, and future. Check the console for the full reading."
+                    self.speak(summary)
                     continue
 
                 # 📝 Notepad operations - Open in Notepad
@@ -2268,9 +2019,7 @@ Provide clean, well-commented, production-ready code with explanations."""
                 # Get Sunny's response
                 response = self.think(user_input)
                 
-                # Print and speak the response
-                print(f"\n🌞 Sunny: {response}\n")
-                print(f"[DEBUG] Response length: {len(response)} characters")
+                # Speak the response
                 self.speak(response)
                 
             except KeyboardInterrupt:
@@ -2408,38 +2157,31 @@ Provide clean, well-commented, production-ready code with explanations."""
     def _load_conversation_memory(self):
         """Load conversation history from memory_store.json and convert format"""
         try:
-            print(f"🧠 Looking for memory at: {self.conversation_memory_file.absolute()}")
             if self.conversation_memory_file.exists():
                 with open(self.conversation_memory_file, 'r') as f:
                     stored_memory = json.load(f)
-                print(f"🧠 Found {len(stored_memory)} entries in memory file")
 
                 # Convert old format {input, output} to Claude format {role, content}
-                # FILTER OUT EMPTY MESSAGES - they cause API errors
+                # PRESERVE TIMESTAMPS!
                 self.conversation_history = []
                 for entry in stored_memory:
                     if isinstance(entry, dict):
                         # Old format: {input, output, intent, timestamp}
                         if 'input' in entry and 'output' in entry:
-                            # SKIP empty messages - they cause API errors
-                            if entry['input'] and entry['input'].strip():
-                                self.conversation_history.append({
-                                    "role": "user",
-                                    "content": entry['input']
-                                })
-                            if entry['output'] and entry['output'].strip():
-                                self.conversation_history.append({
-                                    "role": "assistant",
-                                    "content": entry['output']
-                                })
-                        # New format: {role, content} - strip timestamp if present
+                            timestamp = entry.get('timestamp', time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+                            self.conversation_history.append({
+                                "role": "user",
+                                "content": entry['input'],
+                                "timestamp": timestamp  # Preserve original timestamp
+                            })
+                            self.conversation_history.append({
+                                "role": "assistant",
+                                "content": entry['output'],
+                                "timestamp": timestamp  # Same timestamp for the pair
+                            })
+                        # New format: {role, content} - already correct
                         elif 'role' in entry and 'content' in entry:
-                            # SKIP empty messages
-                            if entry['content'] and entry['content'].strip():
-                                self.conversation_history.append({
-                                    "role": entry['role'],
-                                    "content": entry['content']
-                                })
+                            self.conversation_history.append(entry)
 
                 print(f"✅ Loaded {len(self.conversation_history)} previous messages from Sunny's memory")
             else:
@@ -2477,7 +2219,6 @@ Provide clean, well-commented, production-ready code with explanations."""
             self.conversation_memory_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.conversation_memory_file, 'w') as f:
                 json.dump(stored_memory, f, indent=2)
-            print(f"💾 Saved {len(stored_memory)} conversations to memory")
         except Exception as e:
             print(f"⚠️  Could not save conversation memory: {e}")
     
@@ -2550,28 +2291,28 @@ def main():
     print("Checking configuration...\n")
     
     # Check available APIs
-    has_anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
-    has_openai = bool(os.getenv("OPENAI_API_KEY"))
-    has_perplexity = bool(os.getenv("PERPLEXITY_API_KEY"))
-    has_aws = bool(os.getenv("AWS_ACCESS_KEY_ID")) or bool(os.getenv("AWS_PROFILE"))
+    anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
+    openai = bool(os.getenv("OPENAI_API_KEY"))
+    perplexity = bool(os.getenv("PERPLEXITY_API_KEY"))
+    aws = bool(os.getenv("AWS_ACCESS_KEY_ID")) or bool(os.getenv("AWS_PROFILE"))
     
     print("Available capabilities:")
-    print(f"  🤖 Anthropic Claude: {'✅' if has_anthropic else '❌'}")
-    print(f"  🤖 OpenAI GPT: {'✅' if has_openai else '❌'}")
-    print(f"  🤖 Perplexity AI: {'✅' if has_perplexity else '❌'}")
-    print(f"  🗣️  AWS Polly: {'✅' if has_aws else '❌'}")
+    print(f"  🤖 Anthropic Claude: {'✅' if anthropic else '❌'}")
+    print(f"  🤖 OpenAI GPT: {'✅' if openai else '❌'}")
+    print(f"  🤖 Perplexity AI: {'✅' if perplexity else '❌'}")
+    print(f"  🗣️  AWS Polly: {'✅' if aws else '❌'}")
     print(f"  🗣️  Google TTS: ✅ (always available)")
-    print(f"  🌐 Web Search: {'✅' if HAS_PERPLEXITY or HAS_INTERNET_MODE else '❌'}")
+    print(f"  🌐 Web Search: {'✅' if PERPLEXITY or INTERNET_MODE else '❌'}")
     print()
     
-    if not (has_anthropic or has_openai or has_perplexity):
+    if not (anthropic or openai or perplexity):
         print("❌ No AI providers available! Please set API keys in .env file")
         return
     
     # Voice options
     print("Available voices:")
     for voice, config in POLLY_VOICES.items():
-        status = "✅" if has_aws else "❌"
+        status = "✅" if aws else "❌"
         print(f"  {status} {voice}: {config['gender']} - {config['style']}")
     print("  ✅ gtts: Google TTS fallback\n")
     
