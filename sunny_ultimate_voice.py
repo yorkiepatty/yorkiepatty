@@ -858,6 +858,28 @@ class SunnyUltimateVoice:
         
         return None
 
+    def get_input(self, prompt=None):
+        """Get user input respecting current mode (text or voice)"""
+        if prompt:
+            print(f"💬 {prompt}")
+
+        # If in text mode, use keyboard input
+        if hasattr(self, 'input_mode') and self.input_mode == "text":
+            try:
+                return input("You: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                return None
+
+        # Otherwise try voice, fall back to text
+        result = self.listen()
+        if result is None:
+            print("💬 Type your response:")
+            try:
+                return input("You: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                return None
+        return result
+
     def _listen_vosk(self):
         """Listen using Vosk + sounddevice (no PyAudio required)"""
         import sounddevice as sd
@@ -2056,8 +2078,9 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("  - 'text mode' - Switch to typing (no voice input)")
         print("  - 'voice mode' - Switch back to voice input\n")
 
-        # Input mode: "voice" or "text"
-        self.input_mode = "voice"
+        # Input mode: "text" or "voice" - default to text since speech recognition is unreliable
+        self.input_mode = "text"
+        print("⌨️  Starting in TEXT MODE (type 'voice mode' to switch to speech)")
 
         # Initial greeting
         greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities: vision, memory, tarot readings, master coding, file operations, and autonomous learning. How can I help you today?"
@@ -2209,10 +2232,10 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                 if 'write to notepad' in user_input.lower() or 'create in notepad' in user_input.lower():
                     try:
                         self.speak("What's the file name?")
-                        file_path_input = self.listen()
+                        file_path_input = self.get_input()
                         if file_path_input:
                             self.speak("What should I write to the file?")
-                            content_input = self.listen()
+                            content_input = self.get_input()
                             if content_input:
                                 success = self._write_file(file_path_input, content_input)
                                 if success:
@@ -2229,7 +2252,9 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                     continue
 
                 # 📖 File operations - Read file
-                if 'read file' in user_input.lower():
+                if any(phrase in user_input.lower() for phrase in [
+                    'read file', 'open file', 'show file', 'view file', 'read a file'
+                ]):
                     try:
                         # Extract filename from command
                         parts = user_input.lower().split('read file')
@@ -2251,13 +2276,16 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                     continue
 
                 # 💾 File operations - Write file
-                if 'write file' in user_input.lower() or 'create file' in user_input.lower():
+                if any(phrase in user_input.lower() for phrase in [
+                    'write file', 'create file', 'make file', 'new file', 'save file',
+                    'right file', 'wright file', 'make a file', 'save a file'
+                ]):
                     try:
                         self.speak("What's the file path?")
-                        file_path_input = self.listen()
+                        file_path_input = self.get_input()
                         if file_path_input:
                             self.speak("What should I write to the file?")
-                            content_input = self.listen()
+                            content_input = self.get_input()
                             if content_input:
                                 success = self._write_file(file_path_input, content_input)
                                 if success:
@@ -2265,24 +2293,26 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                                 else:
                                     self.speak("Failed to write the file")
                             else:
-                                self.speak("I didn't hear any content to write")
+                                self.speak("I didn't get any content to write")
                         else:
-                            self.speak("I didn't hear the file path")
+                            self.speak("I didn't get the file path")
                     except Exception as e:
                         self.speak(f"Error writing file: {str(e)}")
                     continue
 
                 # ✏️ File operations - Edit file
-                if 'edit file' in user_input.lower():
+                if any(phrase in user_input.lower() for phrase in [
+                    'edit file', 'modify file', 'change file', 'update file', 'edit a file'
+                ]):
                     try:
                         self.speak("Which file should I edit?")
-                        file_path_input = self.listen()
+                        file_path_input = self.get_input()
                         if file_path_input:
                             self.speak("What text should I find?")
-                            old_text = self.listen()
+                            old_text = self.get_input()
                             if old_text:
                                 self.speak("What should I replace it with?")
-                                new_text = self.listen()
+                                new_text = self.get_input()
                                 if new_text:
                                     success = self._edit_file(file_path_input, old_text, new_text)
                                     if success:
@@ -2290,11 +2320,11 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                                     else:
                                         self.speak("Failed to edit the file. The text might not exist in the file.")
                                 else:
-                                    self.speak("I didn't hear the replacement text")
+                                    self.speak("I didn't get the replacement text")
                             else:
-                                self.speak("I didn't hear the text to find")
+                                self.speak("I didn't get the text to find")
                         else:
-                            self.speak("I didn't hear the file path")
+                            self.speak("I didn't get the file path")
                     except Exception as e:
                         self.speak(f"Error editing file: {str(e)}")
                     continue
@@ -2303,14 +2333,14 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                 if 'run script' in user_input.lower() or 'execute code' in user_input.lower() or 'run python' in user_input.lower():
                     try:
                         self.speak("What Python code should I run?")
-                        code_input = self.listen()
+                        code_input = self.get_input()
                         if code_input:
                             print(f"\n🐍 Executing code...\n")
                             output = self._execute_script(code_input)
                             print(f"Output:\n{output}\n")
                             self.speak(f"Code executed. Output: {output[:200]}")
                         else:
-                            self.speak("I didn't hear any code to execute")
+                            self.speak("I didn't get any code to execute")
                     except Exception as e:
                         self.speak(f"Error executing code: {str(e)}")
                     continue
