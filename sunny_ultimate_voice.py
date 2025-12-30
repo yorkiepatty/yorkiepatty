@@ -2403,7 +2403,7 @@ Requirements:
 
 Provide clean, well-commented, production-ready code with explanations."""
 
-                    response = self._get_ai_response(enhanced_prompt)
+                    response = self.think(enhanced_prompt)
                     print(f"\n💻 Sunny: {response}\n")
                     self.speak("I've written the code for you. Check the console for the full implementation.")
                     continue
