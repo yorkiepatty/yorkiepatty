@@ -2078,8 +2078,9 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         print("  - 'text mode' - Switch to typing (no voice input)")
         print("  - 'voice mode' - Switch back to voice input\n")
 
-        # Input mode: "voice" or "text"
-        self.input_mode = "voice"
+        # Input mode: "text" or "voice" - default to text since speech recognition is unreliable
+        self.input_mode = "text"
+        print("⌨️  Starting in TEXT MODE (type 'voice mode' to switch to speech)")
 
         # Initial greeting
         greeting = "Hello! I'm Sunny, your AI companion from The Christman AI Project. I'm here with all my capabilities: vision, memory, tarot readings, master coding, file operations, and autonomous learning. How can I help you today?"
