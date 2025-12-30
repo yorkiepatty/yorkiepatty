@@ -2275,19 +2275,63 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                         self.speak(f"Error reading file: {str(e)}")
                     continue
 
-                # 💾 File operations - Write file
+                # 💾 File operations - Write file (with AI content generation)
                 if any(phrase in user_input.lower() for phrase in [
                     'write file', 'create file', 'make file', 'new file', 'save file',
-                    'right file', 'wright file', 'make a file', 'save a file'
+                    'right file', 'wright file', 'make a file', 'save a file',
+                    'generate file', 'create script', 'write script', 'make script'
                 ]):
                     try:
-                        self.speak("What's the file path?")
+                        self.speak("What's the file path or name?")
                         file_path_input = self.get_input()
                         if file_path_input:
-                            self.speak("What should I write to the file?")
+                            self.speak("Describe what you want in the file, or type the exact content. I can generate code for you!")
                             content_input = self.get_input()
                             if content_input:
-                                success = self._write_file(file_path_input, content_input)
+                                # Check if this looks like a description (needs AI generation)
+                                description_keywords = ['that', 'which', 'to', 'for', 'script', 'program', 'function',
+                                                       'create', 'make', 'build', 'generate', 'write', 'code']
+                                is_description = any(kw in content_input.lower() for kw in description_keywords) and len(content_input.split()) > 3
+
+                                if is_description:
+                                    # Use AI to generate the content
+                                    print("🤖 Generating content with AI...")
+                                    self.speak("Let me generate that for you...")
+
+                                    # Determine file type from extension
+                                    file_ext = file_path_input.split('.')[-1].lower() if '.' in file_path_input else 'txt'
+
+                                    generation_prompt = f"""Generate the content for a {file_ext} file based on this description:
+{content_input}
+
+Requirements:
+- Write clean, working code (if applicable)
+- Include helpful comments
+- Make it production-ready
+- Return ONLY the file content, no explanations before or after"""
+
+                                    generated_content = self.think(generation_prompt)
+
+                                    # Clean up the generated content (remove markdown code blocks if present)
+                                    if '```' in generated_content:
+                                        lines = generated_content.split('\n')
+                                        clean_lines = []
+                                        in_code_block = False
+                                        for line in lines:
+                                            if line.strip().startswith('```'):
+                                                in_code_block = not in_code_block
+                                            elif in_code_block or not line.strip().startswith('```'):
+                                                if in_code_block:
+                                                    clean_lines.append(line)
+                                        generated_content = '\n'.join(clean_lines) if clean_lines else generated_content
+
+                                    print(f"\n📝 Generated content:\n{generated_content[:500]}{'...' if len(generated_content) > 500 else ''}\n")
+
+                                    success = self._write_file(file_path_input, generated_content)
+                                else:
+                                    # Use the content directly
+                                    success = self._write_file(file_path_input, content_input)
+
                                 if success:
                                     self.speak(f"Successfully wrote to {file_path_input}")
                                 else:
