@@ -39,19 +39,19 @@ import platform
 from gtts import gTTS
 
 # pyttsx3 for male voice (uses system TTS engine)
-try:
+try:  
     import pyttsx3
-    HAS_PYTTSX3 = True
+    PYTTSX3 = True
 except ImportError:
-    HAS_PYTTSX3 = False
+    PYTTSX3 = False
 
 # edge-tts for high-quality Microsoft voices (free, no API key)
 try:
     import edge_tts
     import asyncio
-    HAS_EDGE_TTS = True
+    EDGE_TTS = True
 except ImportError:
-    HAS_EDGE_TTS = False
+    EDGE_TTS = False
 
 import re
 from typing import List
@@ -60,9 +60,9 @@ from typing import List
 try:
     from elevenlabs import VoiceSettings
     from elevenlabs.client import ElevenLabs
-    HAS_ELEVENLABS = True
+    ELEVENLABS = True
 except ImportError:
-    HAS_ELEVENLABS = False
+    ELEVENLABS = False
 
 # Global interrupt flag for stopping speech
 _interrupt_speech = False
@@ -218,7 +218,7 @@ def playsound(audio_file):
 
 def capture_screen():
     """Capture the current screen and return as base64 encoded image"""
-    if not HAS_SCREEN_CAPTURE:
+    if not SCREEN_CAPTURE:
         return None, "Screen capture not available. Please install pillow: pip install pillow"
 
     try:
@@ -255,31 +255,31 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # Import project modules
 try:
     from perplexity_service import PerplexityService
-    HAS_PERPLEXITY = True
+    PERPLEXITY = True
 except ImportError:
-    HAS_PERPLEXITY = False
+    PERPLEXITY = False
     print("⚠️  Perplexity service not available")
 
 try:
     from internet_mode import query_internet
-    HAS_INTERNET_MODE = True
+    INTERNET_MODE = True
 except ImportError:
-    HAS_INTERNET_MODE = False
+    INTERNET_MODE = False
     print("⚠️  Internet mode not available")
 
 try:
     from brain import Sunny as SunnyBrain
-    HAS_DEREK_BRAIN = True
+    DEREK_BRAIN = True
 except ImportError:
-    HAS_DEREK_BRAIN = False
+    DEREK_BRAIN = False
     print("⚠️  Sunny brain not available")
 
 try:
     from json_guardian import JSONGuardian
     guardian = JSONGuardian()
-    HAS_GUARDIAN = True
+    GUARDIAN = True
 except ImportError:
-    HAS_GUARDIAN = False
+    GUARDIAN = False
     print("⚠️  JSON Guardian not available")
 
 # Screen capture capability
@@ -287,9 +287,9 @@ try:
     from PIL import ImageGrab
     import base64
     from io import BytesIO
-    HAS_SCREEN_CAPTURE = True
+    SCREEN_CAPTURE = True
 except ImportError:
-    HAS_SCREEN_CAPTURE = False
+    SCREEN_CAPTURE = False
     print("⚠️  Screen capture not available. Install with: pip install pillow")
 
 
@@ -442,7 +442,7 @@ class SunnyUltimateVoice:
         print("\n🔊 Initializing voice systems...")
 
         # ElevenLabs setup (primary) - can be disabled with DISABLE_ELEVENLABS=1
-        self.has_elevenlabs = False
+        self.elevenlabs = False
         api_key = os.getenv("ELEVENLABS_API_KEY")
         disable_elevenlabs = os.getenv("DISABLE_ELEVENLABS", "").lower() in ("1", "true", "yes")
 
@@ -450,21 +450,21 @@ class SunnyUltimateVoice:
             print("⚠️  ElevenLabs disabled via DISABLE_ELEVENLABS environment variable")
             print("   Using pyttsx3 (male voice) or gTTS as fallback")
         else:
-            print(f"   HAS_ELEVENLABS module: {HAS_ELEVENLABS}")
+            print(f"   ELEVENLABS module: {ELEVENLABS}")
             print(f"   API key found: {bool(api_key)}")
             if api_key:
                 print(f"   API key length: {len(api_key)} characters")
 
-        if not disable_elevenlabs and HAS_ELEVENLABS and api_key:
+        if not disable_elevenlabs and ELEVENLABS and api_key:
             try:
                 self.elevenlabs_client = ElevenLabs(api_key=api_key)
-                self.has_elevenlabs = True
+                self.elevenlabs = True
                 print("✅ ElevenLabs TTS initialized (primary voice)")
             except Exception as e:
                 print(f"⚠️  ElevenLabs initialization failed: {e}")
                 import traceback
                 traceback.print_exc()
-        elif not HAS_ELEVENLABS:
+        elif not ELEVENLABS:
             print("⚠️  ElevenLabs module not installed")
             print("   Run: pip install elevenlabs")
         elif not api_key:
@@ -474,16 +474,16 @@ class SunnyUltimateVoice:
         # AWS Polly setup (fallback)
         try:
             self.polly = boto3.client('polly')
-            self.has_polly = True
+            self.polly = True
             print("✅ AWS Polly initialized (fallback)")
         except Exception as e:
-            self.has_polly = False
+            self.polly = False
             print(f"⚠️  AWS Polly not available: {e}")
 
         # pyttsx3 for male voice (uses system TTS engine)
-        self.has_pyttsx3 = False
+        self.pyttsx3 = False
         self.pyttsx3_engine = None
-        if HAS_PYTTSX3:
+        if PYTTSX3:
             try:
                 self.pyttsx3_engine = pyttsx3.init()
                 voices = self.pyttsx3_engine.getProperty('voices')
@@ -512,16 +512,16 @@ class SunnyUltimateVoice:
 
                 # Set a deeper/slower rate for more masculine sound
                 self.pyttsx3_engine.setProperty('rate', 150)  # Slightly slower
-                self.has_pyttsx3 = True
+                self.pyttsx3 = True
             except Exception as e:
                 print(f"⚠️  pyttsx3 initialization failed: {e}")
         else:
             print("⚠️  pyttsx3 not installed (run: pip install pyttsx3)")
 
         # edge-tts for high-quality Microsoft voices (recommended fallback)
-        self.has_edge_tts = False
-        if HAS_EDGE_TTS:
-            self.has_edge_tts = True
+        self.edge_tts = False
+        if EDGE_TTS:
+            self.edge_tts = True
             # Guy is a natural-sounding American male voice
             self.edge_voice = "en-US-GuyNeural"
             print(f"✅ Edge TTS initialized (voice: {self.edge_voice})")
@@ -529,7 +529,7 @@ class SunnyUltimateVoice:
             print("⚠️  edge-tts not installed (run: pip install edge-tts)")
 
         # gTTS is always available as final fallback
-        self.has_gtts = True
+        self.gtts = True
         print("✅ Google TTS available as final fallback")
     
     def _initialize_ai_providers(self, provider):
@@ -562,7 +562,7 @@ class SunnyUltimateVoice:
             except Exception as e:
                 print(f"⚠️  OpenAI not available: {e}")
         
-        if HAS_PERPLEXITY and os.getenv("PERPLEXITY_API_KEY"):
+        if PERPLEXITY and os.getenv("PERPLEXITY_API_KEY"):
             try:
                 self.perplexity_client = PerplexityService()
                 providers.append("perplexity")
@@ -667,11 +667,11 @@ class SunnyUltimateVoice:
             return
         
         # Enable internet mode if available
-        if HAS_INTERNET_MODE:
+        if INTERNET_MODE:
             os.environ["ENABLE_INTERNET_MODE"] = "true"
             print("✅ Internet mode enabled")
         
-        if HAS_PERPLEXITY:
+        if PERPLEXITY:
             print("✅ Perplexity web search enabled")
         
         print("🌐 Web search capabilities ready")
@@ -725,7 +725,7 @@ class SunnyUltimateVoice:
             self.local_reasoning_engine = None
         
         # Initialize Sunny Brain if available
-        if HAS_DEREK_BRAIN:
+        if DEREK_BRAIN:
             try:
                 self.sunny_brain = SunnyBrain()
                 print("✅ Sunny's brain initialized")
@@ -871,7 +871,7 @@ class SunnyUltimateVoice:
 
         rec = vosk.KaldiRecognizer(self.vosk_model, SAMPLE_RATE)
         silence_count = 0
-        has_speech = False
+        speech = False
         collected_text = ""
 
         def audio_callback(indata, frames, time_info, status):
@@ -900,7 +900,7 @@ class SunnyUltimateVoice:
                             result = json.loads(rec.Result())
                             text = result.get("text", "").strip()
                             if text:
-                                has_speech = True
+                                speech = True
                                 silence_count = 0
                                 # Accumulate text instead of overwriting
                                 if collected_text:
@@ -912,10 +912,10 @@ class SunnyUltimateVoice:
                             partial = json.loads(rec.PartialResult())
                             partial_text = partial.get("partial", "")
                             if partial_text:
-                                has_speech = True
+                                speech = True
                                 silence_count = 0
                                 print(f"\r   Hearing: {partial_text[:60]}{'...' if len(partial_text) > 60 else ''}          ", end="", flush=True)
-                            elif has_speech:
+                            elif speech:
                                 silence_count += 1
                                 # Show countdown so user knows
                                 secs_left = max(0, 4 - (silence_count // 10))
@@ -936,7 +936,7 @@ class SunnyUltimateVoice:
                                     break
                     except Exception:
                         timeout_count += 1
-                        if not has_speech and timeout_count > 100:
+                        if not speech and timeout_count > 100:
                             print("\n⏱️  No speech detected (10 seconds)")
                             return None
 
@@ -1197,7 +1197,7 @@ class SunnyUltimateVoice:
                 return str(result)
             
             # Try internet_mode if available
-            if HAS_INTERNET_MODE:
+            if INTERNET_MODE:
                 result = query_internet(query)
                 return str(result)
             
@@ -1382,7 +1382,7 @@ class SunnyUltimateVoice:
         print("🌐 Searching the web for current information...")
         
         # Try Perplexity with web search first
-        if HAS_PERPLEXITY and self.ai_provider == "perplexity":
+        if PERPLEXITY and self.ai_provider == "perplexity":
             try:
                 response = self.perplexity_client.generate_content(
                     prompt=user_input,
@@ -1398,7 +1398,7 @@ class SunnyUltimateVoice:
                 print(f"⚠️  Perplexity web search failed: {e}")
         
         # Try internet_mode if available
-        if HAS_INTERNET_MODE:
+        if INTERNET_MODE:
             try:
                 web_result = query_internet(user_input)
                 if web_result:
@@ -1814,7 +1814,7 @@ Remember: The cards reflect possibilities, not certainties. You always have free
             # Check for quota/credits errors and auto-disable ElevenLabs
             if 'quota' in error_str or 'credits' in error_str or 'limit' in error_str or '401' in str(e):
                 print("⚠️  ElevenLabs quota exceeded - switching to pyttsx3/gTTS for this session")
-                self.has_elevenlabs = False  # Disable for rest of session
+                self.elevenlabs = False  # Disable for rest of session
             raise  # Re-raise to trigger fallback in speak()
     def _clean_text_for_speech(self, text):
         """Minimal, robust cleaning so TTS never speaks stage directions like *laughs*, (nods), [waves]."""
@@ -1884,35 +1884,35 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         tts_text = re.sub(r'\s+', ' ', tts_text).strip()  # clean up extra spaces
         
         # Try ElevenLabs first (best quality)
-        if self.has_elevenlabs:
+        if self.elevenlabs:
             try:
                 return self._speak_elevenlabs(tts_text)
             except Exception as e:
                 print(f"⚠️  ElevenLabs failed: {e}")
 
         # Fallback to AWS Polly
-        if self.has_polly and self.voice_id in POLLY_VOICES:
+        if self.polly and self.voice_id in POLLY_VOICES:
             try:
                 return self._speak_polly(tts_text)
             except Exception as e:
                 print(f"⚠️  Polly failed: {e}")
 
         # Fallback to edge-tts (high-quality Microsoft male voice)
-        if self.has_edge_tts:
+        if self.edge_tts:
             try:
                 return self._speak_edge_tts(tts_text)
             except Exception as e:
                 print(f"⚠️  Edge TTS failed: {e}")
 
         # Fallback to pyttsx3 (male voice - system TTS engine)
-        if self.has_pyttsx3:
+        if self.pyttsx3:
             try:
                 return self._speak_pyttsx3(tts_text)
             except Exception as e:
                 print(f"⚠️  pyttsx3 failed: {e}")
 
         # Final fallback to gTTS (female voice)
-        if self.has_gtts:
+        if self.gtts:
             try:
                 return self._speak_gtts(tts_text)
             except Exception as e:
@@ -2754,28 +2754,28 @@ def main():
     print("Checking configuration...\n")
     
     # Check available APIs
-    has_anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
-    has_openai = bool(os.getenv("OPENAI_API_KEY"))
-    has_perplexity = bool(os.getenv("PERPLEXITY_API_KEY"))
-    has_aws = bool(os.getenv("AWS_ACCESS_KEY_ID")) or bool(os.getenv("AWS_PROFILE"))
+    anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
+    openai = bool(os.getenv("OPENAI_API_KEY"))
+    perplexity = bool(os.getenv("PERPLEXITY_API_KEY"))
+    aws = bool(os.getenv("AWS_ACCESS_KEY_ID")) or bool(os.getenv("AWS_PROFILE"))
     
     print("Available capabilities:")
-    print(f"  🤖 Anthropic Claude: {'✅' if has_anthropic else '❌'}")
-    print(f"  🤖 OpenAI GPT: {'✅' if has_openai else '❌'}")
-    print(f"  🤖 Perplexity AI: {'✅' if has_perplexity else '❌'}")
-    print(f"  🗣️  AWS Polly: {'✅' if has_aws else '❌'}")
+    print(f"  🤖 Anthropic Claude: {'✅' if anthropic else '❌'}")
+    print(f"  🤖 OpenAI GPT: {'✅' if openai else '❌'}")
+    print(f"  🤖 Perplexity AI: {'✅' if perplexity else '❌'}")
+    print(f"  🗣️  AWS Polly: {'✅' if aws else '❌'}")
     print(f"  🗣️  Google TTS: ✅ (always available)")
-    print(f"  🌐 Web Search: {'✅' if HAS_PERPLEXITY or HAS_INTERNET_MODE else '❌'}")
+    print(f"  🌐 Web Search: {'✅' if PERPLEXITY or INTERNET_MODE else '❌'}")
     print()
     
-    if not (has_anthropic or has_openai or has_perplexity):
+    if not (anthropic or openai or perplexity):
         print("❌ No AI providers available! Please set API keys in .env file")
         return
     
     # Voice options
     print("Available voices:")
     for voice, config in POLLY_VOICES.items():
-        status = "✅" if has_aws else "❌"
+        status = "✅" if aws else "❌"
         print(f"  {status} {voice}: {config['gender']} - {config['style']}")
     print("  ✅ gtts: Google TTS fallback\n")
     
