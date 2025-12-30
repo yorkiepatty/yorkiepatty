@@ -2229,7 +2229,9 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                     continue
 
                 # 📖 File operations - Read file
-                if 'read file' in user_input.lower():
+                if any(phrase in user_input.lower() for phrase in [
+                    'read file', 'open file', 'show file', 'view file', 'read a file'
+                ]):
                     try:
                         # Extract filename from command
                         parts = user_input.lower().split('read file')
@@ -2251,7 +2253,10 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                     continue
 
                 # 💾 File operations - Write file
-                if 'write file' in user_input.lower() or 'create file' in user_input.lower():
+                if any(phrase in user_input.lower() for phrase in [
+                    'write file', 'create file', 'make file', 'new file', 'save file',
+                    'right file', 'wright file', 'make a file', 'save a file'
+                ]):
                     try:
                         self.speak("What's the file path?")
                         file_path_input = self.listen()
@@ -2273,7 +2278,9 @@ Give a warm, insightful interpretation of this three-card reading. Explain what 
                     continue
 
                 # ✏️ File operations - Edit file
-                if 'edit file' in user_input.lower():
+                if any(phrase in user_input.lower() for phrase in [
+                    'edit file', 'modify file', 'change file', 'update file', 'edit a file'
+                ]):
                     try:
                         self.speak("Which file should I edit?")
                         file_path_input = self.listen()
