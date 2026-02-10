@@ -3,6 +3,7 @@ Royce Voice System
 ------------------
 Text-to-speech output and speech recognition input.
 Supports ElevenLabs (primary), AWS Polly, and gTTS as fallbacks.
+Uses sounddevice for microphone input (NO PyAudio needed).
 Patient listening with generous pause detection.
 """
 
@@ -11,9 +12,12 @@ import io
 import re
 import time
 import uuid
+import wave
+import struct
 import logging
 import tempfile
 import threading
+import numpy as np
 from typing import Optional, Dict, Callable
 
 import requests
@@ -23,13 +27,20 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# Try importing speech/audio libraries
+# ─── Audio Libraries ───────────────────────────────────────────────
 try:
     import pygame
     pygame.mixer.init()
     PYGAME_AVAILABLE = True
 except Exception:
     PYGAME_AVAILABLE = False
+
+try:
+    import sounddevice as sd
+    SOUNDDEVICE_AVAILABLE = True
+except ImportError:
+    SOUNDDEVICE_AVAILABLE = False
+    logger.warning("sounddevice not available — microphone input disabled. Install with: pip install sounddevice")
 
 try:
     import speech_recognition as sr
@@ -53,10 +64,8 @@ except ImportError:
 class RoyceVoice:
     """Handles all voice I/O for Royce — speaking and listening.
 
-    TTS priority order:
-    1. ElevenLabs (best quality, most natural)
-    2. AWS Polly (neural)
-    3. gTTS (free fallback)
+    TTS priority: ElevenLabs > AWS Polly > gTTS
+    Microphone: sounddevice (no PyAudio dependency)
     """
 
     def __init__(self, voice_id: str = "Matthew", engine: str = "neural"):
@@ -65,6 +74,14 @@ class RoyceVoice:
         self.is_speaking = False
         self.is_listening = False
         self._stop_listening = False
+
+        # ─── Microphone Settings (patient listening) ───────────────
+        self.sample_rate = 16000
+        self.channels = 1
+        self.energy_threshold = int(os.getenv("MIC_ENERGY_THRESHOLD", "3000"))
+        self.pause_threshold = float(os.getenv("PAUSE_THRESHOLD", "2.0"))
+        self.listen_timeout = int(os.getenv("LISTEN_TIMEOUT", "20"))
+        self.phrase_time_limit = int(os.getenv("PHRASE_TIME_LIMIT", "60"))
 
         # ─── ElevenLabs Config ─────────────────────────────────────
         self.elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -84,20 +101,20 @@ class RoyceVoice:
             except Exception as e:
                 logger.warning(f"AWS Polly not available: {e}")
 
-        # ─── Speech Recognition Config ─────────────────────────────
+        # ─── SpeechRecognition (for transcription only, no PyAudio) ─
         self.recognizer = None
         if SR_AVAILABLE:
             self.recognizer = sr.Recognizer()
-            # Patient listening settings — give people TIME
-            self.recognizer.energy_threshold = int(os.getenv("MIC_ENERGY_THRESHOLD", "3000"))
-            self.recognizer.pause_threshold = float(os.getenv("PAUSE_THRESHOLD", "2.0"))
-            self.recognizer.phrase_threshold = 0.3
-            self.recognizer.non_speaking_duration = 1.0
-            logger.info("Speech recognition initialized (patient mode)")
+            logger.info("Speech recognizer ready (Google transcription)")
+
+        if SOUNDDEVICE_AVAILABLE:
+            logger.info("Microphone ready (sounddevice — no PyAudio needed)")
 
         logger.info("Royce Voice System ready")
 
-    # ─── Speaking ──────────────────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════
+    #  SPEAKING
+    # ═══════════════════════════════════════════════════════════════
 
     def speak(self, text: str):
         """Speak the given text aloud.
@@ -107,9 +124,7 @@ class RoyceVoice:
         if not text or not text.strip():
             return
 
-        # Clean text before speaking
         text = self._clean_for_speech(text)
-
         self.is_speaking = True
 
         if self.elevenlabs_api_key and PYGAME_AVAILABLE:
@@ -153,12 +168,10 @@ class RoyceVoice:
 
                 response = requests.post(url, json=payload, headers=headers, timeout=30)
                 response.raise_for_status()
-
                 self._play_audio_bytes(response.content)
 
         except Exception as e:
             logger.error(f"ElevenLabs TTS error: {e}")
-            # Fall through to Polly
             if self.polly:
                 self._speak_polly(text)
             elif GTTS_AVAILABLE:
@@ -184,7 +197,6 @@ class RoyceVoice:
         """List all available ElevenLabs voices."""
         if not self.elevenlabs_api_key:
             return []
-
         try:
             headers = {"xi-api-key": self.elevenlabs_api_key}
             response = requests.get(f"{self.elevenlabs_url}/voices", headers=headers, timeout=10)
@@ -214,7 +226,6 @@ class RoyceVoice:
         """Speak using AWS Polly neural voices."""
         try:
             chunks = self._split_text(text, max_length=2500)
-
             for chunk in chunks:
                 response = self.polly.synthesize_speech(
                     Text=chunk,
@@ -223,10 +234,8 @@ class RoyceVoice:
                     Engine=self.polly_engine,
                     SampleRate="22050",
                 )
-
                 audio_data = response["AudioStream"].read()
                 self._play_audio_bytes(audio_data)
-
         except Exception as e:
             logger.error(f"Polly TTS error: {e}")
             if GTTS_AVAILABLE:
@@ -240,12 +249,10 @@ class RoyceVoice:
             tts = gTTS(text=text, lang="en")
             temp_file = os.path.join(tempfile.gettempdir(), f"royce_{uuid.uuid4()}.mp3")
             tts.save(temp_file)
-
             pygame.mixer.music.load(temp_file)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
                 pygame.time.wait(100)
-
             os.remove(temp_file)
         except Exception as e:
             logger.error(f"gTTS error: {e}")
@@ -263,13 +270,15 @@ class RoyceVoice:
         except Exception as e:
             logger.error(f"Audio playback error: {e}")
 
-    # ─── Listening (Patient Mode) ──────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════
+    #  LISTENING — uses sounddevice (NO PyAudio)
+    # ═══════════════════════════════════════════════════════════════
 
-    def listen(self, timeout: int = 20, phrase_limit: int = 60) -> Optional[str]:
-        """Listen for speech input with patient pause detection.
+    def listen(self, timeout: int = None, phrase_limit: int = None) -> Optional[str]:
+        """Listen for speech input using sounddevice. No PyAudio needed.
 
-        Royce gives plenty of time for the user to say what they need.
-        Uses a generous pause threshold so people can think mid-sentence.
+        Royce gives plenty of time for people to say what they need.
+        Records until silence is detected (patient pause threshold).
 
         Args:
             timeout: Max seconds to wait for speech to begin
@@ -278,35 +287,42 @@ class RoyceVoice:
         Returns:
             Transcribed text or None if nothing detected
         """
-        if not SR_AVAILABLE or not self.recognizer:
-            logger.warning("Speech recognition not available")
+        if not SOUNDDEVICE_AVAILABLE:
+            logger.warning("sounddevice not installed. Run: pip install sounddevice")
             return None
+
+        if not SR_AVAILABLE or not self.recognizer:
+            logger.warning("SpeechRecognition not installed. Run: pip install SpeechRecognition")
+            return None
+
+        timeout = timeout or self.listen_timeout
+        phrase_limit = phrase_limit or self.phrase_time_limit
 
         try:
-            with sr.Microphone() as source:
-                self.is_listening = True
-                logger.info("Listening... (take your time)")
+            self.is_listening = True
+            logger.info("Listening... (take your time)")
 
-                # Adjust for ambient noise
-                self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+            audio_data = self._record_until_silence(
+                timeout=timeout,
+                max_duration=phrase_limit,
+                silence_duration=self.pause_threshold,
+            )
 
-                # Listen with generous timeouts
-                audio = self.recognizer.listen(
-                    source,
-                    timeout=timeout,
-                    phrase_time_limit=phrase_limit,
-                )
-
-                self.is_listening = False
-                logger.info("Processing what you said...")
-
-                # Transcribe
-                text = self.recognizer.recognize_google(audio)
-                return text.strip()
-
-        except sr.WaitTimeoutError:
             self.is_listening = False
-            return None
+
+            if audio_data is None or len(audio_data) == 0:
+                return None
+
+            logger.info("Processing what you said...")
+
+            # Convert numpy audio to WAV bytes for SpeechRecognition
+            wav_bytes = self._numpy_to_wav(audio_data, self.sample_rate)
+            audio = sr.AudioData(wav_bytes, self.sample_rate, 2)
+
+            # Transcribe using Google Speech Recognition
+            text = self.recognizer.recognize_google(audio)
+            return text.strip() if text else None
+
         except sr.UnknownValueError:
             self.is_listening = False
             logger.debug("Couldn't make out what was said")
@@ -320,11 +336,86 @@ class RoyceVoice:
             logger.error(f"Listening error: {e}")
             return None
 
-    def listen_continuous(self, callback: Callable[[str], None]):
-        """Continuously listen and call back with each recognized phrase.
+    def _record_until_silence(self, timeout: float = 20, max_duration: float = 60,
+                               silence_duration: float = 2.0) -> Optional[np.ndarray]:
+        """Record audio from mic until the person stops talking.
 
-        Designed for hands-free conversation mode.
+        Uses sounddevice (no PyAudio). Detects silence to know when
+        the person is done speaking. Patient — gives them time to think.
+
+        Args:
+            timeout: Max seconds to wait for speech to start
+            max_duration: Max total recording length
+            silence_duration: How long to wait after speech stops before cutting off
+
+        Returns:
+            numpy array of audio samples, or None if no speech detected
         """
+        chunk_duration = 0.1  # 100ms chunks
+        chunk_samples = int(self.sample_rate * chunk_duration)
+
+        # Noise floor calibration (quick 0.3s sample)
+        logger.debug("Calibrating microphone...")
+        noise_sample = sd.rec(int(self.sample_rate * 0.3), samplerate=self.sample_rate,
+                              channels=self.channels, dtype='int16')
+        sd.wait()
+        noise_level = np.abs(noise_sample).mean()
+        threshold = max(noise_level * 3, self.energy_threshold / 10)
+
+        all_audio = []
+        speech_started = False
+        silence_counter = 0
+        max_silence_chunks = int(silence_duration / chunk_duration)
+        timeout_chunks = int(timeout / chunk_duration)
+        max_chunks = int(max_duration / chunk_duration)
+        chunks_recorded = 0
+
+        for i in range(max_chunks):
+            # Record one chunk
+            chunk = sd.rec(chunk_samples, samplerate=self.sample_rate,
+                          channels=self.channels, dtype='int16')
+            sd.wait()
+
+            energy = np.abs(chunk).mean()
+            all_audio.append(chunk)
+            chunks_recorded += 1
+
+            if energy > threshold:
+                # Speech detected
+                if not speech_started:
+                    speech_started = True
+                    logger.debug("Speech detected")
+                silence_counter = 0
+            else:
+                if speech_started:
+                    silence_counter += 1
+                    # If silence long enough, we're done
+                    if silence_counter >= max_silence_chunks:
+                        logger.debug("End of speech detected (silence)")
+                        break
+                elif chunks_recorded >= timeout_chunks:
+                    # No speech at all within timeout
+                    logger.debug("No speech detected within timeout")
+                    return None
+
+        if not speech_started:
+            return None
+
+        return np.concatenate(all_audio, axis=0)
+
+    @staticmethod
+    def _numpy_to_wav(audio: np.ndarray, sample_rate: int) -> bytes:
+        """Convert numpy int16 audio array to raw WAV bytes for SpeechRecognition."""
+        # Flatten to mono if needed
+        if audio.ndim > 1:
+            audio = audio[:, 0]
+
+        # Convert to bytes
+        raw_bytes = audio.astype(np.int16).tobytes()
+        return raw_bytes
+
+    def listen_continuous(self, callback: Callable[[str], None]):
+        """Continuously listen and call back with each recognized phrase."""
         self._stop_listening = False
 
         def _loop():
@@ -343,21 +434,20 @@ class RoyceVoice:
         self._stop_listening = True
         self.is_listening = False
 
-    # ─── Helpers ───────────────────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════
+    #  HELPERS
+    # ═══════════════════════════════════════════════════════════════
 
     @staticmethod
     def _clean_for_speech(text: str) -> str:
         """Clean text for natural-sounding speech output."""
-        # Remove markdown formatting
         text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
         text = re.sub(r'\*(.+?)\*', r'\1', text)
         text = re.sub(r'#{1,6}\s*', '', text)
         text = re.sub(r'\[(.+?)\]\(.+?\)', r'\1', text)
         text = re.sub(r'```[\s\S]*?```', '', text)
         text = re.sub(r'`(.+?)`', r'\1', text)
-        # Remove URLs
         text = re.sub(r'https?://\S+', '', text)
-        # Clean up whitespace
         text = re.sub(r'\n+', '. ', text)
         text = re.sub(r'\s+', ' ', text).strip()
         return text

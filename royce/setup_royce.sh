@@ -22,12 +22,11 @@ python3 -m pip install --upgrade pip
 
 echo ""
 echo "[2/5] Installing core dependencies..."
-pip3 install anthropic requests beautifulsoup4 python-dotenv pygame SpeechRecognition lxml
+pip3 install anthropic requests beautifulsoup4 python-dotenv pygame SpeechRecognition lxml numpy
 
 echo ""
 echo "[3/5] Installing voice/audio dependencies..."
-pip3 install gTTS boto3
-pip3 install PyAudio 2>/dev/null || echo "[NOTE] PyAudio install failed. Try: sudo apt install portaudio19-dev && pip3 install PyAudio"
+pip3 install sounddevice gTTS boto3
 
 echo ""
 echo "[4/5] Installing optional dependencies..."

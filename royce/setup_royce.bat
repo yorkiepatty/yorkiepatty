@@ -25,17 +25,11 @@ python -m pip install --upgrade pip
 echo.
 echo [2/5] Installing core dependencies...
 pip install anthropic requests beautifulsoup4 python-dotenv pygame SpeechRecognition
-pip install lxml
+pip install lxml numpy
 
 echo.
 echo [3/5] Installing voice/audio dependencies...
-pip install gTTS boto3
-pip install PyAudio 2>nul || (
-    echo.
-    echo [NOTE] PyAudio failed to install via pip.
-    echo       On Windows, try: pip install pipwin ^&^& pipwin install pyaudio
-    echo       Or download from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
-)
+pip install sounddevice gTTS boto3
 
 echo.
 echo [4/5] Installing optional dependencies...

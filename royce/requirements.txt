@@ -8,13 +8,14 @@ requests>=2.31.0
 beautifulsoup4>=4.12.0
 lxml>=5.0.0
 python-dotenv>=1.0.0
+numpy>=1.24.0
 
 # ─── Voice / Audio ─────────────────────────────────────────────
 pygame>=2.5.0
+sounddevice>=0.4.6      # Microphone input (replaces PyAudio — just works on Windows)
 SpeechRecognition>=3.10.0
 gTTS>=2.5.0
 boto3>=1.28.0           # AWS Polly (fallback TTS)
-# PyAudio               # Needed for microphone — install separately on Windows
 
 # ─── Music ─────────────────────────────────────────────────────
 # yt-dlp                # YouTube playback — install separately: pip install yt-dlp
