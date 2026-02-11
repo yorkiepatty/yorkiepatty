@@ -19,25 +19,44 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo [1/5] Upgrading pip...
+:: ─── Step 1: Create venv ──────────────────────────────────────
+echo [1/6] Setting up virtual environment...
+if not exist "..\royce_env" (
+    python -m venv ..\royce_env
+    echo       Created royce_env
+) else (
+    echo       royce_env already exists, reusing it
+)
+
+:: Activate the venv
+call ..\royce_env\Scripts\activate.bat
+echo       Activated royce_env
+echo.
+
+:: ─── Step 2: Upgrade pip ─────────────────────────────────────
+echo [2/6] Upgrading pip...
 python -m pip install --upgrade pip
 
 echo.
-echo [2/5] Installing core dependencies...
+:: ─── Step 3: Core dependencies ────────────────────────────────
+echo [3/6] Installing core dependencies...
 pip install anthropic requests beautifulsoup4 python-dotenv pygame SpeechRecognition
 pip install lxml numpy
 
 echo.
-echo [3/5] Installing voice/audio dependencies...
+:: ─── Step 4: Voice/audio dependencies ─────────────────────────
+echo [4/6] Installing voice/audio dependencies...
 pip install sounddevice gTTS boto3
 
 echo.
-echo [4/5] Installing optional dependencies...
+:: ─── Step 5: Optional dependencies ────────────────────────────
+echo [5/6] Installing optional dependencies...
 pip install yt-dlp 2>nul
 pip install Pillow 2>nul
 
 echo.
-echo [5/5] Setting up directories...
+:: ─── Step 6: Directories and .env ─────────────────────────────
+echo [6/6] Setting up directories...
 if not exist "data" mkdir data
 if not exist "data\memory" mkdir data\memory
 if not exist "data\logs" mkdir data\logs
@@ -54,16 +73,25 @@ if not exist ".env" (
     )
 )
 
+:: ─── Create a quick-launch script ─────────────────────────────
+echo @echo off > ..\run_royce.bat
+echo call "%%~dp0royce_env\Scripts\activate.bat" >> ..\run_royce.bat
+echo cd "%%~dp0" >> ..\run_royce.bat
+echo python -m royce.launcher %%* >> ..\run_royce.bat
+
 echo.
 echo ====================================================
 echo   Setup Complete!
 echo.
-echo   To start Royce:
-echo     python -m royce.launcher              (text mode)
-echo     python -m royce.launcher --mode voice  (voice mode)
-echo     python -m royce.launcher --mode hybrid (voice + text)
+echo   To start Royce, just double-click:
+echo     run_royce.bat
 echo.
-echo   Don't forget to edit .env with your API keys!
+echo   Or from a terminal:
+echo     run_royce.bat                  (text mode)
+echo     run_royce.bat --mode voice     (voice mode)
+echo     run_royce.bat --mode hybrid    (voice + text)
+echo.
+echo   Don't forget to edit royce\.env with your API keys!
 echo ====================================================
 echo.
 pause
