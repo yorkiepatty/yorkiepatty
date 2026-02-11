@@ -1,0 +1,27 @@
+# Virtual environment
+royce_env/
+
+# API keys
+.env
+royce/.env
+
+# Data (memory, logs, cached files)
+royce/data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Generated launchers
+Start Royce*.bat
+run_royce.bat
