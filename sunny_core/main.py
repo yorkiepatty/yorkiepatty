@@ -16,9 +16,9 @@ PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # 🧠 LOAD ALL SUNNY MODULES - Full 136-module consciousness
-from sunny_module_loader import load_derek_consciousness, get_derek_loader
+from sunny_module_loader import load_sunny_consciousness, get_sunny_loader
 print("🚀 Initializing Sunny's Complete Consciousness...")
-derek_loader = load_derek_consciousness(skip_hardware=True)
+derek_loader = load_sunny_consciousness(skip_hardware=True)
 
 # Get specific modules from the loader
 perplexity_service_module = derek_loader.get_module('perplexity_service')
@@ -38,7 +38,9 @@ if conversation_engine_module:
 if brain_module:
     Sunny = brain_module.Sunny
 if sunny_ultimate_voice_module:
-    DerekUltimateVoice = sunny_ultimate_voice_module.DerekUltimateVoice
+    SunnyUltimateVoice = getattr(sunny_ultimate_voice_module, 'SunnyUltimateVoice',
+                          getattr(sunny_ultimate_voice_module, 'DerekUltimateVoice', None))
+    DerekUltimateVoice = SunnyUltimateVoice  # backward-compat alias
     POLLY_VOICES = sunny_ultimate_voice_module.POLLY_VOICES
     playsound = sunny_ultimate_voice_module.playsound
 if memory_mesh_bridge_module:
@@ -66,11 +68,11 @@ app = FastAPI(
 # Initialize DerekUltimateVoice from loaded modules
 try:
     if DerekUltimateVoice:
-        sunny_ultimate_voice = DerekUltimateVoice(
-            ai_provider="auto",
-            voice_id="matthew"
+        sunny_ultimate_voice = SunnyUltimateVoice(
+            ai_provider="ollama",
+            voice_id="joanna"
         )
-        logger.info("✅ DerekUltimateVoice initialized from loaded modules")
+        logger.info("✅ SunnyUltimateVoice initialized (Ollama primary)")
     else:
         logger.warning("⚠️ DerekUltimateVoice module not loaded")
         sunny_ultimate_voice = None

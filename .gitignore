@@ -1,0 +1,67 @@
+# Environment & secrets — NEVER commit these
+.env
+.env.*
+*.key
+secret.key
+ai/secret.key
+sunny_memory/.encryption_key
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+venv311/
+env/
+.venv/
+
+# Large model files
+vosk-model-small-en-us-0.15/
+lstm_models/
+models/
+*.voicepack
+*.cvp
+
+# Voice/audio temp files
+*.mp3
+*.wav
+*.aiff
+sunny_ultimate_voice.py - Shortcut*.lnk
+
+# Backup & junk files from voice-typing accidents
+"desktop is all and had on top"
+"fix underscore open the v under underscore womb dot back"
+"i'm trying to type it all out*"
+"next mode text mode"
+"see users backslash*"
+"takes underscore*"
+"visit listener*"
+*.back up
+*.back up.txt
+*.as
+*.bb
+*.r
+*.oldpy
+
+# Logs
+*.log
+logs/
+
+# Memory (personal conversation data — stays local)
+memory/memory_store.json
+memory/proactive_learning.json
+memory_store.json
+sunny_memory/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+package-lock.json

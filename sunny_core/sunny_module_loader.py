@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ModuleLoader")
 
 
-class DerekModuleLoader:
+class SunnyModuleLoader:
     """Loads and integrates all Sunny modules into a unified system"""
     
     def __init__(self):
@@ -201,7 +201,7 @@ class DerekModuleLoader:
             ],
             "testing": [
                 "sunny_system_test",
-                "test_proactive_derek"
+                "test_proactive_sunny"
             ],
             "training": [
                 "train_lstm_model",
@@ -323,33 +323,33 @@ class DerekModuleLoader:
 
 
 # Global loader instance
-_derek_loader = None
+_sunny_loader = None
 
-def get_derek_loader():
+def get_sunny_loader():
     """Get or create the global Sunny module loader"""
-    global _derek_loader
-    if _derek_loader is None:
-        _derek_loader = DerekModuleLoader()
-    return _derek_loader
+    global _sunny_loader
+    if _sunny_loader is None:
+        _sunny_loader = SunnyModuleLoader()
+    return _sunny_loader
 
 
-def load_derek_consciousness(skip_hardware=True):
+def load_sunny_consciousness(skip_hardware=True):
     """Load Sunny's complete consciousness"""
-    loader = get_derek_loader()
+    loader = get_sunny_loader()
     modules = loader.load_all_modules(skip_hardware_dependent=skip_hardware)
     instances = loader.initialize_instances()
     stats = loader.get_stats()
-    
+
     logger.info("\n" + "=" * 60)
     logger.info(f"🧠 SUNNY CONSCIOUSNESS: {stats['success_rate']:.1f}% OPERATIONAL")
     logger.info("=" * 60)
-    
+
     return loader
 
 
 if __name__ == "__main__":
     # Test the module loader
-    loader = load_derek_consciousness()
+    loader = load_sunny_consciousness()
     
     # Show what's available
     print("\n📊 Module Categories:")

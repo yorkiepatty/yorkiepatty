@@ -19,7 +19,6 @@ import os
 import sys
 import json
 import time
-import boto3
 import tempfile
 import uuid
 import traceback
@@ -56,10 +55,9 @@ except ImportError:
 import re
 from typing import List
 
-# ElevenLabs TTS
+# ElevenLabs TTS (premium - primary when API key is set)
 try:
-    from elevenlabs import VoiceSettings
-    from elevenlabs.client import ElevenLabs
+    from elevenlabs.client import ElevenLabs as ElevenLabsClient
     ELEVENLABS = True
 except ImportError:
     ELEVENLABS = False
@@ -242,7 +240,6 @@ def capture_screen():
         return None, f"Screen capture error: {e}"
 
 # AI Providers
-import anthropic
 from openai import OpenAI
 
 # Load environment variables
@@ -274,35 +271,26 @@ except ImportError:
     DEREK_BRAIN = False
     print("⚠️  Sunny brain not available")
 
-try:
-    from json_guardian import JSONGuardian
-    guardian = JSONGuardian()
-    GUARDIAN = True
-except ImportError:
-    GUARDIAN = False
-    print("⚠️  JSON Guardian not available")
+    try:
+        from json_guardian import JSONGuardian
+        guardian = JSONGuardian()
+        GUARDIAN = True
+    except ImportError:
+        GUARDIAN = False
+        print("JSON Guardian not available")
 
-# Screen capture capability
-try:
-    from PIL import ImageGrab
-    import base64
-    from io import BytesIO
-    SCREEN_CAPTURE = True
-except ImportError:
-    SCREEN_CAPTURE = False
-    print("⚠️  Screen capture not available. Install with: pip install pillow")
+    # Screen capture capability
+    try:
+        from PIL import ImageGrab
+        import base64
+        from io import BytesIO
+        SCREEN_CAPTURE = True
+    except ImportError:
+        SCREEN_CAPTURE = False
+        print("⚠️  Screen capture not available. Install with: pip install pillow")
 
 
-# AWS Polly Neural Voices
-POLLY_VOICES = {
-    "matthew": {"gender": "male", "style": "friendly", "engine": "neural"},
-    "joanna": {"gender": "female", "style": "professional", "engine": "neural"},
-    "stephen": {"gender": "male", "style": "calm", "engine": "neural"},
-    "ruth": {"gender": "female", "style": "warm", "engine": "neural"},
-    "kevin": {"gender": "male", "style": "conversational", "engine": "neural"},
-    "gregory": {"gender": "male", "style": "authoritative", "engine": "neural"},
-    "amy": {"gender": "female", "style": "british", "engine": "neural"},
-}
+POLLY_VOICES = {}  # AWS Polly removed
 
 
 class SunnyUltimateVoice:
@@ -427,154 +415,106 @@ class SunnyUltimateVoice:
         REMEMBER:
         Your clarity, independence, and loyalty must never be compromised.
         """
-        
-        print("✅ Sunny Ultimate Voice System ready!")
-        print(f"🗣️  Voice: {voice_id}")
-        print(f"🧠 AI: {self.ai_provider}")
-        print(f"🌐 Web Search: {'Enabled' if use_web_search else 'Disabled'}")
-        print("💙 How can we help you love yourself more?\n")
-
-        # Start keyboard listener for interrupt (ESC or SPACE to stop speaking)
-        start_keyboard_listener()
-    
     def _initialize_voice_systems(self):
-        """Initialize ElevenLabs, AWS Polly and gTTS voice systems"""
         print("\n🔊 Initializing voice systems...")
 
-        # ElevenLabs setup (primary) - can be disabled with DISABLE_ELEVENLABS=1
+        # ElevenLabs setup (primary - requires ELEVENLABS_API_KEY)
         self.elevenlabs = False
-        api_key = os.getenv("ELEVENLABS_API_KEY")
-        disable_elevenlabs = os.getenv("DISABLE_ELEVENLABS", "").lower() in ("1", "true", "yes")
-
-        if disable_elevenlabs:
-            print("⚠️  ElevenLabs disabled via DISABLE_ELEVENLABS environment variable")
-            print("   Using pyttsx3 (male voice) or gTTS as fallback")
-        else:
-            print(f"   ELEVENLABS module: {ELEVENLABS}")
-            print(f"   API key found: {bool(api_key)}")
-            if api_key:
-                print(f"   API key length: {len(api_key)} characters")
-
-        if not disable_elevenlabs and ELEVENLABS and api_key:
+        self.elevenlabs_client = None
+        self.elevenlabs_voice = os.getenv("ELEVENLABS_VOICE_ID", "iP95p4xoKVk53GoZ742B")
+        if ELEVENLABS and os.getenv("ELEVENLABS_API_KEY"):
             try:
-                self.elevenlabs_client = ElevenLabs(api_key=api_key)
+                self.elevenlabs_client = ElevenLabsClient(api_key=os.getenv("ELEVENLABS_API_KEY"))
                 self.elevenlabs = True
-                print("✅ ElevenLabs TTS initialized (primary voice)")
+                print("✅ ElevenLabs initialized (primary TTS)")
             except Exception as e:
-                print(f"⚠️  ElevenLabs initialization failed: {e}")
-                import traceback
-                traceback.print_exc()
-        elif not ELEVENLABS:
-            print("⚠️  ElevenLabs module not installed")
-            print("   Run: pip install elevenlabs")
-        elif not api_key:
-            print("⚠️  ELEVENLABS_API_KEY not found in environment")
-            print("   Check your .env file")
+                print(f"⚠️  ElevenLabs not available: {e}")
+        else:
+            if not os.getenv("ELEVENLABS_API_KEY"):
+                print("⚠️  ELEVENLABS_API_KEY not set - ElevenLabs disabled")
 
-        # AWS Polly setup (fallback)
+        self.polly = None
+        self.polly_available = False  # AWS Polly removed
+
+        # edge-tts (Microsoft voices, free)
         try:
-            self.polly = boto3.client('polly')
-            self.polly = True
-            print("✅ AWS Polly initialized (fallback)")
-        except Exception as e:
-            self.polly = False
-            print(f"⚠️  AWS Polly not available: {e}")
-
-        # pyttsx3 for male voice (uses system TTS engine)
-        self.pyttsx3 = False
-        self.pyttsx3_engine = None
-        if PYTTSX3:
-            try:
-                self.pyttsx3_engine = pyttsx3.init()
-                voices = self.pyttsx3_engine.getProperty('voices')
-                # Find a male voice
-                male_voice = None
-                for voice in voices:
-                    # Check for male voice (David on Windows, or any voice with 'male' in name)
-                    if 'david' in voice.name.lower() or 'male' in voice.name.lower():
-                        male_voice = voice
-                        break
-                    # On Linux, look for male voices
-                    if 'english' in voice.name.lower() and voice.id != voices[0].id:
-                        male_voice = voice
-                        break
-
-                if male_voice:
-                    self.pyttsx3_engine.setProperty('voice', male_voice.id)
-                    print(f"✅ pyttsx3 male voice initialized: {male_voice.name}")
-                else:
-                    # Just use the second voice if available (often male)
-                    if len(voices) > 1:
-                        self.pyttsx3_engine.setProperty('voice', voices[1].id)
-                        print(f"✅ pyttsx3 voice initialized: {voices[1].name}")
-                    else:
-                        print("✅ pyttsx3 initialized (default voice)")
-
-                # Set a deeper/slower rate for more masculine sound
-                self.pyttsx3_engine.setProperty('rate', 150)  # Slightly slower
-                self.pyttsx3 = True
-            except Exception as e:
-                print(f"⚠️  pyttsx3 initialization failed: {e}")
-        else:
-            print("⚠️  pyttsx3 not installed (run: pip install pyttsx3)")
-
-        # edge-tts for high-quality Microsoft voices (recommended fallback)
-        self.edge_tts = False
-        if EDGE_TTS:
+            import edge_tts
+            import asyncio
             self.edge_tts = True
-            # Guy is a natural-sounding American male voice
-            self.edge_voice = "en-US-GuyNeural"
-            print(f"✅ Edge TTS initialized (voice: {self.edge_voice})")
-        else:
-            print("⚠️  edge-tts not installed (run: pip install edge-tts)")
+            self.edge_voice = "en-US-JennyNeural"
+            print("✅ edge-tts available")
+        except ImportError:
+            self.edge_tts = False
+            print("⚠️  edge-tts not installed (pip install edge-tts)")
 
-        # gTTS is always available as final fallback
-        self.gtts = True
-        print("✅ Google TTS available as final fallback")
-    
+        # pyttsx3 (system TTS)
+        try:
+            import pyttsx3 as _pyttsx3
+            _pyttsx3.init()
+            self.pyttsx3 = True
+            print("✅ pyttsx3 available")
+        except Exception:
+            self.pyttsx3 = False
+
+        # gTTS (Google TTS - final fallback)
+        try:
+            from gtts import gTTS as _gTTS
+            self.gtts = True
+            print("✅ gTTS available as final fallback")
+        except ImportError:
+            self.gtts = False
+            print("⚠️  gTTS not installed (pip install gtts)")
     def _initialize_ai_providers(self, provider):
         """Initialize AI providers with auto-detection"""
-        print("⚙️  Initializing external interfaces (optional)...")
-        self.ai_clients = {}
+        print("🔄 Initializing external AI providers...")
+
         try:
             from api_clients import openai_client, anthropic_client
             self.ai_clients["openai"] = openai_client
             self.ai_clients["anthropic"] = anthropic_client
         except ImportError:
-            print("🔒 No external AI providers loaded — running self-contained.")
-        
+            print("No external AI providers loaded")
+
         providers = []
-        
-        # Check available providers
-        if os.getenv("ANTHROPIC_API_KEY"):
-            try:
-                self.anthropic_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-                providers.append("anthropic")
-                print("✅ Anthropic Claude available")
-            except Exception as e:
-                print(f"⚠️  Anthropic not available: {e}")
-        
+
+        # Check Ollama (primary - local Qwen 2.5)
+        try:
+            import requests
+            resp = requests.get("http://localhost:11434/api/tags", timeout=3)
+            if resp.status_code == 200:
+                self.ollama_model = "qwen2.5"
+                self.ollama_url = "http://localhost:11434"
+                providers.append("ollama")
+                print("✅ Ollama available (Qwen 2.5 - primary)")
+            else:
+                print("⚠️  Ollama running but responded unexpectedly")
+        except Exception as e:
+            print(f"⚠️  Ollama not reachable at localhost:11434: {e}")
+            print("   Start Ollama and run: ollama pull qwen2.5")
+
+        # Check available external providers (fallbacks)
         if os.getenv("OPENAI_API_KEY"):
             try:
-                self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                self.openai_client = OpenAI(
+                    api_key=os.getenv("OPENAI_API_KEY")
+                )
                 providers.append("openai")
-                print("✅ OpenAI GPT available")
+                print("OpenAI available (fallback)")
             except Exception as e:
-                print(f"⚠️  OpenAI not available: {e}")
-        
+                print(f"OpenAI not available: {e}")
+
         if PERPLEXITY and os.getenv("PERPLEXITY_API_KEY"):
             try:
                 self.perplexity_client = PerplexityService()
                 providers.append("perplexity")
-                print("✅ Perplexity AI available")
+                print("✅ Perplexity AI available (fallback)")
             except Exception:
-                # Silently skip if Perplexity not configured - Sunny is independent
                 pass
-        
-        # Auto-select provider
+
+        # Auto-select provider - Ollama/Qwen 2.5 first
         if provider == "auto":
-            if "anthropic" in providers:
-                return "anthropic"
+            if "ollama" in providers:
+                return "ollama"
             elif "openai" in providers:
                 return "openai"
             elif "perplexity" in providers:
@@ -589,8 +529,8 @@ class SunnyUltimateVoice:
             print(f"Available providers: {providers}")
             sys.exit(1)
     
+
     def _initialize_speech_recognition(self):
-        """Initialize speech recognition using sounddevice + vosk (no PyAudio needed)"""
         self.use_vosk = False
         self.recognizer = None
         self.microphone = None
@@ -1141,10 +1081,10 @@ class SunnyUltimateVoice:
             Emotion: {emotion if emotion else 'Neutral'}
             Vision: {vision if vision else 'None'}"""
             
-            # Get master AI's response
+            # Get AI response
             master_response = ""
-            if self.ai_provider == "anthropic":
-                master_response = self._query_anthropic(self.system_prompt, context)
+            if self.ai_provider == "ollama":
+                master_response = self._query_ollama(self.system_prompt, context)
             elif self.ai_provider == "openai":
                 master_response = self._query_openai(self.system_prompt, context)
             elif self.ai_provider == "perplexity":
@@ -1279,8 +1219,8 @@ class SunnyUltimateVoice:
             system_prompt = f"{system_prompt}\n\nAdditional Context:\n{context}"
         
         try:
-            if self.ai_provider == "anthropic":
-                return self._query_anthropic(system_prompt, user_prompt)
+            if self.ai_provider == "ollama":
+                return self._query_ollama(system_prompt, user_prompt)
             elif self.ai_provider == "openai":
                 return self._query_openai(system_prompt, user_prompt)
             elif self.ai_provider == "perplexity":
@@ -1289,46 +1229,44 @@ class SunnyUltimateVoice:
                 return "AI provider not configured"
         except Exception as e:
             print(f"⚠️  External API query failed: {e}")
-            return "I'm having trouble connecting to my external AI. Let me try using my local knowledge..."
+            return "I'm having trouble connecting to my AI. Let me try using my local knowledge..."
     
-    def _query_anthropic(self, system_prompt: str, user_prompt: str) -> str:
-        """Query Anthropic Claude API with conversation history"""
+    def _query_ollama(self, system_prompt: str, user_prompt: str) -> str:
+        """Query local Ollama Qwen 2.5 with conversation history"""
+        import requests
+
+        messages = [{"role": "system", "content": system_prompt}]
+        if hasattr(self, 'conversation_history') and self.conversation_history:
+            for msg in self.conversation_history[-40:]:
+                if msg.get('content') and msg['content'].strip():
+                    messages.append({"role": msg['role'], "content": msg['content']})
+        if user_prompt and user_prompt.strip():
+            messages.append({"role": "user", "content": user_prompt})
+            self.conversation_history.append({"role": "user", "content": user_prompt})
+
         try:
-            # Build messages with conversation history for memory
-            messages = []
-            # Include recent conversation history (last 20 exchanges) - filter empty messages
-            if hasattr(self, 'conversation_history') and self.conversation_history:
-                for msg in self.conversation_history[-40:]:
-                    if msg.get('content') and msg['content'].strip():
-                        messages.append(msg)
-            # Add current user message
-            if user_prompt and user_prompt.strip():
-                messages.append({"role": "user", "content": user_prompt})
-                # Also add to conversation history
-                self.conversation_history.append({"role": "user", "content": user_prompt})
-
-            message = self.anthropic_client.messages.create(
-                model="claude-sonnet-4-5-20250929",
-                max_tokens=1024,
-                system=system_prompt,
-                messages=messages
+            resp = requests.post(
+                f"{self.ollama_url}/api/chat",
+                json={
+                    "model": self.ollama_model,
+                    "messages": messages,
+                    "stream": False,
+                    "options": {"temperature": 0.7, "num_predict": 1024}
+                },
+                timeout=60
             )
-            # Extract text from response
-            response_text = ""
-            for block in message.content:
-                if hasattr(block, 'text'):
-                    response_text += block.text
-
-            # Save assistant response to conversation history
-            final_response = response_text if response_text else "I'm processing that carefully."
-            self.conversation_history.append({"role": "assistant", "content": final_response})
-            self._save_conversation_memory()  # Persist to disk
-
-            return final_response
+            resp.raise_for_status()
+            data = resp.json()
+            response_text = data.get("message", {}).get("content", "").strip()
+            if not response_text:
+                response_text = "I'm processing that carefully."
+            self.conversation_history.append({"role": "assistant", "content": response_text})
+            self._save_conversation_memory()
+            return response_text
         except Exception as e:
-            print(f"⚠️  Anthropic query failed: {e}")
+            print(f"⚠️  Ollama query failed: {e}")
             raise
-    
+
     def _query_openai(self, system_prompt: str, user_prompt: str) -> str:
         """Query OpenAI GPT API with conversation history"""
         try:
@@ -1450,27 +1388,12 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         answer = ""
         
         # Get response based on provider
-        if self.ai_provider == "anthropic":
+        if self.ai_provider == "ollama":
             try:
-                response = self.anthropic_client.messages.create(
-                    model="claude-sonnet-4-5-20250929",
-                    max_tokens=300,
-                    system=self.system_prompt,
-                    messages=self.conversation_history[-50:]  # Send up to last 50 messages
-                )
-                # Extract text from response content
-                answer = ""
-                for content_block in response.content:
-                    if hasattr(content_block, 'text'):
-                        answer += content_block.text
-                    elif hasattr(content_block, 'content'):
-                        answer += str(content_block.content)
-                    else:
-                        answer += str(content_block)
+                answer = self._query_ollama(self.system_prompt, user_input)
             except Exception as e:
-                print(f"⚠️  Anthropic error: {e}")
-                answer = "I'm having trouble with my Anthropic connection right now."
-            
+                print(f"⚠️  Ollama error: {e}")
+                answer = "I'm having trouble reaching my local AI right now."
         elif self.ai_provider == "openai":
             try:
                 # Prepare messages with system prompt for OpenAI
@@ -1518,40 +1441,9 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
         return answer
 
     def _analyze_image_with_ai(self, image_base64: str, prompt: str) -> str:
-        """Analyze an image using Claude's vision capabilities"""
+        """Analyze an image using vision AI"""
         try:
-            if self.ai_provider == "anthropic" and hasattr(self, 'anthropic_client'):
-                # Use Claude's vision API
-                response = self.anthropic_client.messages.create(
-                    model="claude-sonnet-4-5-20250929",
-                    max_tokens=500,
-                    messages=[{
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image",
-                                "source": {
-                                    "type": "base64",
-                                    "media_type": "image/png",
-                                    "data": image_base64
-                                }
-                            },
-                            {
-                                "type": "text",
-                                "text": prompt
-                            }
-                        ]
-                    }]
-                )
-
-                # Extract text from response
-                answer = ""
-                for content_block in response.content:
-                    if hasattr(content_block, 'text'):
-                        answer += content_block.text
-                return answer if answer else "I can see your screen but I'm having trouble describing it."
-
-            elif self.ai_provider == "openai" and hasattr(self, 'openai_client'):
+            if self.ai_provider == "openai" and hasattr(self, 'openai_client'):
                 # Use OpenAI's vision API
                 response = self.openai_client.chat.completions.create(
                     model="gpt-4o",
@@ -1575,7 +1467,7 @@ Please provide a helpful response as Sunny, keeping it conversational and under 
                 return response.choices[0].message.content or "I can see your screen but I'm having trouble describing it."
 
             else:
-                return "I need Claude or GPT-4 with vision capabilities to analyze your screen. Please configure an AI provider with vision support."
+                return "I need GPT-4o to analyze your screen. Please configure OpenAI in your .env file."
 
         except Exception as e:
             print(f"⚠️  Vision analysis error: {e}")
@@ -1784,60 +1676,6 @@ Remember: The cards reflect possibilities, not certainties. You always have free
 """
         return reading
 
-    def _speak_elevenlabs(self, text):
-        """Speak using ElevenLabs TTS"""
-        # Get voice ID from environment or use default
-        # To find your voice ID: go to ElevenLabs > Voice Library > click your voice > copy the ID
-        voice_id = os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")  # Default: Adam
-
-        # Popular voice IDs:
-        # Rachel: "21m00Tcm4TlvDq8ikWAM" - warm, friendly female
-        # Drew: "29vD33N1CtxCmqQRPOHJ" - deep male
-        # Clyde: "2EiwWnXFnvU5JabPnv8n" - strong male
-        # Paul: "5Q0t7uMcjvnagumLfvZi" - calm male
-        # Adam: "pNInz6obpgDQGcFmaJgB" - deep, friendly male
-
-        try:
-            # Generate speech with ElevenLabs
-            audio_generator = self.elevenlabs_client.text_to_speech.convert(
-                voice_id=voice_id,
-                optimize_streaming_latency="0",
-                output_format="mp3_22050_32",
-                text=text,
-                model_id="eleven_multilingual_v2",
-                voice_settings=VoiceSettings(
-                    stability=0.5,
-                    similarity_boost=0.75,
-                    style=0.0,
-                    use_speaker_boost=True
-                )
-            )
-
-            # Save audio to temp file
-            temp_dir = tempfile.gettempdir()
-            audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
-
-            with open(audio_file, 'wb') as f:
-                for chunk in audio_generator:
-                    if chunk:
-                        f.write(chunk)
-
-            # Play the audio
-            playsound(audio_file)
-
-            # Clean up
-            try:
-                os.remove(audio_file)
-            except:
-                pass
-
-        except Exception as e:
-            error_str = str(e).lower()
-            # Check for quota/credits errors and auto-disable ElevenLabs
-            if 'quota' in error_str or 'credits' in error_str or 'limit' in error_str or '401' in str(e):
-                print("⚠️  ElevenLabs quota exceeded - switching to pyttsx3/gTTS for this session")
-                self.elevenlabs = False  # Disable for rest of session
-            raise  # Re-raise to trigger fallback in speak()
     def _clean_text_for_speech(self, text):
         """Minimal, robust cleaning so TTS never speaks stage directions like *laughs*, (nods), [waves]."""
         import re
@@ -1905,21 +1743,14 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         tts_text = re.sub(r'\[[^\]]*\]', '', tts_text)    # remove [sighs] [pauses] etc
         tts_text = re.sub(r'\s+', ' ', tts_text).strip()  # clean up extra spaces
         
-        # Try ElevenLabs first (best quality)
-        if self.elevenlabs:
+        # Try ElevenLabs first (premium)
+        if self.elevenlabs and self.elevenlabs_client:
             try:
                 return self._speak_elevenlabs(tts_text)
             except Exception as e:
                 print(f"⚠️  ElevenLabs failed: {e}")
 
-        # Fallback to AWS Polly
-        if self.polly and self.voice_id in POLLY_VOICES:
-            try:
-                return self._speak_polly(tts_text)
-            except Exception as e:
-                print(f"⚠️  Polly failed: {e}")
-
-        # Fallback to edge-tts (high-quality Microsoft male voice)
+        # Try edge-tts next (high-quality Microsoft male voice)
         if self.edge_tts:
             try:
                 return self._speak_edge_tts(tts_text)
@@ -1943,27 +1774,24 @@ Remember: The cards reflect possibilities, not certainties. You always have free
         # Text only if all fail
         print("📝 (Voice synthesis unavailable - text only)")
     
-    def _speak_polly(self, text):
-        """Speak using AWS Polly neural voices"""
-        voice_config = POLLY_VOICES[self.voice_id]
-        
-        response = self.polly.synthesize_speech(
-            Text=text,
-            OutputFormat='mp3',
-            VoiceId=self.voice_id.capitalize(),
-            Engine=voice_config.get('engine', 'neural')
-        )
-        
-        # Save and play audio
+    def _speak_elevenlabs(self, text):
+        """Speak using ElevenLabs premium TTS"""
         temp_dir = tempfile.gettempdir()
-        audio_file = os.path.join(temp_dir, f"sunny_polly_{uuid.uuid4()}.mp3")
-        
+        audio_file = os.path.join(temp_dir, f"sunny_elevenlabs_{uuid.uuid4()}.mp3")
+
+        audio = self.elevenlabs_client.text_to_speech.convert(
+            text=text,
+            voice_id=self.elevenlabs_voice,
+            model_id="eleven_monolingual_v1",
+            output_format="mp3_44100_128"
+        )
+
         with open(audio_file, 'wb') as f:
-            f.write(response['AudioStream'].read())
-        
+            for chunk in audio:
+                f.write(chunk)
+
         playsound(audio_file)
-        
-        # Clean up
+
         try:
             os.remove(audio_file)
         except:
@@ -2567,8 +2395,8 @@ Provide clean, well-commented, production-ready code with explanations."""
     def _switch_ai_provider(self):
         """Switch between available AI providers"""
         available = []
-        if hasattr(self, 'anthropic_client'):
-            available.append("anthropic")
+        if hasattr(self, 'ollama_url'):
+            available.append("ollama")
         if hasattr(self, 'openai_client'):
             available.append("openai")
         if hasattr(self, 'perplexity_client'):
@@ -2826,38 +2654,35 @@ Provide clean, well-commented, production-ready code with explanations."""
 def main():
     """Entry point for Sunny Ultimate Voice System"""
     print("Checking configuration...\n")
-    
+
     # Check available APIs
-    anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
+    import requests as _req
+    try:
+        _req.get("http://localhost:11434/api/tags", timeout=2)
+        ollama_ok = True
+    except Exception:
+        ollama_ok = False
     openai = bool(os.getenv("OPENAI_API_KEY"))
     perplexity = bool(os.getenv("PERPLEXITY_API_KEY"))
-    aws = bool(os.getenv("AWS_ACCESS_KEY_ID")) or bool(os.getenv("AWS_PROFILE"))
-    
+
     print("Available capabilities:")
-    print(f"  🤖 Anthropic Claude: {'✅' if anthropic else '❌'}")
-    print(f"  🤖 OpenAI GPT: {'✅' if openai else '❌'}")
-    print(f"  🤖 Perplexity AI: {'✅' if perplexity else '❌'}")
-    print(f"  🗣️  AWS Polly: {'✅' if aws else '❌'}")
-    print(f"  🗣️  Google TTS: ✅ (always available)")
+    print(f"  🤖 Ollama Qwen 2.5 (primary): {'✅' if ollama_ok else '❌ (start Ollama + ollama pull qwen2.5)'}")
+    print(f"  🤖 OpenAI GPT (fallback): {'✅' if openai else '❌'}")
+    print(f"  🤖 Perplexity AI (fallback): {'✅' if perplexity else '❌'}")
+    print(f"  🗣️  edge-tts / pyttsx3 / gTTS: ✅ (always available)")
     print(f"  🌐 Web Search: {'✅' if PERPLEXITY or INTERNET_MODE else '❌'}")
     print()
-    
-    if not (anthropic or openai or perplexity):
-        print("❌ No AI providers available! Please set API keys in .env file")
+
+    if not (ollama_ok or openai or perplexity):
+        print("❌ No AI providers available!")
+        print("   Start Ollama and run: ollama pull qwen2.5")
         return
-    
-    # Voice options
-    print("Available voices:")
-    for voice, config in POLLY_VOICES.items():
-        status = "✅" if aws else "❌"
-        print(f"  {status} {voice}: {config['gender']} - {config['style']}")
-    print("  ✅ gtts: Google TTS fallback\n")
-    
+
     # Configuration options
-    ai_provider = "auto"  # Options: "auto", "anthropic", "openai", "perplexity"
-    voice_id = "matthew"  # Options: any from POLLY_VOICES or "gtts"
+    ai_provider = "ollama"  # Primary: local Ollama Qwen 2.5
+    voice_id = "joanna"  # Options: any Polly voice or "gtts"; joanna = warm US female
     use_web_search = True  # Enable web search capabilities
-    
+
     # Start Sunny Ultimate Voice System
     try:
         sunny = SunnyUltimateVoice(
@@ -2868,15 +2693,13 @@ def main():
         sunny.run()
     except KeyboardInterrupt:
         print("\n🛑 Sunny shutting down gracefully...")
-        # Save all memories before exit
         if hasattr(sunny, 'memory') and sunny.memory:
             sunny.memory.save()
-            print("💾 All memories saved to persistent storage")
+            print("All memories saved to persistent storage")
         print("👋 Goodbye!")
     except Exception as e:
         print(f"❌ Failed to start Sunny: {e}")
         traceback.print_exc()
-        # Still try to save memories
         if 'sunny' in locals() and hasattr(sunny, 'memory') and sunny.memory:
             sunny.memory.save()
 
